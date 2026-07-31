@@ -102,9 +102,11 @@ src/
 ## 11. Type generation
 
 Add an npm script:
+
 ```json
 "db:types": "supabase gen types typescript --linked > src/types/database.types.ts"
 ```
+
 Run this after every migration so `Database` types (and therefore every Supabase query and every API type built on top) stay accurate.
 
 ## 12. Environment variables

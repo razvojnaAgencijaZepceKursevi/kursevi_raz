@@ -25,6 +25,7 @@ npm install -D @types/swagger-ui-react
 ## 3. Zod schemas per resource
 
 Create one file per resource under `src/lib/schemas/`, e.g.:
+
 ```
 src/lib/schemas/
   courses.schema.ts
@@ -39,6 +40,7 @@ src/lib/schemas/
 ```
 
 Each file defines and exports:
+
 - The request body schema(s) for that resource's mutating endpoints (e.g. `createCourseSchema`, `updateCourseSchema`)
 - The response schema(s) (e.g. `courseResponseSchema`, `courseListResponseSchema`)
 - Query param schemas for list endpoints (`page`, `pageSize`, `search`, filters)
@@ -50,11 +52,13 @@ These schemas are the single source of truth: import them in the route handler t
 ## 4. OpenAPI registry
 
 `src/lib/openapi/registry.ts`:
+
 - Create a single `OpenAPIRegistry` instance (from `@asteasolutions/zod-to-openapi`).
 - For every route in `database-and-migrations.md` section 6, call `registry.registerPath({...})` with: `method`, `path` (converted to OpenAPI's `{param}` syntax), `tags` (group by resource — Courses, Modules, Quizzes, Tasks, Purchases, Submissions, Progress, Certificates, Users), `request` (params/query/body schemas imported from `src/lib/schemas/`), and `responses` (status codes mapped to their response schemas).
 - Mark auth-protected routes with a `security` requirement referencing a registered bearer/cookie auth scheme, so Swagger UI's "Try it out" can send credentials.
 
 `src/lib/openapi/generate.ts`:
+
 - Build the document with `OpenApiGeneratorV3` from the registry, setting `info` (title, version) and `servers`.
 - Export a `generateOpenApiDocument()` function returning the JSON-serializable spec object.
 
@@ -63,6 +67,7 @@ These schemas are the single source of truth: import them in the route handler t
 ## 5. Serve the spec
 
 `src/app/api/openapi.json/route.ts`:
+
 ```ts
 import { generateOpenApiDocument } from '@/lib/openapi/generate';
 
@@ -70,6 +75,7 @@ export async function GET() {
   return Response.json(generateOpenApiDocument());
 }
 ```
+
 This regenerates the document on every request directly from the current schemas/registry — no build step, no stale cached file.
 
 ---
@@ -77,6 +83,7 @@ This regenerates the document on every request directly from the current schemas
 ## 6. Docs page
 
 `src/app/api-docs/page.tsx` (client component):
+
 ```tsx
 'use client';
 import SwaggerUI from 'swagger-ui-react';
