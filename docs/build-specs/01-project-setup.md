@@ -56,6 +56,9 @@ src/
       service-role.ts     -- service-role client, server-only, never imported client-side
     query/
       queryClient.ts       -- React Query client config
+    api/
+      errors.ts            -- server-side error mapping for route handlers
+      client.ts            -- browser fetch wrapper + envelope types for the hooks
   hooks/                   -- React Query hooks per resource (useCourses, useModules, etc.) — built alongside endpoints
   store/                   -- Zustand stores
     useAuthStore.ts
@@ -63,7 +66,6 @@ src/
     theme.ts               -- MUI theme definition
   types/
     database.types.ts      -- generated via `supabase gen types typescript`
-    api/                    -- request/response types per endpoint group
   middleware.ts             -- route protection (admin vs student vs public)
 ```
 
@@ -78,7 +80,10 @@ src/
 - Create a `QueryClient` in `src/lib/query/queryClient.ts` with sensible defaults (e.g. `staleTime`, `retry` policy appropriate for this app).
 - Add a client component `QueryProvider` wrapping `QueryClientProvider`, mounted in `src/app/layout.tsx` alongside the theme provider.
 - Include `ReactQueryDevtools` in development only.
-- Convention: one hooks file per resource in `src/hooks/` (e.g. `useCourses.ts`, `usePurchases.ts`), each exporting typed `useQuery`/`useMutation` wrappers that call the corresponding `/api/*` route and use the types from `src/types/api/`.
+- Convention: one hooks file per resource in `src/hooks/` (e.g. `useCourses.ts`, `usePurchases.ts`), each exporting typed `useQuery`/`useMutation` wrappers that call the corresponding `/api/*` route.
+- Types come from the endpoint's zod schema in `src/lib/schemas/` via `import type`, never from a hand-written parallel set. Those schemas already drive request validation and the OpenAPI doc; adding a second declaration of the same shape would be a second source of truth with nothing keeping the two in sync. `import type` is erased at build time, so no zod reaches the client bundle.
+- Requests go through `src/lib/api/client.ts` rather than bare `fetch`: it owns the `{ data }` / `{ data, meta }` envelopes and turns a non-2xx body into an `ApiRequestError` carrying `status`, which is what the `retry` policy above reads.
+- `src/hooks/useCourses.ts` is the reference implementation — follow its key factories, its separation of public and admin namespaces, and its invalidation approach.
 
 ## 8. Zustand setup
 

@@ -288,7 +288,7 @@ General pattern: `is_admin()` → full access. Everyone else scoped as below.
 
 Implement under `src/app/api/**/route.ts`. Use the RLS-respecting Supabase client (with the user's session) for anything RLS already protects correctly. Use the **service-role client** only where the RLS section above explicitly says students have no write policy (`module_progress`, `certificates`, and any status-transition action like approving a purchase or submission) — and independently verify the caller's role/identity in the route before doing anything.
 
-All list endpoints support `?page=`, `?pageSize=`, `?search=`, and relevant `?filter=` query params. Every endpoint's request/response types should be defined in `src/types/api/*.ts` and reused by the React Query hooks on the frontend.
+All list endpoints support `?page=`, `?pageSize=`, `?search=`, and relevant `?filter=` query params. Every endpoint's request/response shape is defined once, as a zod schema in `src/lib/schemas/*.schema.ts`. That single definition drives three things: request validation in the route handler, the OpenAPI document behind `/api-docs`, and the TypeScript types the React Query hooks import (`z.infer`, exported at the foot of each schema file). Do not hand-write a parallel set of API types.
 
 ### Auth / Users
 
