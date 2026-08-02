@@ -35,8 +35,8 @@ function LoginForm() {
       // password and an unknown email, which is the behaviour we want — don't
       // rewrite it into something that reveals which.
       setError(
-        signInError.message === 'Email not confirmed'
-          ? 'Please confirm your email address before signing in. Check your inbox for the link.'
+        signInError.message === 'Email nije potvrđen'
+          ? 'Molimo potvrdite svoju email adresu prije prijavljivanja. Link za potvrdu se nalazi u vašem inbox-u.'
           : signInError.message,
       );
       setPending(false);
@@ -57,7 +57,7 @@ function LoginForm() {
   }
 
   return (
-    <AuthCard title="Sign in" subtitle="Welcome back.">
+    <AuthCard title="Prijava" subtitle="Dobrodošli nazad.">
       <form onSubmit={handleSubmit} noValidate>
         <Stack spacing={2}>
           {error ? <Alert severity="error">{error}</Alert> : null}
@@ -71,7 +71,7 @@ function LoginForm() {
             required
           />
           <TextField
-            label="Password"
+            label="Lozinka"
             type="password"
             value={password}
             onChange={(e) => setPassword(e.target.value)}
@@ -80,15 +80,15 @@ function LoginForm() {
           />
 
           <Button type="submit" variant="contained" size="large" disabled={pending}>
-            {pending ? 'Signing in…' : 'Sign in'}
+            {pending ? 'Prijavljivanje…' : 'Prijavi se'}
           </Button>
 
           <Stack direction="row" sx={{ justifyContent: 'space-between' }}>
             <Link component={NextLink} href="/register" variant="body2">
-              Create an account
+              Kreiraj nalog
             </Link>
             <Link component={NextLink} href="/forgot-password" variant="body2">
-              Forgot password?
+              Zaboravljena lozinka?
             </Link>
           </Stack>
         </Stack>
