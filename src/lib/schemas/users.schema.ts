@@ -34,5 +34,7 @@ export const updateUserSchema = z
   .openapi('UpdateUserRequest');
 
 export type Profile = z.infer<typeof profileSchema>;
+export type UserRole = z.infer<typeof userRoleSchema>;
+export type MeResponse = z.infer<typeof meResponseSchema>;
 export type ListUsersQuery = z.infer<typeof listUsersQuerySchema>;
 export type UpdateUserRequest = z.infer<typeof updateUserSchema>;

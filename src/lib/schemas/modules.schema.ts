@@ -66,6 +66,7 @@ export const moduleFileResponseSchema = z
   .openapi('ModuleFileResponse');
 
 export type Module = z.infer<typeof moduleSchema>;
+export type ModuleWithFiles = z.infer<typeof moduleWithFilesSchema>;
 export type ModuleFile = z.infer<typeof moduleFileSchema>;
 export type CreateModuleRequest = z.infer<typeof createModuleSchema>;
 export type UpdateModuleRequest = z.infer<typeof updateModuleSchema>;

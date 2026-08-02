@@ -84,7 +84,10 @@ export const createMessageResponseSchema = z
   .openapi('CreateMessageResponse');
 
 export type TaskSubmission = z.infer<typeof taskSubmissionSchema>;
+export type TaskSubmissionStatus = z.infer<typeof taskSubmissionStatusSchema>;
 export type TaskMessage = z.infer<typeof taskMessageSchema>;
+export type CreateSubmissionResponse = z.infer<typeof createSubmissionResponseSchema>;
+export type CreateMessageResponse = z.infer<typeof createMessageResponseSchema>;
 export type CreateSubmissionRequest = z.infer<typeof createSubmissionSchema>;
 export type CreateMessageRequest = z.infer<typeof createMessageSchema>;
 export type ListSubmissionsQuery = z.infer<typeof listSubmissionsQuerySchema>;

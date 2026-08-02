@@ -6,7 +6,7 @@ Welcome. This is your orientation to the codebase — how it's organized, how th
 
 ## 1. The stack, briefly
 
-- **Next.js (App Router)** — the framework. Pages live as files under `src/app/`; the folder structure *is* the routing.
+- **Next.js (App Router)** — the framework. Pages live as files under `src/app/`; the folder structure _is_ the routing.
 - **TypeScript** — everything is typed, including the database itself (see section 6).
 - **Material UI (MUI)** — the component library. Buttons, forms, layout, everything visual starts from MUI components, styled via the shared theme.
 - **TanStack React Query** — handles all data fetching/caching. You never call `fetch` or the Supabase client directly from a page — you call a hook.
@@ -29,9 +29,11 @@ src/
   lib/
     supabase/        <- Supabase client setup — don't modify
     query/            <- React Query client config — don't modify
+    api/client.ts     <- the fetch wrapper the hooks use — don't modify
+    schemas/          <- zod schemas: the single source of truth for API types
   store/            <- Zustand stores (useAuthStore.ts)
   theme/            <- theme.ts — MUI theme definition
-  types/            <- generated database types + API request/response types
+  types/            <- generated database types (database.types.ts)
   middleware.ts      <- route protection — don't modify without asking
 ```
 
@@ -55,13 +57,28 @@ This is the most important convention to internalize:
 import { useCourses } from '@/hooks/useCourses';
 
 function CourseList() {
-  const { data: courses, isLoading, error } = useCourses({ page: 1, search: '' });
+  const { data, isLoading, error } = useCourses({ page: 1 });
 
   if (isLoading) return <CircularProgress />;
   if (error) return <Alert severity="error">Couldn't load courses.</Alert>;
 
-  return courses.map((course) => <CourseCard key={course.id} course={course} />);
+  // List hooks return the API envelope: `data.data` is the rows,
+  // `data.meta` is { page, pageSize, total, totalPages } for pagination.
+  return data.data.map((course) => <CourseCard key={course.id} course={course} />);
 }
+```
+
+Two conventions worth knowing before you use these:
+
+- **List hooks return `{ data, meta }`; detail hooks return the record directly.** Lists need `meta` to render pagination, so the envelope is preserved. A detail hook like `useCourse(id)` unwraps it for you.
+- **Mutations are `useMutation`** — call `.mutate(...)` or `await .mutateAsync(...)`, and the hook invalidates the caches the change affects. You don't refetch by hand.
+
+Errors are `ApiRequestError` with a numeric `status`. That distinction matters: on a course page a 403 from `useCourseModules` means "hasn't bought this course" (show a purchase prompt), not "something broke".
+
+```tsx
+import { isApiRequestError } from '@/lib/api/client';
+
+if (isApiRequestError(error) && error.status === 403) return <PurchasePrompt />;
 ```
 
 If the hook you need doesn't exist yet, check with whoever's maintaining the backend layer before writing your own data-fetching logic — the endpoint likely already exists and just needs a hook wrapped around it.
@@ -96,6 +113,9 @@ If the hook you need doesn't exist yet, check with whoever's maintaining the bac
 ## 6. Types and the database
 
 - `src/types/database.types.ts` is auto-generated from the actual Supabase schema — never edit it by hand. If the schema changes, someone regenerates this file.
+- The types a hook gives you come from `src/lib/schemas/*.schema.ts` — the zod schemas that also validate requests on the server and generate `/api-docs`. One definition, three uses. If you need to name an API type in your own code (a component prop, say), import it from there: `import type { Course } from '@/lib/schemas/courses.schema'`.
+- Use `import type` for these, not a plain `import`. Type-only imports vanish at build time; a plain one would pull zod into the browser bundle.
+- Never redeclare an API shape as a local `interface`. If a type you need isn't exported from the schema file yet, add the `z.infer` export there rather than writing the shape out by hand.
 - This means table shapes are already typed for you — when you use a hook, the data it returns is typed automatically. Let TypeScript guide you: if something doesn't have the field you expect, check the actual schema/types file rather than assuming.
 
 ---
@@ -125,7 +145,7 @@ If the hook you need doesn't exist yet, check with whoever's maintaining the bac
   git checkout -b feature/course-detail-page
   # or: fix/quiz-score-bug
   ```
-- **Commit often, in small chunks**, with a clear message describing *what* changed:
+- **Commit often, in small chunks**, with a clear message describing _what_ changed:
   ```bash
   git add .
   git commit -m "Add course detail page layout"
