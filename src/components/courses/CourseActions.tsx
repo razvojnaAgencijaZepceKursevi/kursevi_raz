@@ -1,0 +1,102 @@
+'use client';
+
+import * as React from 'react';
+import NextLink from 'next/link';
+import DeleteOutlinedIcon from '@mui/icons-material/DeleteOutlined';
+import EditOutlinedIcon from '@mui/icons-material/EditOutlined';
+import MoreVertIcon from '@mui/icons-material/MoreVert';
+import ViewModuleOutlinedIcon from '@mui/icons-material/ViewModuleOutlined';
+import IconButton from '@mui/material/IconButton';
+import ListItemIcon from '@mui/material/ListItemIcon';
+import Menu from '@mui/material/Menu';
+import MenuItem from '@mui/material/MenuItem';
+import Typography from '@mui/material/Typography';
+import ConfirmDialog from '@/components/feedback/ConfirmDialog';
+import { useDeleteCourse } from '@/hooks/useCourses';
+import { errorMessage } from '@/lib/api/errorMessage';
+import { toast } from '@/store/useToastStore';
+import type { Course } from '@/lib/schemas/courses.schema';
+
+/**
+ * Row actions for one course: edit, manage modules, delete.
+ *
+ * It owns the delete mutation and its confirmation rather than taking them as
+ * props, so both the table and the grid can drop it in and neither has to know
+ * how deletion works. That's the pattern to copy for other resources: the list
+ * renders records, a small component like this owns what you can *do* to one.
+ */
+export default function CourseActions({ course }: { course: Course }) {
+  const [anchorEl, setAnchorEl] = React.useState<null | HTMLElement>(null);
+  const [confirmingDelete, setConfirmingDelete] = React.useState(false);
+  const deleteCourse = useDeleteCourse();
+
+  const close = () => setAnchorEl(null);
+
+  async function handleDelete() {
+    try {
+      await deleteCourse.mutateAsync(course.id);
+      toast.success(`Kurs „${course.name}” je obrisan.`);
+      setConfirmingDelete(false);
+    } catch (error) {
+      // The dialog stays open so the admin can retry or cancel deliberately.
+      toast.error(errorMessage(error));
+    }
+  }
+
+  return (
+    <>
+      <IconButton
+        size="small"
+        onClick={(event) => setAnchorEl(event.currentTarget)}
+        aria-label={`Akcije za kurs ${course.name}`}
+        aria-haspopup="menu"
+      >
+        <MoreVertIcon fontSize="small" />
+      </IconButton>
+
+      <Menu anchorEl={anchorEl} open={Boolean(anchorEl)} onClose={close}>
+        <MenuItem component={NextLink} href={`/admin/courses/${course.id}/edit`} onClick={close}>
+          <ListItemIcon>
+            <EditOutlinedIcon fontSize="small" />
+          </ListItemIcon>
+          <Typography variant="body2">Izmeni</Typography>
+        </MenuItem>
+
+        <MenuItem component={NextLink} href={`/admin/courses/${course.id}/modules`} onClick={close}>
+          <ListItemIcon>
+            <ViewModuleOutlinedIcon fontSize="small" />
+          </ListItemIcon>
+          <Typography variant="body2">Moduli</Typography>
+        </MenuItem>
+
+        <MenuItem
+          onClick={() => {
+            close();
+            setConfirmingDelete(true);
+          }}
+          sx={{ color: 'error.main' }}
+        >
+          <ListItemIcon>
+            <DeleteOutlinedIcon fontSize="small" color="error" />
+          </ListItemIcon>
+          <Typography variant="body2">Obriši</Typography>
+        </MenuItem>
+      </Menu>
+
+      <ConfirmDialog
+        open={confirmingDelete}
+        title="Obrisati kurs?"
+        description={
+          <>
+            Kurs <strong>{course.name}</strong> i sav njegov sadržaj — moduli, kvizovi, zadaci i
+            fajlovi — biće trajno obrisani. Ova akcija se ne može poništiti.
+          </>
+        }
+        confirmLabel="Obriši kurs"
+        pending={deleteCourse.isPending}
+        onCancel={() => setConfirmingDelete(false)}
+        onConfirm={() => void handleDelete()}
+      />
+    </>
+  );
+}

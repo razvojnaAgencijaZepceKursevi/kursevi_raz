@@ -74,6 +74,11 @@ import {
   listCertificatesQuerySchema,
   requestDeliverySchema,
 } from '@/lib/schemas/certificates.schema';
+import {
+  bucketNameSchema,
+  uploadFolderSchema,
+  uploadResponseSchema,
+} from '@/lib/schemas/uploads.schema';
 
 export const registry = new OpenAPIRegistry();
 
@@ -649,4 +654,46 @@ registry.registerPath({
   security,
   request: { query: listCertificatesQuerySchema },
   responses: { 200: json(certificateListResponseSchema, 'Paginated certificates'), ...errors },
+});
+
+/* -------------------------------------------------------------------------- */
+/* Uploads                                                                     */
+/* -------------------------------------------------------------------------- */
+
+registry.registerPath({
+  method: 'post',
+  path: '/api/admin/uploads',
+  tags: ['Uploads'],
+  summary: 'Upload a file to a storage bucket (admin)',
+  description: [
+    'Accepts `multipart/form-data`, not JSON. `folder` is the `/`-joined list of',
+    "id segments the bucket's path convention requires — `{course_id}` for",
+    '`course-thumbnails`, `{course_id}/{module_id}` for `module-files` and',
+    '`task-files`, `{submission_id}` for `task-message-attachments`. The storage',
+    'RLS policies parse those segments back out to decide who may read the object,',
+    'so the depth is validated rather than assumed.',
+    '',
+    'Returns the stored object path. Persisting it to the owning record (e.g.',
+    '`courses.thumbnail_path`) is a separate call.',
+  ].join(' '),
+  security,
+  request: {
+    body: {
+      content: {
+        'multipart/form-data': {
+          schema: z.object({
+            bucket: bucketNameSchema,
+            folder: uploadFolderSchema,
+            file: z.string().openapi({ type: 'string', format: 'binary' }),
+          }),
+        },
+      },
+    },
+  },
+  responses: {
+    201: json(uploadResponseSchema, 'Uploaded'),
+    ...errors,
+    413: json(errorResponseSchema, 'File too large'),
+    502: json(errorResponseSchema, 'Storage rejected the upload'),
+  },
 });

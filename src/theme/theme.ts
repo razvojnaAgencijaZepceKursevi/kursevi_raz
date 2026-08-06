@@ -50,7 +50,11 @@ export const theme = createTheme({
     h4: { fontSize: '1.25rem', fontWeight: 600, letterSpacing: '-0.005em' },
     h5: { fontSize: '1.0625rem', fontWeight: 600 },
     h6: { fontSize: '0.9375rem', fontWeight: 600 },
-    subtitle1: { fontSize: '0.9375rem', fontWeight: 500, color: 'var(--mui-palette-text-secondary)' },
+    subtitle1: {
+      fontSize: '0.9375rem',
+      fontWeight: 500,
+      color: 'var(--mui-palette-text-secondary)',
+    },
     body1: { fontSize: '0.9375rem', lineHeight: 1.6 },
     body2: { fontSize: '0.8437rem', lineHeight: 1.55 },
     overline: { fontWeight: 700, letterSpacing: '0.08em', fontSize: '0.6875rem' },

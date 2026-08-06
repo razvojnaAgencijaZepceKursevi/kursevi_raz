@@ -1,6 +1,7 @@
 import { create } from 'zustand';
+import type { UserRole } from '@/lib/auth/routes';
 
-export type UserRole = 'admin' | 'student';
+export type { UserRole };
 
 export type AuthProfile = {
   id: string;
@@ -35,14 +36,8 @@ export const useIsAdmin = () => useAuthStore((s) => s.profile?.role === 'admin')
 export const useIsAuthenticated = () => useAuthStore((s) => s.profile !== null);
 
 /**
- * Landing route for a role — shared by the proxy, login page and callback.
- *
- * Admins land on /dashboard rather than /admin for now: the auth spec names
- * /admin as the admin landing page, but also states the sample /dashboard is
- * the ONLY page to build inside the protected groups, so /admin does not exist
- * yet and would 404 on login. Change the admin branch to '/admin' once that
- * page is built — nothing else needs to change.
+ * Re-exported for convenience: most callers of the store also need to know
+ * where a role belongs. The implementation lives in `@/lib/auth/routes` so the
+ * proxy can use it without importing zustand.
  */
-export function landingPathForRole(role: UserRole | undefined | null): string {
-  return role === 'admin' ? '/dashboard' : '/dashboard';
-}
+export { landingPathForRole } from '@/lib/auth/routes';

@@ -4,6 +4,7 @@ import './globals.css';
 import ThemeRegistry from '@/theme/ThemeRegistry';
 import QueryProvider from '@/lib/query/QueryProvider';
 import AuthProvider from '@/components/AuthProvider';
+import ToastHost from '@/components/feedback/ToastHost';
 
 const geistSans = Geist({
   variable: '--font-geist-sans',
@@ -30,7 +31,12 @@ export default function RootLayout({
       <body>
         <ThemeRegistry>
           <QueryProvider>
-            <AuthProvider>{children}</AuthProvider>
+            <AuthProvider>
+              {children}
+              {/* Mounted once, app-wide. Anything can raise a toast from
+                  anywhere via `toast.success(...)` — see @/store/useToastStore. */}
+              <ToastHost />
+            </AuthProvider>
           </QueryProvider>
         </ThemeRegistry>
       </body>

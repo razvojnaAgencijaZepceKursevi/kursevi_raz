@@ -49,6 +49,7 @@ export const updatePurchaseSchema = z
   .openapi('UpdatePurchaseRequest');
 
 export type Purchase = z.infer<typeof purchaseSchema>;
+export type PurchaseStatus = z.infer<typeof purchaseStatusSchema>;
 export type ListPurchasesQuery = z.infer<typeof listPurchasesQuerySchema>;
 export type CreatePurchaseRequest = z.infer<typeof createPurchaseSchema>;
 export type UpdatePurchaseRequest = z.infer<typeof updatePurchaseSchema>;

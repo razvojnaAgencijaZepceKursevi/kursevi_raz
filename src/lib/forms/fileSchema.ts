@@ -1,0 +1,40 @@
+import { z } from 'zod';
+import { ACCEPTED_IMAGE_TYPES, MAX_UPLOAD_BYTES, formatBytes } from '@/lib/storage';
+
+/**
+ * Zod schemas for file inputs.
+ *
+ * File pickers hand you a `File`, which zod can validate like anything else —
+ * so size and type limits live in the schema next to every other rule rather
+ * than as ad-hoc checks inside a change handler. The same limits are enforced
+ * again by `/api/admin/uploads`; this copy exists to fail fast and explain
+ * itself, not to be the security boundary.
+ *
+ * `z.instanceof(File)` is safe here because these schemas are only ever
+ * evaluated in the browser, as part of a form.
+ */
+export function fileSchema({
+  maxBytes = MAX_UPLOAD_BYTES,
+  acceptedTypes,
+  typeErrorMessage,
+}: {
+  maxBytes?: number;
+  acceptedTypes?: readonly string[];
+  typeErrorMessage?: string;
+} = {}) {
+  return z
+    .instanceof(File, { message: 'Izaberite fajl.' })
+    .refine((file) => file.size > 0, { message: 'Izabrani fajl je prazan.' })
+    .refine((file) => file.size <= maxBytes, {
+      message: `Fajl je prevelik. Maksimalna veličina je ${formatBytes(maxBytes)}.`,
+    })
+    .refine((file) => !acceptedTypes || acceptedTypes.includes(file.type), {
+      message: typeErrorMessage ?? 'Format fajla nije podržan.',
+    });
+}
+
+/** Image upload constrained to the formats the thumbnail/`<img>` pipeline handles. */
+export const imageFileSchema = fileSchema({
+  acceptedTypes: ACCEPTED_IMAGE_TYPES,
+  typeErrorMessage: 'Dozvoljeni formati su JPG, PNG, WebP i AVIF.',
+});

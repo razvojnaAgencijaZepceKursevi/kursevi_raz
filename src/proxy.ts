@@ -1,6 +1,7 @@
 import { createServerClient } from '@supabase/ssr';
 import { NextResponse, type NextRequest } from 'next/server';
 import type { Database } from '@/types/database.types';
+import { landingPathForRole } from '@/lib/auth/routes';
 
 /**
  * Route protection.
@@ -95,8 +96,10 @@ export async function proxy(request: NextRequest) {
     }
 
     if (isAuthPage) {
+      // Already signed in — send them where their role belongs rather than
+      // showing a login form they don't need.
       const url = request.nextUrl.clone();
-      url.pathname = '/dashboard';
+      url.pathname = landingPathForRole(profile?.role);
       url.search = '';
       return NextResponse.redirect(url);
     }

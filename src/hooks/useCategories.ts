@@ -1,5 +1,6 @@
 'use client';
 
+import * as React from 'react';
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 import {
   apiDelete,
@@ -38,6 +39,31 @@ export function useCategories(params: CategoryListParams = {}) {
     queryKey: categoryKeys.list(params),
     queryFn: () => apiGet<Paginated<Category>>(`/api/categories${toSearchParams(params)}`),
   });
+}
+
+/**
+ * Categories in the two shapes the UI actually needs:
+ *   - `options` — for `<FormSelect>` on any form with a category field.
+ *   - `names`   — an id → name lookup, for lists that only get `category_id`.
+ *
+ * One request serves both. There are dozens of categories at most, so fetching
+ * them all in one page is cheaper than resolving names row by row.
+ */
+export function useCategoryOptions() {
+  const query = useCategories({ pageSize: 100 });
+  const categories = React.useMemo(() => query.data?.data ?? [], [query.data]);
+
+  const options = React.useMemo(
+    () => categories.map((category) => ({ value: category.id, label: category.name })),
+    [categories],
+  );
+
+  const names = React.useMemo(
+    () => new Map(categories.map((category) => [category.id, category.name])),
+    [categories],
+  );
+
+  return { options, names, isPending: query.isPending, isError: query.isError };
 }
 
 /**
