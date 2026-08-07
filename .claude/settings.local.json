@@ -1,5 +1,24 @@
 {
   "permissions": {
-    "defaultMode": "bypassPermissions"
+    "allow": [
+      "Bash(npx next *)",
+      "Bash(npx tsc *)",
+      "Bash(npx prettier *)",
+      "Bash(grep -v \"ms$\")",
+      "Bash(npx next dev -p 3001 > /tmp/dev2.log 2>&1 & *)",
+      "Bash(curl -s -o /dev/null http://localhost:3001/login)",
+      "Bash(curl -s http://localhost:3001/api/courses?pageSize=5 -o C:/Users/Korisnik/AppData/Local/Temp/claude/c--Projects-kursevi-raz/852571af-9191-4030-9858-75a59747c6df/scratchpad/courses.json -w 'list http=%{http_code}\\\\n')",
+      "Bash(node -e ' *)",
+      "Bash(node ./probe.mjs)",
+      "Bash(curl -s \"http://localhost:3001/api/courses/00000000-0000-4000-8000-000000000000/outline\" -w \"\\\\nhttp=%{http_code}\\\\n\")",
+      "PowerShell($conn = Get-NetTCPConnection -LocalPort 3001 -State Listen -ErrorAction SilentlyContinue; if \\($conn\\) { $procId = $conn.OwningProcess | Select-Object -First 1; Stop-Process -Id $procId -Force -Confirm:$false; Write-Output \"stopped PID $procId\" } else { Write-Output \"nothing listening\" })",
+      "Bash(echo \"tsc exit: $?\")",
+      "Bash(curl -s -o /dev/null -w \"login=%{http_code}\\\\n\" http://localhost:3001/login)",
+      "Bash(echo \"tsc=$?\")"
+    ],
+    "defaultMode": "bypassPermissions",
+    "additionalDirectories": [
+      "\\tmp"
+    ]
   }
 }

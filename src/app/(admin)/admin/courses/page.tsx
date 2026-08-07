@@ -1,7 +1,6 @@
 'use client';
 
 import * as React from 'react';
-import NextLink from 'next/link';
 import AddIcon from '@mui/icons-material/Add';
 import Button from '@mui/material/Button';
 import MenuItem from '@mui/material/MenuItem';
@@ -50,12 +49,7 @@ export default function AdminCoursesPage() {
         title="Kursevi"
         description="Svi kursevi, uključujući i one koji još nisu objavljeni."
         actions={
-          <Button
-            component={NextLink}
-            href="/admin/courses/new"
-            variant="contained"
-            startIcon={<AddIcon />}
-          >
+          <Button href="/admin/courses/new" variant="contained" startIcon={<AddIcon />}>
             Novi kurs
           </Button>
         }
@@ -128,12 +122,7 @@ export default function AdminCoursesPage() {
                 title="Još nema kurseva"
                 description="Kreirajte prvi kurs — kasnije mu dodajete module, kvizove i zadatke."
                 action={
-                  <Button
-                    component={NextLink}
-                    href="/admin/courses/new"
-                    variant="contained"
-                    startIcon={<AddIcon />}
-                  >
+                  <Button href="/admin/courses/new" variant="contained" startIcon={<AddIcon />}>
                     Novi kurs
                   </Button>
                 }

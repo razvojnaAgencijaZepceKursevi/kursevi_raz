@@ -1,5 +1,4 @@
 import * as React from 'react';
-import NextLink from 'next/link';
 import NavigateNextIcon from '@mui/icons-material/NavigateNext';
 import Breadcrumbs from '@mui/material/Breadcrumbs';
 import Link from '@mui/material/Link';
@@ -42,7 +41,6 @@ export default function PageHeader({
             crumb.href ? (
               <Link
                 key={crumb.label}
-                component={NextLink}
                 href={crumb.href}
                 variant="body2"
                 underline="hover"

@@ -1,7 +1,6 @@
 'use client';
 
 import * as React from 'react';
-import NextLink from 'next/link';
 import { useRouter, useSearchParams } from 'next/navigation';
 import Alert from '@mui/material/Alert';
 import Button from '@mui/material/Button';
@@ -84,10 +83,10 @@ function LoginForm() {
           </Button>
 
           <Stack direction="row" sx={{ justifyContent: 'space-between' }}>
-            <Link component={NextLink} href="/register" variant="body2">
+            <Link href="/register" variant="body2">
               Kreiraj nalog
             </Link>
-            <Link component={NextLink} href="/forgot-password" variant="body2">
+            <Link href="/forgot-password" variant="body2">
               Zaboravljena lozinka?
             </Link>
           </Stack>

@@ -1,7 +1,6 @@
 'use client';
 
 import * as React from 'react';
-import NextLink from 'next/link';
 import ImageOutlinedIcon from '@mui/icons-material/ImageOutlined';
 import Box from '@mui/material/Box';
 import Card from '@mui/material/Card';
@@ -42,7 +41,7 @@ export default function CourseCard({
 
   return (
     <Card sx={{ height: '100%', display: 'flex', flexDirection: 'column' }}>
-      <CardActionArea component={NextLink} href={href} sx={{ flex: 1, alignItems: 'stretch' }}>
+      <CardActionArea href={href} sx={{ flex: 1, alignItems: 'stretch' }}>
         <Box
           sx={{
             position: 'relative',

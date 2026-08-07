@@ -1,7 +1,6 @@
 'use client';
 
 import * as React from 'react';
-import NextLink from 'next/link';
 import Alert from '@mui/material/Alert';
 import Button from '@mui/material/Button';
 import Link from '@mui/material/Link';
@@ -40,7 +39,7 @@ export default function ForgotPasswordPage() {
           <Alert severity="info">
             If an account exists for <strong>{email}</strong>, we have sent a password reset link.
           </Alert>
-          <Link component={NextLink} href="/login" variant="body2">
+          <Link href="/login" variant="body2">
             Back to sign in
           </Link>
         </Stack>
@@ -63,7 +62,7 @@ export default function ForgotPasswordPage() {
           <Button type="submit" variant="contained" size="large" disabled={pending}>
             {pending ? 'Sending…' : 'Send reset link'}
           </Button>
-          <Link component={NextLink} href="/login" variant="body2">
+          <Link href="/login" variant="body2">
             Back to sign in
           </Link>
         </Stack>

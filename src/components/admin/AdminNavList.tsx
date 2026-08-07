@@ -1,6 +1,5 @@
 'use client';
 
-import NextLink from 'next/link';
 import { usePathname } from 'next/navigation';
 import List from '@mui/material/List';
 import ListItemButton from '@mui/material/ListItemButton';
@@ -36,7 +35,6 @@ export default function AdminNavList({ onNavigate }: { onNavigate?: () => void }
               return (
                 <ListItemButton
                   key={item.href}
-                  component={NextLink}
                   href={item.href}
                   // Closes the mobile drawer on tap; a no-op on desktop.
                   onClick={onNavigate}

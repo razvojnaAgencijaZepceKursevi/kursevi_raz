@@ -1,6 +1,5 @@
 'use client';
 
-import NextLink from 'next/link';
 import Link from '@mui/material/Link';
 import Stack from '@mui/material/Stack';
 import Table from '@mui/material/Table';
@@ -52,7 +51,6 @@ export default function CourseTable({
               <TableCell sx={{ maxWidth: 360 }}>
                 <Stack spacing={0.25}>
                   <Link
-                    component={NextLink}
                     href={`/admin/courses/${course.id}/edit`}
                     variant="body2"
                     underline="hover"

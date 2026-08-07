@@ -16,6 +16,7 @@ import type {
   ListCoursesQuery,
   UpdateCourseRequest,
 } from '@/lib/schemas/courses.schema';
+import type { ModuleOutline } from '@/lib/schemas/modules.schema';
 
 /**
  * Courses. The reference example for the hooks layer — other resources should
@@ -40,6 +41,7 @@ export const courseKeys = {
   list: (params: CourseListParams) => [...courseKeys.lists(), params] as const,
   details: () => [...courseKeys.all, 'detail'] as const,
   detail: (courseId: string) => [...courseKeys.details(), courseId] as const,
+  outline: (courseId: string) => [...courseKeys.all, 'outline', courseId] as const,
 };
 
 export const adminCourseKeys = {
@@ -68,6 +70,28 @@ export function useCourse(courseId: string | undefined) {
     queryKey: courseKeys.detail(courseId ?? ''),
     queryFn: () => apiGet<Envelope<Course>>(`/api/courses/${courseId}`),
     enabled: Boolean(courseId),
+    select: (response) => response.data,
+  });
+}
+
+/**
+ * GET /api/courses/:courseId/outline — module titles, no purchase required.
+ *
+ * The teaser syllabus for the course page: `id`, `title` and `order` only.
+ * Anyone can call it, including signed-out visitors.
+ *
+ * Don't reach for this when the caller has access — `useCourseProgress` returns
+ * the same titles *plus* completion state, and `useCourseModules` returns the
+ * actual content. This one exists for the case where those two would 403.
+ */
+export function useCourseOutline(
+  courseId: string | undefined,
+  { enabled = true }: { enabled?: boolean } = {},
+) {
+  return useQuery({
+    queryKey: courseKeys.outline(courseId ?? ''),
+    queryFn: () => apiGet<Envelope<ModuleOutline[]>>(`/api/courses/${courseId}/outline`),
+    enabled: Boolean(courseId) && enabled,
     select: (response) => response.data,
   });
 }

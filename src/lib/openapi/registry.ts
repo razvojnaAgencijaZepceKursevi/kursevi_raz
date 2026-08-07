@@ -27,6 +27,7 @@ import {
   updateCourseSchema,
 } from '@/lib/schemas/courses.schema';
 import {
+  courseOutlineResponseSchema,
   createModuleFileSchema,
   createModuleSchema,
   listModulesQuerySchema,
@@ -283,6 +284,20 @@ registry.registerPath({
   security,
   request: { params: z.object({ courseId: uuidSchema }), query: listModulesQuerySchema },
   responses: { 200: json(moduleListResponseSchema, 'Paginated modules'), ...errors },
+});
+
+registry.registerPath({
+  method: 'get',
+  path: '/api/courses/{courseId}/outline',
+  tags: ['Modules'],
+  summary: 'Module titles of a published course (public)',
+  description:
+    'Unauthenticated. Returns only `id`, `title` and `order` for each module — the syllabus a visitor needs in order to decide whether to buy, and nothing more. Full module content requires an approved purchase via `/api/courses/{courseId}/modules`. Unpublished courses return 404.',
+  request: { params: z.object({ courseId: uuidSchema }) },
+  responses: {
+    200: json(courseOutlineResponseSchema, 'Module titles, ordered'),
+    404: errors[404],
+  },
 });
 
 registry.registerPath({

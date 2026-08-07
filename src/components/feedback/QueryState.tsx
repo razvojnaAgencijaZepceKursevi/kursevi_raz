@@ -1,7 +1,6 @@
 'use client';
 
 import * as React from 'react';
-import type { UseQueryResult } from '@tanstack/react-query';
 import EmptyState from './EmptyState';
 import ErrorState from './ErrorState';
 import LoadingState from './LoadingState';
@@ -22,13 +21,20 @@ import LoadingState from './LoadingState';
  *     {(page) => <CourseGrid courses={page.data} />}
  *   </QueryState>
  *
- * Only the props actually read are required, so this also accepts a hand-rolled
- * `{ data, isPending, isError, error, refetch }` object in tests.
+ * Structurally typed rather than tied to `UseQueryResult`, so it accepts any
+ * `useQuery` result *and* a hand-composed object. That second case matters when
+ * a page picks between two queries of different shapes and normalises their
+ * data first — see the course page, which feeds it one query's status
+ * alongside a merged module list.
  */
-type MinimalQueryResult<TData> = Pick<
-  UseQueryResult<TData>,
-  'data' | 'isPending' | 'isError' | 'error' | 'refetch'
->;
+export type MinimalQueryResult<TData> = {
+  data: TData | undefined;
+  /** True while there is no data yet. */
+  isPending: boolean;
+  isError: boolean;
+  error: unknown;
+  refetch: () => unknown;
+};
 
 export type QueryStateProps<TData> = {
   query: MinimalQueryResult<TData>;

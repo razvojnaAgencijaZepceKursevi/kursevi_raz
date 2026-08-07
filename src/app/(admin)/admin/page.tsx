@@ -59,12 +59,7 @@ export default function AdminDashboardPage() {
           profile ? `Dobrodošli nazad, ${profile.full_name}.` : 'Stanje platforme na jednom mestu.'
         }
         actions={
-          <Button
-            component={NextLink}
-            href="/admin/courses/new"
-            variant="contained"
-            startIcon={<AddIcon />}
-          >
+          <Button href="/admin/courses/new" variant="contained" startIcon={<AddIcon />}>
             Novi kurs
           </Button>
         }
@@ -126,7 +121,7 @@ export default function AdminDashboardPage() {
             : undefined
         }
         actions={
-          <Button component={NextLink} href="/admin/courses" size="small">
+          <Button href="/admin/courses" size="small">
             Svi kursevi
           </Button>
         }
@@ -140,12 +135,7 @@ export default function AdminDashboardPage() {
               title="Još nema kurseva"
               description="Kreirajte prvi kurs da biste počeli."
               action={
-                <Button
-                  component={NextLink}
-                  href="/admin/courses/new"
-                  variant="contained"
-                  startIcon={<AddIcon />}
-                >
+                <Button href="/admin/courses/new" variant="contained" startIcon={<AddIcon />}>
                   Novi kurs
                 </Button>
               }

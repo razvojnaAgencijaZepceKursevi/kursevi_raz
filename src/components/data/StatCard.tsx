@@ -1,7 +1,6 @@
 'use client';
 
 import type { SvgIconComponent } from '@mui/icons-material';
-import NextLink from 'next/link';
 import ArrowForwardIcon from '@mui/icons-material/ArrowForward';
 import Box from '@mui/material/Box';
 import Card from '@mui/material/Card';
@@ -82,7 +81,7 @@ export default function StatCard({
   return (
     <Card sx={{ height: '100%' }}>
       {href ? (
-        <CardActionArea component={NextLink} href={href} sx={{ height: '100%' }}>
+        <CardActionArea href={href} sx={{ height: '100%' }}>
           {content}
         </CardActionArea>
       ) : (

@@ -31,11 +31,21 @@ export const adminPurchaseKeys = {
   list: (params: PurchaseListParams) => [...adminPurchaseKeys.lists(), params] as const,
 };
 
-/** GET /api/purchases — the signed-in student's own purchases. */
-export function usePurchases(params: PurchaseListParams = {}) {
+/**
+ * GET /api/purchases — the signed-in student's own purchases.
+ *
+ * `enabled` is exposed because this endpoint 401s for signed-out callers, and
+ * the public course page renders for them too. Pass `enabled: false` rather
+ * than calling it conditionally — hooks can't be skipped.
+ */
+export function usePurchases(
+  params: PurchaseListParams = {},
+  { enabled = true }: { enabled?: boolean } = {},
+) {
   return useQuery({
     queryKey: purchaseKeys.list(params),
     queryFn: () => apiGet<Paginated<Purchase>>(`/api/purchases${toSearchParams(params)}`),
+    enabled,
   });
 }
 

@@ -1,7 +1,6 @@
 'use client';
 
 import * as React from 'react';
-import NextLink from 'next/link';
 import DeleteOutlinedIcon from '@mui/icons-material/DeleteOutlined';
 import EditOutlinedIcon from '@mui/icons-material/EditOutlined';
 import MoreVertIcon from '@mui/icons-material/MoreVert';
@@ -55,14 +54,14 @@ export default function CourseActions({ course }: { course: Course }) {
       </IconButton>
 
       <Menu anchorEl={anchorEl} open={Boolean(anchorEl)} onClose={close}>
-        <MenuItem component={NextLink} href={`/admin/courses/${course.id}/edit`} onClick={close}>
+        <MenuItem href={`/admin/courses/${course.id}/edit`} onClick={close}>
           <ListItemIcon>
             <EditOutlinedIcon fontSize="small" />
           </ListItemIcon>
           <Typography variant="body2">Izmeni</Typography>
         </MenuItem>
 
-        <MenuItem component={NextLink} href={`/admin/courses/${course.id}/modules`} onClick={close}>
+        <MenuItem href={`/admin/courses/${course.id}/modules`} onClick={close}>
           <ListItemIcon>
             <ViewModuleOutlinedIcon fontSize="small" />
           </ListItemIcon>

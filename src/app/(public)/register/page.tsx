@@ -1,7 +1,6 @@
 'use client';
 
 import * as React from 'react';
-import NextLink from 'next/link';
 import Alert from '@mui/material/Alert';
 import Button from '@mui/material/Button';
 import Link from '@mui/material/Link';
@@ -66,7 +65,7 @@ export default function RegisterPage() {
             We sent a confirmation link to <strong>{email}</strong>. Click it to activate your
             account, then sign in.
           </Alert>
-          <Link component={NextLink} href="/login" variant="body2">
+          <Link href="/login" variant="body2">
             Back to sign in
           </Link>
         </Stack>
@@ -119,7 +118,7 @@ export default function RegisterPage() {
             {pending ? 'Creating account…' : 'Create account'}
           </Button>
 
-          <Link component={NextLink} href="/login" variant="body2">
+          <Link href="/login" variant="body2">
             Already have an account? Sign in
           </Link>
         </Stack>

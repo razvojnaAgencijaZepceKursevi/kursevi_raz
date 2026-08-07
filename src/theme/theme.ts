@@ -1,4 +1,5 @@
 import { createTheme, alpha } from '@mui/material/styles';
+import NextLink from 'next/link';
 
 /**
  * Central MUI theme. Pages are built manually on top of this, so keep the
@@ -109,8 +110,36 @@ export const theme = createTheme({
         },
       }),
     },
+    /*
+     * Routing integration — read this before adding a link anywhere.
+     *
+     * Setting Next's `Link` here means `<Button href>`, `<MenuItem href>`,
+     * `<ListItemButton href>`, `<CardActionArea href>` and `<Link href>` all
+     * client-side navigate on their own. **Never pass `component={NextLink}`
+     * at a call site.**
+     *
+     * That isn't a style preference. A page is a Server Component by default,
+     * and every MUI component is a Client Component, so writing
+     * `component={NextLink}` in a page hands a *function* across the RSC
+     * boundary — which can't be serialised, and fails at runtime with
+     * "Functions cannot be passed directly to Client Components". Configuring
+     * it here sidesteps that entirely: the theme is only ever imported by
+     * `ThemeRegistry`, which is itself a Client Component, so `NextLink` never
+     * crosses the boundary.
+     *
+     * `LinkComponent` (ButtonBase) and `component` (Link) are different props
+     * by design: ButtonBase swaps its element only when an `href` is present,
+     * so a plain `<Button onClick>` still renders a real `<button>`.
+     *
+     * This covers MUI components only. `<Stack component={NextLink}>` and
+     * `<Box component={NextLink}>` are still written out at the call site — and
+     * are therefore only usable inside a Client Component.
+     */
     MuiButtonBase: {
-      defaultProps: { disableRipple: true },
+      defaultProps: { disableRipple: true, LinkComponent: NextLink },
+    },
+    MuiLink: {
+      defaultProps: { component: NextLink },
     },
     MuiButton: {
       defaultProps: { disableElevation: true },
