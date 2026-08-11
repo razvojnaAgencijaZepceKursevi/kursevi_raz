@@ -1,17 +1,140 @@
-import PlaceholderPage from '@/components/layout/PlaceholderPage';
+'use client';
 
-export const metadata = { title: 'Korisnici — Admin' };
+import MenuItem from '@mui/material/MenuItem';
+import Stack from '@mui/material/Stack';
+import TextField from '@mui/material/TextField';
+import Typography from '@mui/material/Typography';
+import PageContainer from '@/components/layout/PageContainer';
+import PageHeader from '@/components/layout/PageHeader';
+import ContentCard from '@/components/layout/ContentCard';
+import QueryState from '@/components/feedback/QueryState';
+import EmptyState from '@/components/feedback/EmptyState';
+import SearchField from '@/components/data/SearchField';
+import PaginationBar from '@/components/data/PaginationBar';
+import DataTable from '@/components/data/DataTable';
+import StatusChip from '@/components/data/StatusChip';
+import { useAdminUsers } from '@/hooks/useUsers';
+import { useListParams } from '@/hooks/useListParams';
+import { formatDate } from '@/lib/format';
+import { USER_ROLE } from '@/lib/status';
+import type { Profile } from '@/lib/schemas/users.schema';
 
+/**
+ * Registered users. Read-only by design — see the note on the page itself.
+ *
+ * Structurally identical to the other admin list screens: `useListParams` for
+ * state, `<QueryState>` for the four states, `<DataTable>` for the rows.
+ */
 export default function AdminUsersPage() {
+  const list = useListParams({ role: '' }, { pageSize: 20 });
+  const users = useAdminUsers(list.queryParams);
+
   return (
-    <PlaceholderPage
-      title="Korisnici"
-      description="Pregled registrovanih korisnika."
-      plannedWork={[
-        'Lista sa pretragom: ime, email, uloga (useAdminUsers).',
-        'Stranica je za sada samo za pregled.',
-        'Uloge se menjaju ručno kroz Supabase dashboard, ne kroz ovaj ekran.',
-      ]}
-    />
+    <PageContainer>
+      <PageHeader title="Korisnici" description="Svi registrovani korisnici platforme." />
+
+      <ContentCard disablePadding>
+        <Stack
+          direction={{ xs: 'column', md: 'row' }}
+          spacing={2}
+          sx={{ p: 2.5, alignItems: { md: 'center' } }}
+        >
+          <Stack sx={{ flex: 1, minWidth: 0, maxWidth: { md: 360 } }}>
+            <SearchField
+              value={list.search}
+              onChange={list.setSearch}
+              placeholder="Pretraži po imenu ili email adresi…"
+            />
+          </Stack>
+
+          <TextField
+            select
+            label="Uloga"
+            value={list.filters.role}
+            onChange={(event) => list.setFilter('role', event.target.value)}
+            sx={{ maxWidth: { md: 200 } }}
+          >
+            <MenuItem value="">Sve uloge</MenuItem>
+            <MenuItem value="student">Studenti</MenuItem>
+            <MenuItem value="teacher">Predavači</MenuItem>
+            <MenuItem value="admin">Administratori</MenuItem>
+          </TextField>
+
+          <Typography
+            variant="body2"
+            color="text.secondary"
+            sx={{ ml: { md: 'auto' }, flexShrink: 0 }}
+          >
+            {/* Uloge se menjaju kroz Supabase dashboard, ne kroz ovaj ekran. */}
+            Pregled bez izmena
+          </Typography>
+        </Stack>
+
+        <QueryState
+          query={users}
+          errorTitle="Korisnike nije moguće učitati"
+          isEmpty={(page) => page.data.length === 0}
+          empty={
+            list.hasActiveFilters ? (
+              <EmptyState
+                title="Nema rezultata"
+                description="Nijedan korisnik ne odgovara zadatoj pretrazi."
+              />
+            ) : (
+              <EmptyState
+                title="Još nema registrovanih korisnika"
+                description="Korisnici se pojavljuju ovde nakon registracije."
+              />
+            )
+          }
+        >
+          {(page) => (
+            <>
+              <DataTable<Profile>
+                rows={page.data}
+                getRowId={(user) => user.id}
+                onRowClick={(user) => `/admin/users/${user.id}`}
+                columns={[
+                  {
+                    id: 'name',
+                    header: 'Ime',
+                    cell: (user) => (
+                      <Typography variant="body2" sx={{ fontWeight: 600 }}>
+                        {user.full_name}
+                      </Typography>
+                    ),
+                  },
+                  {
+                    id: 'email',
+                    header: 'Email',
+                    cell: (user) => (
+                      <Typography variant="body2" color="text.secondary">
+                        {user.email}
+                      </Typography>
+                    ),
+                  },
+                  {
+                    id: 'role',
+                    header: 'Uloga',
+                    cell: (user) => <StatusChip {...USER_ROLE[user.role]} />,
+                  },
+                  {
+                    id: 'created',
+                    header: 'Registrovan',
+                    cell: (user) => (
+                      <Typography variant="body2" color="text.secondary">
+                        {formatDate(user.created_at)}
+                      </Typography>
+                    ),
+                  },
+                ]}
+              />
+
+              <PaginationBar meta={page.meta} onChange={list.setPage} />
+            </>
+          )}
+        </QueryState>
+      </ContentCard>
+    </PageContainer>
   );
 }

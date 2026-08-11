@@ -7,10 +7,23 @@ import ReceiptLongOutlinedIcon from '@mui/icons-material/ReceiptLongOutlined';
 import AssignmentTurnedInOutlinedIcon from '@mui/icons-material/AssignmentTurnedInOutlined';
 import WorkspacePremiumOutlinedIcon from '@mui/icons-material/WorkspacePremiumOutlined';
 
+import type { UserRole } from '@/lib/auth/routes';
+
+/** Roles that may reach the admin shell at all. */
+export type StaffRole = Extract<UserRole, 'admin' | 'teacher'>;
+
 export type AdminNavItem = {
   label: string;
   href: string;
   icon: SvgIconComponent;
+  /**
+   * Which roles see this link. Omitted means "both".
+   *
+   * This is presentation only — hiding a link is not access control. The pages
+   * behind admin-only links are protected by `requireAdmin()` on their
+   * endpoints and by RLS, so a teacher who types the URL still gets nothing.
+   */
+  roles?: StaffRole[];
   /**
    * By default a link is highlighted when the URL is the link or sits below it,
    * so `/admin/courses` stays active on `/admin/courses/new`. Set this for
@@ -41,7 +54,12 @@ export const ADMIN_NAV: AdminNavSection[] = [
     title: 'Sadržaj',
     items: [
       { label: 'Kursevi', href: '/admin/courses', icon: LibraryBooksOutlinedIcon },
-      { label: 'Kategorije', href: '/admin/categories', icon: CategoryOutlinedIcon },
+      {
+        label: 'Kategorije',
+        href: '/admin/categories',
+        icon: CategoryOutlinedIcon,
+        roles: ['admin'],
+      },
     ],
   },
   {
@@ -50,10 +68,21 @@ export const ADMIN_NAV: AdminNavSection[] = [
       { label: 'Zahtevi za kupovinu', href: '/admin/purchases', icon: ReceiptLongOutlinedIcon },
       { label: 'Predati zadaci', href: '/admin/submissions', icon: AssignmentTurnedInOutlinedIcon },
       { label: 'Sertifikati', href: '/admin/certificates', icon: WorkspacePremiumOutlinedIcon },
-      { label: 'Korisnici', href: '/admin/users', icon: PeopleOutlinedIcon },
+      { label: 'Korisnici', href: '/admin/users', icon: PeopleOutlinedIcon, roles: ['admin'] },
     ],
   },
 ];
+
+/**
+ * The nav as one role sees it, with empty sections dropped so a teacher never
+ * gets a heading with nothing under it.
+ */
+export function navForRole(role: StaffRole): AdminNavSection[] {
+  return ADMIN_NAV.map((section) => ({
+    ...section,
+    items: section.items.filter((item) => !item.roles || item.roles.includes(role)),
+  })).filter((section) => section.items.length > 0);
+}
 
 /** Whether `href` should render as the active link for the current pathname. */
 export function isNavItemActive(item: AdminNavItem, pathname: string): boolean {

@@ -12,13 +12,23 @@ import Stack from '@mui/material/Stack';
 import Typography from '@mui/material/Typography';
 import { useLogout } from '@/hooks/useLogout';
 import { initials } from '@/lib/format';
+import { USER_ROLE } from '@/lib/status';
+import type { StaffRole } from './adminNav';
 
 /**
  * Avatar + dropdown in the admin top bar. Takes the profile as a prop rather
  * than reading `useAuthStore`, because the layout already has it server-side —
  * passing it down avoids a flash of empty name on first paint.
  */
-export default function AdminUserMenu({ fullName, email }: { fullName: string; email: string }) {
+export default function AdminUserMenu({
+  fullName,
+  email,
+  role,
+}: {
+  fullName: string;
+  email: string;
+  role: StaffRole;
+}) {
   const [anchorEl, setAnchorEl] = React.useState<null | HTMLElement>(null);
   const { logout, pending } = useLogout();
 
@@ -39,7 +49,7 @@ export default function AdminUserMenu({ fullName, email }: { fullName: string; e
             {fullName}
           </Typography>
           <Typography variant="caption" color="text.secondary" sx={{ lineHeight: 1.3 }}>
-            Administrator
+            {USER_ROLE[role].label}
           </Typography>
         </Stack>
       </ButtonBase>

@@ -1,6 +1,6 @@
 import { NextResponse } from 'next/server';
 import { parseQuery, unwrapMany, withRoute } from '@/lib/api/errors';
-import { requireAdmin } from '@/lib/auth/guards';
+import { requireStaff } from '@/lib/auth/guards';
 import { createClient } from '@/lib/supabase/server';
 import { metaFor, rangeFor } from '@/lib/schemas/common.schema';
 import { listSubmissionsQuerySchema } from '@/lib/schemas/task-submissions.schema';
@@ -9,7 +9,7 @@ export const dynamic = 'force-dynamic';
 
 /** GET /api/admin/submissions — list/filter every submission (admin). */
 export const GET = withRoute(async (req) => {
-  await requireAdmin();
+  await requireStaff();
 
   const query = parseQuery(req, listSubmissionsQuerySchema);
   const supabase = await createClient();

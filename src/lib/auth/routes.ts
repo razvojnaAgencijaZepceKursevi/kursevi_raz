@@ -1,4 +1,4 @@
-export type UserRole = 'admin' | 'student';
+export type UserRole = 'admin' | 'teacher' | 'student';
 
 /**
  * Where a user belongs after signing in.
@@ -9,5 +9,7 @@ export type UserRole = 'admin' | 'student';
  * into its runtime just to answer a routing question.
  */
 export function landingPathForRole(role: UserRole | undefined | null): string {
-  return role === 'admin' ? '/admin' : '/dashboard';
+  // Teachers share the /admin shell with admins; the nav inside is filtered
+  // by role, and RLS scopes what they can actually touch.
+  return role === 'admin' || role === 'teacher' ? '/admin' : '/dashboard';
 }

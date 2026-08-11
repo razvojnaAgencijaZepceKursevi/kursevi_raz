@@ -1,5 +1,13 @@
 import { z } from '@/lib/openapi/zod';
-import { auditFields, paginatedResponse, paginationQuerySchema, uuidSchema } from './common.schema';
+import {
+  auditFields,
+  booleanQueryParam,
+  embeddedCourseSchema,
+  embeddedProfileSchema,
+  paginatedResponse,
+  paginationQuerySchema,
+  uuidSchema,
+} from './common.schema';
 
 export const readableIdSchema = z
   .string()
@@ -17,10 +25,25 @@ export const certificateSchema = z
   })
   .openapi('Certificate');
 
+/** A certificate as the admin endpoints return it, with course + student embedded. */
+export const adminCertificateSchema = certificateSchema
+  .extend({
+    courses: embeddedCourseSchema,
+    profiles: embeddedProfileSchema,
+  })
+  .openapi('AdminCertificate');
+
+export const adminCertificateListResponseSchema = paginatedResponse(adminCertificateSchema).openapi(
+  'AdminCertificateListResponse',
+);
+
+export const adminCertificateResponseSchema = z
+  .object({ data: adminCertificateSchema })
+  .openapi('AdminCertificateResponse');
+
 export const listCertificatesQuerySchema = paginationQuerySchema
   .extend({
-    requestedDelivery: z.coerce
-      .boolean()
+    requestedDelivery: booleanQueryParam()
       .optional()
       .openapi({ description: 'Filter to certificates with a pending delivery request' }),
     courseId: uuidSchema.optional(),
@@ -61,5 +84,6 @@ export const requestDeliverySchema = z
   .openapi('RequestDeliveryRequest');
 
 export type Certificate = z.infer<typeof certificateSchema>;
+export type AdminCertificate = z.infer<typeof adminCertificateSchema>;
 export type ListCertificatesQuery = z.infer<typeof listCertificatesQuerySchema>;
 export type CertificateVerification = z.infer<typeof certificateVerificationSchema>;

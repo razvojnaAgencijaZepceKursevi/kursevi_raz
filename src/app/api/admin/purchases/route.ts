@@ -1,6 +1,6 @@
 import { NextResponse } from 'next/server';
 import { parseQuery, unwrapMany, withRoute } from '@/lib/api/errors';
-import { requireAdmin } from '@/lib/auth/guards';
+import { requireStaff } from '@/lib/auth/guards';
 import { createClient } from '@/lib/supabase/server';
 import { metaFor, rangeFor } from '@/lib/schemas/common.schema';
 import { listPurchasesQuerySchema } from '@/lib/schemas/purchases.schema';
@@ -9,7 +9,7 @@ export const dynamic = 'force-dynamic';
 
 /** GET /api/admin/purchases — list/search/filter all purchases (admin). */
 export const GET = withRoute(async (req) => {
-  await requireAdmin();
+  await requireStaff();
 
   const query = parseQuery(req, listPurchasesQuerySchema);
   const supabase = await createClient();

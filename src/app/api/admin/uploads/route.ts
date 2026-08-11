@@ -1,6 +1,6 @@
 import { NextResponse } from 'next/server';
 import { ApiError, badRequest, withRoute } from '@/lib/api/errors';
-import { requireAdmin } from '@/lib/auth/guards';
+import { requireStaff } from '@/lib/auth/guards';
 import { createClient } from '@/lib/supabase/server';
 import { bucketNameSchema, uploadFolderSchema } from '@/lib/schemas/uploads.schema';
 import {
@@ -63,7 +63,7 @@ const ACCEPTED_TYPES: Record<BucketName, readonly string[]> = {
  * fast feedback, this one is the boundary that actually enforces it.
  */
 export const POST = withRoute(async (req) => {
-  await requireAdmin();
+  await requireStaff();
 
   let formData: FormData;
   try {

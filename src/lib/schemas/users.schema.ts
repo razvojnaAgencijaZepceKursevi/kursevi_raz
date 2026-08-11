@@ -1,7 +1,7 @@
 import { z } from '@/lib/openapi/zod';
 import { auditFields, paginatedResponse, paginationQuerySchema, uuidSchema } from './common.schema';
 
-export const userRoleSchema = z.enum(['admin', 'student']).openapi('UserRole');
+export const userRoleSchema = z.enum(['admin', 'teacher', 'student']).openapi('UserRole');
 
 export const profileSchema = z
   .object({

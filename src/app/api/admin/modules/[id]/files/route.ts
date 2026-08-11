@@ -1,6 +1,6 @@
 import { NextResponse } from 'next/server';
 import { parseBody, unwrapOne, withRoute } from '@/lib/api/errors';
-import { requireAdmin } from '@/lib/auth/guards';
+import { requireStaff } from '@/lib/auth/guards';
 import { createClient } from '@/lib/supabase/server';
 import { createModuleFileSchema } from '@/lib/schemas/modules.schema';
 import { uuidSchema } from '@/lib/schemas/common.schema';
@@ -17,7 +17,7 @@ type Ctx = { params: Promise<{ id: string }> };
  * so students can list files without needing bucket-listing rights.
  */
 export const POST = withRoute(async (req, ctx: Ctx) => {
-  await requireAdmin();
+  await requireStaff();
   const moduleId = uuidSchema.parse((await ctx.params).id);
   const body = await parseBody(req, createModuleFileSchema);
 

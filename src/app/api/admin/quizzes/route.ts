@@ -1,6 +1,6 @@
 import { NextResponse } from 'next/server';
 import { parseBody, unwrapMany, unwrapOne, withRoute } from '@/lib/api/errors';
-import { requireAdmin } from '@/lib/auth/guards';
+import { requireStaff } from '@/lib/auth/guards';
 import { createServiceRoleClient } from '@/lib/supabase/service-role';
 import { createQuizSchema } from '@/lib/schemas/quizzes.schema';
 
@@ -11,10 +11,10 @@ export const dynamic = 'force-dynamic';
  *
  * Runs with the service role because it writes `answer_keys`, which has no
  * policy for anyone but admins and would otherwise need a second round trip.
- * `requireAdmin()` above is what authorises it.
+ * `requireStaff()` above is what authorises it.
  */
 export const POST = withRoute(async (req) => {
-  await requireAdmin();
+  await requireStaff();
   const body = await parseBody(req, createQuizSchema);
 
   const svc = createServiceRoleClient();

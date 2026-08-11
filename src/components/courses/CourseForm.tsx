@@ -1,5 +1,6 @@
 'use client';
 
+import Alert from '@mui/material/Alert';
 import Grid from '@mui/material/Grid';
 import Stack from '@mui/material/Stack';
 import ContentCard from '@/components/layout/ContentCard';
@@ -40,6 +41,12 @@ export default function CourseForm({
   /** Existing thumbnail to preview on the edit page. */
   currentThumbnailUrl,
   pendingLabel,
+  /**
+   * Whether this user may publish. False for teachers — the database trigger
+   * from migration 0016 rejects the write, so offering the toggle would only
+   * produce a permission error at save time.
+   */
+  canPublish = true,
 }: {
   defaultValues: Partial<CourseFormInput>;
   onSubmit: (values: CourseFormValues) => Promise<void>;
@@ -47,6 +54,7 @@ export default function CourseForm({
   cancelHref?: string;
   currentThumbnailUrl?: string | null;
   pendingLabel?: string;
+  canPublish?: boolean;
 }) {
   const form = useZodForm(courseFormSchema, { defaultValues });
   const categories = useCategoryOptions();
@@ -111,11 +119,18 @@ export default function CourseForm({
       </ContentCard>
 
       <ContentCard title="Vidljivost">
-        <FormSwitch
-          name="published"
-          label="Objavi kurs"
-          description="Objavljeni kursevi su vidljivi svim posetiocima i mogu se kupiti. Nacrti su vidljivi samo administratorima."
-        />
+        {canPublish ? (
+          <FormSwitch
+            name="published"
+            label="Objavi kurs"
+            description="Objavljeni kursevi su vidljivi svim posetiocima i mogu se kupiti. Nacrti su vidljivi samo vama i administratorima."
+          />
+        ) : (
+          <Alert severity="info">
+            Kurs se čuva kao nacrt. Objavljivanje kursa radi administrator — javite se kada sadržaj
+            bude spreman.
+          </Alert>
+        )}
       </ContentCard>
 
       <FormActions submitLabel={submitLabel} cancelHref={cancelHref} />

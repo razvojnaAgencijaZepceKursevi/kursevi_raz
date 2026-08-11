@@ -19,6 +19,8 @@ export const adminUserKeys = {
   all: ['admin', 'users'] as const,
   lists: () => [...adminUserKeys.all, 'list'] as const,
   list: (params: UserListParams) => [...adminUserKeys.lists(), params] as const,
+  details: () => [...adminUserKeys.all, 'detail'] as const,
+  detail: (id: string) => [...adminUserKeys.details(), id] as const,
 };
 
 /**
@@ -37,11 +39,30 @@ export function useMe() {
   });
 }
 
-/** GET /api/admin/users */
-export function useAdminUsers(params: UserListParams = {}) {
+/**
+ * GET /api/admin/users
+ *
+ * Admin-only endpoint. Pass `enabled: false` on screens a teacher can also
+ * reach, so their browser never fires a request that is bound to 403.
+ */
+export function useAdminUsers(
+  params: UserListParams = {},
+  { enabled = true }: { enabled?: boolean } = {},
+) {
   return useQuery({
     queryKey: adminUserKeys.list(params),
     queryFn: () => apiGet<Paginated<Profile>>(`/api/admin/users${toSearchParams(params)}`),
+    enabled,
+  });
+}
+
+/** GET /api/admin/users/:id — one profile. Idle until an id is known. */
+export function useAdminUser(id: string | undefined) {
+  return useQuery({
+    queryKey: adminUserKeys.detail(id ?? ''),
+    queryFn: () => apiGet<Envelope<Profile>>(`/api/admin/users/${id}`),
+    enabled: Boolean(id),
+    select: (response) => response.data,
   });
 }
 

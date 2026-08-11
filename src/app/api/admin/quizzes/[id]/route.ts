@@ -1,6 +1,6 @@
 import { NextResponse } from 'next/server';
 import { unwrapMany, unwrapOne, parseBody, withRoute } from '@/lib/api/errors';
-import { requireAdmin } from '@/lib/auth/guards';
+import { requireStaff } from '@/lib/auth/guards';
 import { createServiceRoleClient } from '@/lib/supabase/service-role';
 import { updateQuizSchema } from '@/lib/schemas/quizzes.schema';
 import { uuidSchema } from '@/lib/schemas/common.schema';
@@ -11,7 +11,7 @@ type Ctx = { params: Promise<{ id: string }> };
 
 /** GET /api/admin/quizzes/:id — full quiz including the answer key (admin). */
 export const GET = withRoute(async (_req, ctx: Ctx) => {
-  await requireAdmin();
+  await requireStaff();
   const id = uuidSchema.parse((await ctx.params).id);
 
   const svc = createServiceRoleClient();
@@ -34,7 +34,7 @@ export const GET = withRoute(async (_req, ctx: Ctx) => {
  * merge would silently mis-associate answers.
  */
 export const PATCH = withRoute(async (req, ctx: Ctx) => {
-  await requireAdmin();
+  await requireStaff();
   const id = uuidSchema.parse((await ctx.params).id);
   const body = await parseBody(req, updateQuizSchema);
 
@@ -87,7 +87,7 @@ export const PATCH = withRoute(async (req, ctx: Ctx) => {
 
 /** DELETE /api/admin/quizzes/:id (admin). */
 export const DELETE = withRoute(async (_req, ctx: Ctx) => {
-  await requireAdmin();
+  await requireStaff();
   const id = uuidSchema.parse((await ctx.params).id);
 
   const svc = createServiceRoleClient();

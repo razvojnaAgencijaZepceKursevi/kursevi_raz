@@ -10,6 +10,7 @@ import {
   type Paginated,
 } from '@/lib/api/client';
 import type {
+  AdminPurchase,
   CreatePurchaseRequest,
   ListPurchasesQuery,
   Purchase,
@@ -29,6 +30,8 @@ export const adminPurchaseKeys = {
   all: ['admin', 'purchases'] as const,
   lists: () => [...adminPurchaseKeys.all, 'list'] as const,
   list: (params: PurchaseListParams) => [...adminPurchaseKeys.lists(), params] as const,
+  details: () => [...adminPurchaseKeys.all, 'detail'] as const,
+  detail: (id: string) => [...adminPurchaseKeys.details(), id] as const,
 };
 
 /**
@@ -69,11 +72,28 @@ export function useCreatePurchase() {
   });
 }
 
-/** GET /api/admin/purchases — list/filter every purchase. */
+/**
+ * GET /api/admin/purchases — list/filter every purchase.
+ *
+ * Rows are `AdminPurchase`, not `Purchase`: this endpoint embeds the course and
+ * the student, which is what lets the admin UI show names rather than uuids.
+ * Both may be null if the related row was deleted.
+ */
 export function useAdminPurchases(params: PurchaseListParams = {}) {
   return useQuery({
     queryKey: adminPurchaseKeys.list(params),
-    queryFn: () => apiGet<Paginated<Purchase>>(`/api/admin/purchases${toSearchParams(params)}`),
+    queryFn: () =>
+      apiGet<Paginated<AdminPurchase>>(`/api/admin/purchases${toSearchParams(params)}`),
+  });
+}
+
+/** GET /api/admin/purchases/:id — one purchase, course and student embedded. */
+export function useAdminPurchase(id: string | undefined) {
+  return useQuery({
+    queryKey: adminPurchaseKeys.detail(id ?? ''),
+    queryFn: () => apiGet<Envelope<AdminPurchase>>(`/api/admin/purchases/${id}`),
+    enabled: Boolean(id),
+    select: (response) => response.data,
   });
 }
 

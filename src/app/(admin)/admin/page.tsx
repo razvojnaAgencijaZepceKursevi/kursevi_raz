@@ -41,12 +41,20 @@ import { useAuthStore } from '@/store/useAuthStore';
  */
 export default function AdminDashboardPage() {
   const profile = useAuthStore((s) => s.profile);
+  const isAdmin = profile?.role === 'admin';
 
+  // Every one of these is already scoped by the caller's role — a teacher's
+  // course list is filtered to what they own, and RLS narrows purchases and
+  // submissions to their own courses. So the same four hooks give an admin
+  // platform totals and a teacher their own, with no branching here.
   const courses = useAdminCourses({ pageSize: 1 });
   const publishedCourses = useAdminCourses({ pageSize: 1, published: true });
   const pendingPurchases = useAdminPurchases({ pageSize: 1, status: 'requested' });
   const pendingSubmissions = useAdminSubmissions({ pageSize: 1, status: 'pending' });
-  const users = useAdminUsers({ pageSize: 1 });
+
+  // Users are platform-wide administration; the endpoint is admin-only, so a
+  // teacher must not even ask for it.
+  const users = useAdminUsers({ pageSize: 1 }, { enabled: isAdmin });
 
   // The one list that fetches real rows — the five most recent courses.
   const recentCourses = useAdminCourses({ pageSize: 5 });
@@ -68,7 +76,7 @@ export default function AdminDashboardPage() {
       <Grid container spacing={2}>
         <Grid size={{ xs: 12, sm: 6, lg: 3 }}>
           <StatCard
-            label="Ukupno kurseva"
+            label={isAdmin ? 'Ukupno kurseva' : 'Moji kursevi'}
             value={courses.data?.meta.total}
             icon={LibraryBooksOutlinedIcon}
             href="/admin/courses"
@@ -101,16 +109,18 @@ export default function AdminDashboardPage() {
           />
         </Grid>
 
-        <Grid size={{ xs: 12, sm: 6, lg: 3 }}>
-          <StatCard
-            label="Registrovani korisnici"
-            value={users.data?.meta.total}
-            icon={PeopleOutlinedIcon}
-            href="/admin/users"
-            loading={users.isPending}
-            error={users.isError}
-          />
-        </Grid>
+        {isAdmin ? (
+          <Grid size={{ xs: 12, sm: 6, lg: 3 }}>
+            <StatCard
+              label="Registrovani korisnici"
+              value={users.data?.meta.total}
+              icon={PeopleOutlinedIcon}
+              href="/admin/users"
+              loading={users.isPending}
+              error={users.isError}
+            />
+          </Grid>
+        ) : null}
       </Grid>
 
       <ContentCard

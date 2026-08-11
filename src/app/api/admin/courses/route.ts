@@ -1,21 +1,34 @@
 import { NextResponse } from 'next/server';
 import { parseBody, parseQuery, unwrapMany, unwrapOne, withRoute } from '@/lib/api/errors';
-import { requireAdmin } from '@/lib/auth/guards';
+import { requireStaff } from '@/lib/auth/guards';
 import { createClient } from '@/lib/supabase/server';
 import { metaFor, rangeFor } from '@/lib/schemas/common.schema';
 import { createCourseSchema, listCoursesQuerySchema } from '@/lib/schemas/courses.schema';
 
 export const dynamic = 'force-dynamic';
 
-/** GET /api/admin/courses — list all courses including unpublished (admin). */
+/**
+ * GET /api/admin/courses — the authoring listing (admin + teacher).
+ *
+ * Admins get every course. Teachers get **only their own**, and that filter is
+ * applied here rather than left to RLS: the courses SELECT policy also permits
+ * reading any *published* course (the public catalogue needs that), so without
+ * this a teacher's management screen would be padded with other people's work
+ * that they cannot edit.
+ *
+ * RLS remains the security boundary — it is what stops a teacher editing those
+ * rows. This filter is about showing the right list.
+ */
 export const GET = withRoute(async (req) => {
-  await requireAdmin();
+  const { userId, profile } = await requireStaff();
 
   const query = parseQuery(req, listCoursesQuerySchema);
   const supabase = await createClient();
   const [from, to] = rangeFor(query);
 
   let q = supabase.from('courses').select('*', { count: 'exact' });
+
+  if (profile.role === 'teacher') q = q.eq('owner_id', userId);
 
   if (query.search) {
     q = q.or(`name.ilike.%${query.search}%,description.ilike.%${query.search}%`);
@@ -33,7 +46,7 @@ export const GET = withRoute(async (req) => {
 
 /** POST /api/admin/courses — create a course (admin). */
 export const POST = withRoute(async (req) => {
-  await requireAdmin();
+  await requireStaff();
   const body = await parseBody(req, createCourseSchema);
 
   const supabase = await createClient();

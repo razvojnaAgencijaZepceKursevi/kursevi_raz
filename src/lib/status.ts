@@ -1,5 +1,6 @@
 import type { PurchaseStatus } from '@/lib/schemas/purchases.schema';
 import type { TaskSubmissionStatus } from '@/lib/schemas/task-submissions.schema';
+import type { UserRole } from '@/lib/schemas/users.schema';
 
 /**
  * Status → label + colour, in one place.
@@ -27,9 +28,27 @@ export const SUBMISSION_STATUS: Record<TaskSubmissionStatus, StatusDisplay> = {
   approved: { label: 'Prihvaćeno', color: 'success' },
 };
 
-/**
- * `published` is a boolean rather than an enum, so it gets a helper instead of
- * a lookup table.
+export const USER_ROLE: Record<UserRole, StatusDisplay> = {
+  admin: { label: 'Administrator', color: 'secondary' },
+  teacher: { label: 'Predavač', color: 'primary' },
+  student: { label: 'Student', color: 'default' },
+};
+
+/*
+ * Booleans get helpers rather than lookup tables — there's no enum to key on.
  */
+
 export const publishStatus = (published: boolean): StatusDisplay =>
   published ? { label: 'Objavljen', color: 'success' } : { label: 'Nacrt', color: 'default' };
+
+/**
+ * Whether a student has asked for a printed certificate.
+ *
+ * Note what this does *not* say: nothing about whether it was actually sent.
+ * The schema has no fulfilment column, so "Zatražena dostava" means a request
+ * exists and nothing more — don't let the UI imply otherwise.
+ */
+export const deliveryStatus = (requested: boolean): StatusDisplay =>
+  requested
+    ? { label: 'Zatražena dostava', color: 'warning' }
+    : { label: 'Bez zahteva', color: 'default' };

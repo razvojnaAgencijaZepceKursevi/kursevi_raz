@@ -26,12 +26,17 @@ import { getAuthContext } from '@/lib/auth/guards';
 export default async function AdminLayout({ children }: { children: React.ReactNode }) {
   const auth = await getAuthContext();
   if (!auth) redirect('/login');
-  if (auth.profile.role !== 'admin') redirect('/dashboard');
 
+  // Admins and teachers share this shell. The nav below is filtered by role,
+  // and RLS scopes a teacher to the courses they own — so "which of the two
+  // roles" changes what is offered, never what is enforced.
   const { profile } = auth;
+  if (profile.role !== 'admin' && profile.role !== 'teacher') redirect('/dashboard');
 
   return (
-    <AdminShell profile={{ full_name: profile.full_name, email: profile.email }}>
+    <AdminShell
+      profile={{ full_name: profile.full_name, email: profile.email, role: profile.role }}
+    >
       {children}
     </AdminShell>
   );

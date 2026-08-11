@@ -1,6 +1,6 @@
 import { NextResponse } from 'next/server';
 import { parseBody, unwrapOne, withRoute } from '@/lib/api/errors';
-import { requireAdmin } from '@/lib/auth/guards';
+import { requireStaff } from '@/lib/auth/guards';
 import { createClient } from '@/lib/supabase/server';
 import { createTaskFileSchema } from '@/lib/schemas/tasks.schema';
 import { uuidSchema } from '@/lib/schemas/common.schema';
@@ -11,7 +11,7 @@ type Ctx = { params: Promise<{ id: string }> };
 
 /** POST /api/admin/tasks/:id/files — register an uploaded task file (admin). */
 export const POST = withRoute(async (req, ctx: Ctx) => {
-  await requireAdmin();
+  await requireStaff();
   const taskId = uuidSchema.parse((await ctx.params).id);
   const body = await parseBody(req, createTaskFileSchema);
 

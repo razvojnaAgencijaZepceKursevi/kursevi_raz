@@ -59,3 +59,28 @@ export async function requireAdmin(): Promise<AuthContext> {
   if (ctx.profile.role !== 'admin') throw forbidden('Admin role required');
   return ctx;
 }
+
+/**
+ * Throws 401/403 unless the caller is an admin **or** a teacher.
+ *
+ * This is the guard for the authoring endpoints — courses, modules, quizzes,
+ * tasks, uploads and the read-only screens teachers share with admins. It
+ * answers only "may you reach this endpoint at all"; *which rows* you may touch
+ * is decided by RLS, using `courses.owner_id` (see migration 0017).
+ *
+ * That division matters: these routes use the request-scoped Supabase client,
+ * so a teacher asking for someone else's course simply gets no rows back rather
+ * than relying on a check here to remember to filter. Any route that switches
+ * to the service-role client loses that protection and must re-check ownership
+ * itself.
+ *
+ * Keep `requireAdmin` on anything genuinely global: users, categories, and the
+ * purchase approve/deny transition.
+ */
+export async function requireStaff(): Promise<AuthContext> {
+  const ctx = await requireUser();
+  if (ctx.profile.role !== 'admin' && ctx.profile.role !== 'teacher') {
+    throw forbidden('Admin or teacher role required');
+  }
+  return ctx;
+}

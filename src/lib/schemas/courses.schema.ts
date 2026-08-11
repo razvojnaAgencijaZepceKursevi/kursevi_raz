@@ -1,5 +1,11 @@
 import { z } from '@/lib/openapi/zod';
-import { auditFields, paginatedResponse, paginationQuerySchema, uuidSchema } from './common.schema';
+import {
+  auditFields,
+  booleanQueryParam,
+  paginatedResponse,
+  paginationQuerySchema,
+  uuidSchema,
+} from './common.schema';
 
 export const courseSchema = z
   .object({
@@ -20,8 +26,7 @@ export const courseSchema = z
 export const listCoursesQuerySchema = paginationQuerySchema
   .extend({
     categoryId: uuidSchema.optional().openapi({ description: 'Filter by category' }),
-    published: z.coerce
-      .boolean()
+    published: booleanQueryParam()
       .optional()
       .openapi({ description: 'Admin-only filter; public listings are always published=true' }),
   })

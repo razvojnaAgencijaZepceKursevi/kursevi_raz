@@ -18,6 +18,10 @@ const PROTECTED_PREFIXES = ['/dashboard', '/admin'] as const;
 const AUTH_PAGES = ['/login', '/register'] as const;
 
 /**
+ * The `/admin` prefix is open to admins *and* teachers — see the role check
+ * below. The constant keeps its name because it still marks the same URL
+ * subtree; only the set of roles allowed through has widened.
+ *
  * `/api-docs` and `/api/openapi.json` are deliberately absent here: the docs
  * are public for now, at the project owner's request. The API docs spec's
  * guardrail recommends keeping them admin- or dev-only, so re-add both prefixes
@@ -88,7 +92,13 @@ export async function proxy(request: NextRequest) {
       .eq('id', user.id)
       .maybeSingle();
 
-    if (isAdminOnly && profile?.role !== 'admin') {
+    // Teachers share the /admin shell with admins. What they can see inside is
+    // narrowed by the nav (role-filtered) and by RLS (`courses.owner_id`); this
+    // check only decides who may enter the section at all. The group layout
+    // repeats it server-side as the authoritative test.
+    const isStaff = profile?.role === 'admin' || profile?.role === 'teacher';
+
+    if (isAdminOnly && !isStaff) {
       const url = request.nextUrl.clone();
       url.pathname = '/dashboard';
       url.search = '';

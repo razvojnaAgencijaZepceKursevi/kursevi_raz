@@ -11,6 +11,7 @@ import Stack from '@mui/material/Stack';
 import Toolbar from '@mui/material/Toolbar';
 import Typography from '@mui/material/Typography';
 import AdminNavList from './AdminNavList';
+import type { StaffRole } from './adminNav';
 import AdminUserMenu from './AdminUserMenu';
 
 const SIDEBAR_WIDTH = 264;
@@ -27,7 +28,7 @@ export default function AdminShell({
   profile,
   children,
 }: {
-  profile: { full_name: string; email: string };
+  profile: { full_name: string; email: string; role: StaffRole };
   children: React.ReactNode;
 }) {
   const [mobileOpen, setMobileOpen] = React.useState(false);
@@ -62,7 +63,7 @@ export default function AdminShell({
           lineHeight: 1.8,
         }}
       >
-        Admin
+        {profile.role === 'teacher' ? 'Predavač' : 'Admin'}
       </Typography>
     </Stack>
   );
@@ -71,7 +72,7 @@ export default function AdminShell({
     <>
       {brand}
       <Box sx={{ overflowY: 'auto', flex: 1 }}>
-        <AdminNavList onNavigate={() => setMobileOpen(false)} />
+        <AdminNavList role={profile.role} onNavigate={() => setMobileOpen(false)} />
       </Box>
     </>
   );
@@ -131,7 +132,7 @@ export default function AdminShell({
             {/* Pushes the user menu right on desktop, where there's no button. */}
             <Box sx={{ flex: 1 }} />
 
-            <AdminUserMenu fullName={profile.full_name} email={profile.email} />
+            <AdminUserMenu fullName={profile.full_name} email={profile.email} role={profile.role} />
           </Toolbar>
         </AppBar>
 

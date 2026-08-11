@@ -8,6 +8,7 @@ import { useCreateCourse, useUpdateCourse } from '@/hooks/useCourses';
 import { useUploadFile } from '@/hooks/useUploads';
 import { BUCKETS } from '@/lib/storage';
 import { toast } from '@/store/useToastStore';
+import { useAuthStore } from '@/store/useAuthStore';
 import {
   emptyCourseFormValues,
   toCreateCoursePayload,
@@ -39,6 +40,7 @@ import {
  */
 export default function NewCoursePage() {
   const router = useRouter();
+  const isAdmin = useAuthStore((s) => s.profile?.role === 'admin');
   const createCourse = useCreateCourse();
   const updateCourse = useUpdateCourse();
   const uploadFile = useUploadFile();
@@ -85,6 +87,7 @@ export default function NewCoursePage() {
         onSubmit={handleSubmit}
         submitLabel="Kreiraj kurs"
         pendingLabel="Kreiranje kursa…"
+        canPublish={isAdmin}
       />
     </PageContainer>
   );

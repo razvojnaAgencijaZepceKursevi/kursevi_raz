@@ -14,11 +14,20 @@
       "PowerShell($conn = Get-NetTCPConnection -LocalPort 3001 -State Listen -ErrorAction SilentlyContinue; if \\($conn\\) { $procId = $conn.OwningProcess | Select-Object -First 1; Stop-Process -Id $procId -Force -Confirm:$false; Write-Output \"stopped PID $procId\" } else { Write-Output \"nothing listening\" })",
       "Bash(echo \"tsc exit: $?\")",
       "Bash(curl -s -o /dev/null -w \"login=%{http_code}\\\\n\" http://localhost:3001/login)",
-      "Bash(echo \"tsc=$?\")"
+      "Bash(echo \"tsc=$?\")",
+      "Bash(rm -f \"src/app/api/admin/users/[id]/get.ts\" && ls \"src/app/api/admin/users/[id]/\")",
+      "Bash(python -)",
+      "Bash(curl -s http://localhost:3001/api/openapi.json -o __TRACKED_VAR__/spec3.json -w 'http=%{http_code}\\\\n')",
+      "Bash(npx --no-install supabase migration list)",
+      "Bash(npm run *)",
+      "Bash(node ./api-role-check.mjs)",
+      "Bash(grep -n \"return { purchases\\\\|module_progress'\\).insert\\\\|Kako radi internet'\\\\].id, student_id\" scripts/seed.mjs)",
+      "Bash(grep -n -A3 \"modules\\\\`\" src/components/courses/CourseActions.tsx)"
     ],
     "defaultMode": "bypassPermissions",
     "additionalDirectories": [
-      "\\tmp"
+      "\\tmp",
+      "C:\\Projects\\kursevi-raz\\src\\app\\api\\admin\\users\\[id]"
     ]
   }
 }

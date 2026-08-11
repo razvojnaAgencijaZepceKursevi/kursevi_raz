@@ -52,6 +52,8 @@ import {
   updateTaskSchema,
 } from '@/lib/schemas/tasks.schema';
 import {
+  adminPurchaseListResponseSchema,
+  adminPurchaseResponseSchema,
   createPurchaseSchema,
   listPurchasesQuerySchema,
   purchaseListResponseSchema,
@@ -69,6 +71,8 @@ import {
 } from '@/lib/schemas/task-submissions.schema';
 import { courseProgressResponseSchema } from '@/lib/schemas/module-progress.schema';
 import {
+  adminCertificateListResponseSchema,
+  adminCertificateResponseSchema,
   certificateListResponseSchema,
   certificateResponseSchema,
   certificateVerificationResponseSchema,
@@ -135,6 +139,16 @@ registry.registerPath({
   security,
   request: { query: listUsersQuerySchema },
   responses: { 200: json(userListResponseSchema, 'Paginated users'), ...errors },
+});
+
+registry.registerPath({
+  method: 'get',
+  path: '/api/admin/users/{id}',
+  tags: ['Users'],
+  summary: 'Get one profile (admin)',
+  security,
+  request: { params: idParam },
+  responses: { 200: json(z.object({ data: profileSchema }), 'The profile'), ...errors },
 });
 
 registry.registerPath({
@@ -587,7 +601,17 @@ registry.registerPath({
   summary: 'List/filter all purchases (admin)',
   security,
   request: { query: listPurchasesQuerySchema },
-  responses: { 200: json(purchaseListResponseSchema, 'Paginated purchases'), ...errors },
+  responses: { 200: json(adminPurchaseListResponseSchema, 'Paginated purchases'), ...errors },
+});
+
+registry.registerPath({
+  method: 'get',
+  path: '/api/admin/purchases/{id}',
+  tags: ['Purchases'],
+  summary: 'Get one purchase with course + student (admin)',
+  security,
+  request: { params: idParam },
+  responses: { 200: json(adminPurchaseResponseSchema, 'The purchase'), ...errors },
 });
 
 registry.registerPath({
@@ -668,7 +692,19 @@ registry.registerPath({
   summary: 'List all certificates and delivery requests (admin)',
   security,
   request: { query: listCertificatesQuerySchema },
-  responses: { 200: json(certificateListResponseSchema, 'Paginated certificates'), ...errors },
+  responses: { 200: json(adminCertificateListResponseSchema, 'Paginated certificates'), ...errors },
+});
+
+registry.registerPath({
+  method: 'get',
+  path: '/api/admin/certificates/{id}',
+  tags: ['Certificates'],
+  summary: 'Get one certificate with course + student (admin)',
+  description:
+    'Read-only. `requested_delivery` belongs to the student and is set through /api/certificates/{certificateId}/request-delivery, which checks ownership; there is no admin write. Tracking fulfilment would require a new column on `certificates`.',
+  security,
+  request: { params: idParam },
+  responses: { 200: json(adminCertificateResponseSchema, 'The certificate'), ...errors },
 });
 
 /* -------------------------------------------------------------------------- */

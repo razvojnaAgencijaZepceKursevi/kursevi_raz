@@ -1,6 +1,6 @@
 import { NextResponse } from 'next/server';
 import { badRequest, parseBody, unwrapOne, withRoute } from '@/lib/api/errors';
-import { requireAdmin } from '@/lib/auth/guards';
+import { requireStaff } from '@/lib/auth/guards';
 import { createClient } from '@/lib/supabase/server';
 import { updateCourseSchema } from '@/lib/schemas/courses.schema';
 import { uuidSchema } from '@/lib/schemas/common.schema';
@@ -11,7 +11,7 @@ type Ctx = { params: Promise<{ id: string }> };
 
 /** GET /api/admin/courses/:id — any publish state (admin). */
 export const GET = withRoute(async (_req, ctx: Ctx) => {
-  await requireAdmin();
+  await requireStaff();
   const id = uuidSchema.parse((await ctx.params).id);
 
   const supabase = await createClient();
@@ -22,7 +22,7 @@ export const GET = withRoute(async (_req, ctx: Ctx) => {
 
 /** PATCH /api/admin/courses/:id (admin). */
 export const PATCH = withRoute(async (req, ctx: Ctx) => {
-  await requireAdmin();
+  await requireStaff();
   const id = uuidSchema.parse((await ctx.params).id);
   const body = await parseBody(req, updateCourseSchema);
 
@@ -38,7 +38,7 @@ export const PATCH = withRoute(async (req, ctx: Ctx) => {
 
 /** DELETE /api/admin/courses/:id (admin). Cascades to modules and their content. */
 export const DELETE = withRoute(async (_req, ctx: Ctx) => {
-  await requireAdmin();
+  await requireStaff();
   const id = uuidSchema.parse((await ctx.params).id);
 
   const supabase = await createClient();

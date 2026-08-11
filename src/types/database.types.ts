@@ -204,6 +204,7 @@ export type Database = {
           description: string | null
           id: string
           name: string
+          owner_id: string | null
           price: number
           published: boolean
           thumbnail_path: string | null
@@ -217,6 +218,7 @@ export type Database = {
           description?: string | null
           id?: string
           name: string
+          owner_id?: string | null
           price?: number
           published?: boolean
           thumbnail_path?: string | null
@@ -230,6 +232,7 @@ export type Database = {
           description?: string | null
           id?: string
           name?: string
+          owner_id?: string | null
           price?: number
           published?: boolean
           thumbnail_path?: string | null
@@ -242,6 +245,13 @@ export type Database = {
             columns: ["category_id"]
             isOneToOne: false
             referencedRelation: "categories"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "courses_owner_id_fkey"
+            columns: ["owner_id"]
+            isOneToOne: false
+            referencedRelation: "profiles"
             referencedColumns: ["id"]
           },
         ]
@@ -735,16 +745,29 @@ export type Database = {
       can_access_question: { Args: { p_question_id: string }; Returns: boolean }
       can_access_quiz: { Args: { p_quiz_id: string }; Returns: boolean }
       can_access_task: { Args: { p_task_id: string }; Returns: boolean }
+      can_author_course: { Args: { p_course_id: string }; Returns: boolean }
+      can_author_module: { Args: { p_module_id: string }; Returns: boolean }
+      can_author_question: { Args: { p_question_id: string }; Returns: boolean }
+      can_author_quiz: { Args: { p_quiz_id: string }; Returns: boolean }
+      can_author_task: { Args: { p_task_id: string }; Returns: boolean }
+      can_review_submission: {
+        Args: { p_submission_id: string }
+        Returns: boolean
+      }
       has_approved_purchase: { Args: { p_course_id: string }; Returns: boolean }
       is_admin: { Args: never; Returns: boolean }
+      is_staff: { Args: never; Returns: boolean }
+      is_teacher: { Args: never; Returns: boolean }
       next_certificate_readable_id: { Args: never; Returns: string }
+      owns_course: { Args: { p_course_id: string }; Returns: boolean }
       owns_submission: { Args: { p_submission_id: string }; Returns: boolean }
       safe_uuid: { Args: { p_value: string }; Returns: string }
+      teaches_student: { Args: { p_student_id: string }; Returns: boolean }
     }
     Enums: {
       purchase_status: "requested" | "denied" | "approved"
       task_submission_status: "pending" | "needs_revision" | "approved"
-      user_role: "admin" | "student"
+      user_role: "admin" | "student" | "teacher"
     }
     CompositeTypes: {
       [_ in never]: never
@@ -877,7 +900,7 @@ export const Constants = {
     Enums: {
       purchase_status: ["requested", "denied", "approved"],
       task_submission_status: ["pending", "needs_revision", "approved"],
-      user_role: ["admin", "student"],
+      user_role: ["admin", "student", "teacher"],
     },
   },
 } as const

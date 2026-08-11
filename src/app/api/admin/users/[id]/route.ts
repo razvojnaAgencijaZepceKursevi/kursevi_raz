@@ -9,6 +9,19 @@ export const dynamic = 'force-dynamic';
 
 type Ctx = { params: Promise<{ id: string }> };
 
+/** GET /api/admin/users/:id — one profile (admin). */
+export const GET = withRoute(async (_req, ctx: Ctx) => {
+  await requireAdmin();
+  const userId = uuidSchema.parse((await ctx.params).id);
+
+  const supabase = await createClient();
+  const profile = unwrapOne(
+    await supabase.from('profiles').select('*').eq('id', userId).maybeSingle(),
+  );
+
+  return NextResponse.json({ data: profile });
+});
+
 /**
  * PATCH /api/admin/users/:id — update a user's role (admin).
  *

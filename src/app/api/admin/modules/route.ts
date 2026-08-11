@@ -1,6 +1,6 @@
 import { NextResponse } from 'next/server';
 import { parseBody, unwrapOne, withRoute } from '@/lib/api/errors';
-import { requireAdmin } from '@/lib/auth/guards';
+import { requireStaff } from '@/lib/auth/guards';
 import { createClient } from '@/lib/supabase/server';
 import { createModuleSchema } from '@/lib/schemas/modules.schema';
 
@@ -8,7 +8,7 @@ export const dynamic = 'force-dynamic';
 
 /** POST /api/admin/modules — create a module (admin). */
 export const POST = withRoute(async (req) => {
-  await requireAdmin();
+  await requireStaff();
   const body = await parseBody(req, createModuleSchema);
 
   const supabase = await createClient();

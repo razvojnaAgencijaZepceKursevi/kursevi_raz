@@ -1,6 +1,6 @@
 import { NextResponse } from 'next/server';
 import { unwrapOne, withRoute } from '@/lib/api/errors';
-import { requireAdmin } from '@/lib/auth/guards';
+import { requireStaff } from '@/lib/auth/guards';
 import { createClient } from '@/lib/supabase/server';
 import { createServiceRoleClient } from '@/lib/supabase/service-role';
 import { uuidSchema } from '@/lib/schemas/common.schema';
@@ -16,7 +16,7 @@ type Ctx = { params: Promise<{ id: string }> };
  * leave an orphaned object silently occupying the bucket.
  */
 export const DELETE = withRoute(async (_req, ctx: Ctx) => {
-  await requireAdmin();
+  await requireStaff();
   const id = uuidSchema.parse((await ctx.params).id);
 
   const supabase = await createClient();

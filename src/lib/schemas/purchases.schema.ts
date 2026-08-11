@@ -1,5 +1,12 @@
 import { z } from '@/lib/openapi/zod';
-import { auditFields, paginatedResponse, paginationQuerySchema, uuidSchema } from './common.schema';
+import {
+  auditFields,
+  embeddedCourseSchema,
+  embeddedProfileSchema,
+  paginatedResponse,
+  paginationQuerySchema,
+  uuidSchema,
+} from './common.schema';
 
 export const purchaseStatusSchema = z
   .enum(['requested', 'denied', 'approved'])
@@ -15,6 +22,29 @@ export const purchaseSchema = z
     ...auditFields,
   })
   .openapi('Purchase');
+
+/**
+ * A purchase as the admin endpoints return it — with the course and student
+ * rows embedded, which is what lets the admin UI show names instead of uuids.
+ *
+ * Kept separate from `purchaseSchema` because the student-facing
+ * `/api/purchases` embeds a different projection (course only, plus a
+ * thumbnail); conflating them would promise students data they never receive.
+ */
+export const adminPurchaseSchema = purchaseSchema
+  .extend({
+    courses: embeddedCourseSchema,
+    profiles: embeddedProfileSchema,
+  })
+  .openapi('AdminPurchase');
+
+export const adminPurchaseListResponseSchema = paginatedResponse(adminPurchaseSchema).openapi(
+  'AdminPurchaseListResponse',
+);
+
+export const adminPurchaseResponseSchema = z
+  .object({ data: adminPurchaseSchema })
+  .openapi('AdminPurchaseResponse');
 
 export const listPurchasesQuerySchema = paginationQuerySchema
   .extend({
@@ -49,6 +79,7 @@ export const updatePurchaseSchema = z
   .openapi('UpdatePurchaseRequest');
 
 export type Purchase = z.infer<typeof purchaseSchema>;
+export type AdminPurchase = z.infer<typeof adminPurchaseSchema>;
 export type PurchaseStatus = z.infer<typeof purchaseStatusSchema>;
 export type ListPurchasesQuery = z.infer<typeof listPurchasesQuerySchema>;
 export type CreatePurchaseRequest = z.infer<typeof createPurchaseSchema>;
