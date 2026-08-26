@@ -1,6 +1,7 @@
 import { NextResponse } from 'next/server';
 import { parseBody, unwrapMany, unwrapOne, withRoute } from '@/lib/api/errors';
 import { requireStaff } from '@/lib/auth/guards';
+import { assertCanAuthorModule } from '@/lib/auth/courseAccess';
 import { createServiceRoleClient } from '@/lib/supabase/service-role';
 import { createQuizSchema } from '@/lib/schemas/quizzes.schema';
 
@@ -11,13 +12,19 @@ export const dynamic = 'force-dynamic';
  *
  * Runs with the service role because it writes `answer_keys`, which has no
  * policy for anyone but admins and would otherwise need a second round trip.
- * `requireStaff()` above is what authorises it.
+ * That bypasses RLS, so `assertCanAuthorModule` does the ownership check the
+ * policies would otherwise have done.
  */
 export const POST = withRoute(async (req) => {
-  await requireStaff();
+  const auth = await requireStaff();
   const body = await parseBody(req, createQuizSchema);
 
   const svc = createServiceRoleClient();
+
+  // requireStaff() only proves "is staff". The service-role client below
+  // bypasses RLS, so ownership has to be checked here or any teacher could
+  // attach a quiz to any teacher's module.
+  await assertCanAuthorModule(svc, body.module_id, auth);
 
   const quiz = unwrapOne(
     await svc

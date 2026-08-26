@@ -17,7 +17,7 @@ export const GET = withRoute(async (req) => {
 
   let q = supabase
     .from('certificates')
-    .select('*, courses(id, name)', { count: 'exact' })
+    .select('*, courses(id, name, slug, thumbnail_path)', { count: 'exact' })
     .eq('student_id', userId);
 
   if (query.courseId) q = q.eq('course_id', query.courseId);

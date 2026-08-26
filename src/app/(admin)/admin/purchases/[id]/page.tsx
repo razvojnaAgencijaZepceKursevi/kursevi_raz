@@ -100,7 +100,7 @@ export default function AdminPurchaseDetailPage(props: PageProps<'/admin/purchas
                         {
                           label: 'Naziv',
                           value: row.courses ? (
-                            <Link href={`/courses/${row.courses.id}`} underline="hover">
+                            <Link href={`/courses/${row.courses.slug}`} underline="hover">
                               {row.courses.name}
                             </Link>
                           ) : (

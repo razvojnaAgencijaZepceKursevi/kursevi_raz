@@ -69,6 +69,25 @@ export function storagePath(folders: string[], fileName: string): string {
 }
 
 /**
+ * The name a human should see for a stored object.
+ *
+ * `safeFileName()` prefixes every upload with `Date.now()` so a re-upload never
+ * overwrites the previous object. That prefix is storage bookkeeping and must
+ * not reach the reader — a student who attached `resenje.pdf` should see
+ * `resenje.pdf`, not `1756213847312-resenje.pdf`.
+ *
+ * Lives here, next to the function that adds the prefix, because the two are
+ * one convention. Written inline once in `TaskWorkspace` it was `/^d+-/` — a
+ * missing backslash, so it matched nothing and every attachment rendered with
+ * its timestamp still on the front.
+ */
+export function displayFileName(path: string | null | undefined): string {
+  if (!path) return '';
+  const stored = path.split('/').pop() ?? '';
+  return stored.replace(/^\d+-/, '');
+}
+
+/**
  * CDN URL for an object in a public bucket. Returns null for a missing path so
  * callers can fall back to a placeholder with a plain nullish check.
  */
@@ -88,6 +107,61 @@ export const ACCEPTED_IMAGE_TYPES = [
   'image/png',
   'image/webp',
   'image/avif',
+] as const;
+
+/**
+ * Module materials are **PDF only**, deliberately.
+ *
+ * Not because PDF is harder to copy — it is not. Anything the browser renders
+ * has already been downloaded to the machine, and a PDF in a viewer is one
+ * network-tab save away. The reason is the opposite: PDF is the one format that
+ * renders reliably *inline* in a viewer we control, so a student never needs to
+ * be handed a file in the first place. A .docx or .xlsx has to leave the site to
+ * be opened at all.
+ *
+ * Keeping it to a single type also means the student-side viewer has exactly one
+ * rendering path to get right.
+ *
+ * This is a list of one on purpose — a future addition must be a format that can
+ * be displayed in-page, not merely a format that is convenient to upload.
+ */
+export const ACCEPTED_MODULE_FILE_TYPES = ['application/pdf'] as const;
+
+/**
+ * Content types the task-files bucket accepts.
+ *
+ * Deliberately wider than module materials, and for the opposite reason. A
+ * material is course content a student *reads in the app*; a task file is a
+ * brief, template or dataset a student has to **open and work on**, so it must
+ * be downloadable and it must be whatever format the assignment needs.
+ *
+ * Shared with `/api/admin/uploads` so the browser check and the server check
+ * cannot drift.
+ */
+export const ACCEPTED_TASK_FILE_TYPES = [
+  ...ACCEPTED_IMAGE_TYPES,
+  'application/pdf',
+  'application/zip',
+  'text/plain',
+  'text/csv',
+] as const;
+
+/**
+ * Content types allowed on a task-message attachment.
+ *
+ * This is a conversation between a student and a reviewer, so it carries
+ * evidence of work: a screenshot, a document, a zipped project. Wider than
+ * module materials (which are read in-app and therefore PDF-only) and narrower
+ * than "anything", because an unrestricted bucket is a file host.
+ *
+ * Shared with `/api/admin/uploads` so the browser check and the server check
+ * cannot drift.
+ */
+export const ACCEPTED_MESSAGE_ATTACHMENT_TYPES = [
+  ...ACCEPTED_IMAGE_TYPES,
+  'application/pdf',
+  'application/zip',
+  'text/plain',
 ] as const;
 
 export function formatBytes(bytes: number): string {

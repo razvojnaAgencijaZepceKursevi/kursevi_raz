@@ -113,10 +113,10 @@ export const theme = createTheme({
     /*
      * Routing integration — read this before adding a link anywhere.
      *
-     * Setting Next's `Link` here means `<Button href>`, `<MenuItem href>`,
-     * `<ListItemButton href>`, `<CardActionArea href>` and `<Link href>` all
+     * Setting Next's `Link` here means `<Button href>`, `<ListItemButton href>`,
+     * `<CardActionArea href>`, `<IconButton href>` and `<Link href>` all
      * client-side navigate on their own. **Never pass `component={NextLink}`
-     * at a call site.**
+     * at a call site** — with one exception, `MenuItem`, noted below.
      *
      * That isn't a style preference. A page is a Server Component by default,
      * and every MUI component is a Client Component, so writing
@@ -130,6 +130,26 @@ export const theme = createTheme({
      * `LinkComponent` (ButtonBase) and `component` (Link) are different props
      * by design: ButtonBase swaps its element only when an `href` is present,
      * so a plain `<Button onClick>` still renders a real `<button>`.
+     *
+     * ## `MenuItem` is the exception — it needs `component={NextLink}`
+     *
+     * ButtonBase only substitutes `LinkComponent` when its root is still the
+     * default `'button'`:
+     *
+     *     if (ComponentProp === 'button' && isLink) ComponentProp = LinkComponent;
+     *
+     * `MenuItem` overrides that root with `'li'`, so the condition never holds
+     * and `<MenuItem href="…">` renders `<li href="…">` — a dead element that
+     * silently does nothing. There is no styling or console warning; it just
+     * doesn't navigate. (`ListItemButton` defaults to `'div'` but *does* resolve
+     * to an anchor, so the sidebar is unaffected — MenuItem is the only one.)
+     *
+     * So a menu item that links must say so explicitly:
+     *
+     *     <MenuItem component={NextLink} href={`/admin/courses/${id}/edit`}>
+     *
+     * That is safe here only because every `<Menu>` in this app lives in a
+     * Client Component. Never do it from a Server Component — see above.
      *
      * This covers MUI components only. `<Stack component={NextLink}>` and
      * `<Box component={NextLink}>` are still written out at the call site — and

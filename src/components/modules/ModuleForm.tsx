@@ -1,6 +1,5 @@
 'use client';
 
-import Alert from '@mui/material/Alert';
 import Grid from '@mui/material/Grid';
 import Stack from '@mui/material/Stack';
 import ContentCard from '@/components/layout/ContentCard';
@@ -17,11 +16,16 @@ import {
 
 /**
  * ═══════════════════════════════════════════════════════════════════════════
- *  MODULE FORM — partially built. Read this whole comment before editing.
+ *  MODULE FORM — the fields of one module.
  * ═══════════════════════════════════════════════════════════════════════════
  *
- * The fields below are finished and follow `CourseForm` exactly. What is left
- * is the **file attachments** section, which is marked TODO further down.
+ * The fields below follow `CourseForm` exactly.
+ *
+ * Materials are deliberately NOT here. A file is uploaded the moment it is
+ * chosen, not when the form is submitted, so mixing it into this form would
+ * mean one Save button that commits some changes instantly and others on
+ * click. `<ModuleMaterials>` sits beside the form on the edit page instead —
+ * and only there, since a file needs the module id for its storage path.
  *
  * ## The shape to copy
  *
@@ -105,54 +109,6 @@ export default function ModuleForm({
             />
           </Grid>
         </Grid>
-      </ContentCard>
-
-      {/*
-       * ─────────────────────────────────────────────────────────────────────
-       *  TODO(intern) #1 — Materijali (module_files)
-       * ─────────────────────────────────────────────────────────────────────
-       *
-       * Replace the Alert below with a file list + upload control.
-       *
-       * This is a TWO-STEP save, exactly like the course thumbnail. Read
-       * `src/app/(admin)/admin/courses/new/page.tsx` first — the reasoning is
-       * written out there in full.
-       *
-       *   1. `useUploadFile()` → POST /api/admin/uploads
-       *        bucket:  BUCKETS.moduleFiles
-       *        folders: [courseId, moduleId]      ← BOTH ids, in this order
-       *        returns: { path }
-       *   2. `useCreateModuleFile()` → POST /api/admin/modules/:id/files
-       *        body: { file_path: path, file_name: file.name }
-       *
-       * Step 1 puts the bytes in storage; step 2 records the row. Doing only
-       * step 1 leaves an orphaned object that no screen will ever show.
-       *
-       * WHY THE FOLDER ORDER MATTERS: the storage RLS policy reads the *first*
-       * path segment and checks `can_author_course()` against it. A path built
-       * as `{module_id}/{course_id}/…` uploads without error and is then
-       * unreadable by everyone, forever. Always build it with
-       * `storagePath([courseId, moduleId], file.name)` from `@/lib/storage`.
-       *
-       * CONSEQUENCE FOR THIS COMPONENT: a module must already exist before it
-       * can own files (the path needs its id). So on the **create** page this
-       * section should be hidden or disabled, and files added from the edit
-       * page afterwards. Take a `moduleId?: string` prop and render the
-       * section only when it is present.
-       *
-       * Existing files come from `useCourseModules(courseId)` — each row is a
-       * `ModuleWithFiles` and already carries `module_files[]`. There is no
-       * separate "get one module" endpoint; see the note on the edit page.
-       *
-       * Deleting: `useDeleteModuleFile()` → DELETE /api/admin/module-files/:id.
-       * Wrap it in `<ConfirmDialog>`; look at `CourseActions` for the pattern
-       * of a component that owns its own mutation and confirmation.
-       */}
-      <ContentCard title="Materijali">
-        <Alert severity="info">
-          Dodavanje materijala još nije implementirano. Uputstvo se nalazi u komentaru u
-          <code> src/components/modules/ModuleForm.tsx</code>.
-        </Alert>
       </ContentCard>
 
       <FormActions submitLabel={submitLabel} cancelHref={cancelHref} />

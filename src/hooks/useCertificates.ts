@@ -2,6 +2,7 @@
 
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 import { apiGet, apiPatch, toSearchParams, type Envelope, type Paginated } from '@/lib/api/client';
+import { useAuthStore } from '@/store/useAuthStore';
 import type {
   AdminCertificate,
   Certificate,
@@ -27,12 +28,53 @@ export const adminCertificateKeys = {
   detail: (id: string) => [...adminCertificateKeys.details(), id] as const,
 };
 
-/** GET /api/certificates — the signed-in student's own certificates. */
-export function useCertificates(params: CertificateListParams = {}) {
+/**
+ * GET /api/certificates — the signed-in student's own certificates.
+ *
+ * Takes `enabled` because the certificate page is public: a signed-out visitor
+ * would only get a 401 from it, and the page still has to render.
+ */
+export function useCertificates(
+  params: CertificateListParams = {},
+  { enabled = true }: { enabled?: boolean } = {},
+) {
   return useQuery({
     queryKey: certificateKeys.list(params),
     queryFn: () => apiGet<Paginated<Certificate>>(`/api/certificates${toSearchParams(params)}`),
+    enabled,
   });
+}
+
+/**
+ * The caller's own certificate row for one identifier, if it is theirs.
+ *
+ * The certificate page is public and reads its facts from the *verification*
+ * endpoint, which deliberately returns a fixed minimal projection and no row.
+ * That is the right answer for a stranger following a link, but it means the
+ * owner sees no more than the stranger does — and the owner is the one who may
+ * ask for a printed copy.
+ *
+ * So ownership is established the only way it can be without a new endpoint:
+ * look for the identifier in the caller's own certificate list. A student has a
+ * handful of these, so one page covers it. Signed-out visitors never ask.
+ *
+ * Accepts either form of identifier, matching what the verification route does.
+ */
+export function useOwnedCertificate(identifier: string | undefined) {
+  const signedIn = useAuthStore((s) => Boolean(s.profile));
+  const authLoading = useAuthStore((s) => s.loading);
+
+  const list = useCertificates({ pageSize: 100 }, { enabled: signedIn && Boolean(identifier) });
+
+  const certificate = identifier
+    ? list.data?.data.find((c) => c.id === identifier || c.readable_id === identifier)
+    : undefined;
+
+  return {
+    certificate,
+    /** False until we can actually tell — avoids flashing the wrong panel. */
+    isResolved: !authLoading && (!signedIn || !list.isPending),
+  };
 }
 
 /**
@@ -98,6 +140,28 @@ export function useRequestCertificateDelivery() {
       Promise.all([
         queryClient.invalidateQueries({ queryKey: certificateKeys.all }),
         queryClient.invalidateQueries({ queryKey: adminCertificateKeys.all }),
+      ]),
+  });
+}
+
+/**
+ * PATCH /api/admin/certificates/:id — mark the printed copy posted, or unmark it.
+ *
+ * Invalidates both the admin lists and the *student's* certificate queries: the
+ * same row is on their dashboard, and an admin marking it sent changes what
+ * they see. Cheap, and it means the two views cannot disagree in a tab left
+ * open.
+ */
+export function useMarkCertificateDelivered() {
+  const queryClient = useQueryClient();
+
+  return useMutation({
+    mutationFn: ({ id, delivered }: { id: string; delivered: boolean }) =>
+      apiPatch<Envelope<AdminCertificate>>(`/api/admin/certificates/${id}`, { delivered }),
+    onSuccess: () =>
+      Promise.all([
+        queryClient.invalidateQueries({ queryKey: adminCertificateKeys.all }),
+        queryClient.invalidateQueries({ queryKey: certificateKeys.all }),
       ]),
   });
 }

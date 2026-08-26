@@ -17,9 +17,12 @@ export const GET = withRoute(async (req) => {
 
   let q = supabase
     .from('purchases')
-    .select('*, courses(id, name), profiles!purchases_student_id_fkey(id, full_name, email)', {
-      count: 'exact',
-    });
+    .select(
+      '*, courses(id, name, slug, thumbnail_path), profiles!purchases_student_id_fkey(id, full_name, email)',
+      {
+        count: 'exact',
+      },
+    );
 
   if (query.status) q = q.eq('status', query.status);
   if (query.courseId) q = q.eq('course_id', query.courseId);

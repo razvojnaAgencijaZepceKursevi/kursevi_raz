@@ -5,6 +5,7 @@ import { createClient } from '@/lib/supabase/server';
 import { createServiceRoleClient } from '@/lib/supabase/service-role';
 import { uuidSchema } from '@/lib/schemas/common.schema';
 import { requestDeliverySchema } from '@/lib/schemas/certificates.schema';
+import { adminIds, notifyAfterResponse } from '@/lib/services/notifications';
 
 export const dynamic = 'force-dynamic';
 
@@ -19,7 +20,7 @@ type Ctx = { params: Promise<{ certificateId: string }> };
  * their own rows: if that lookup misses, the certificate is not theirs.
  */
 export const PATCH = withRoute(async (req, ctx: Ctx) => {
-  const { userId } = await requireUser();
+  const { userId, profile } = await requireUser();
   const certificateId = uuidSchema.parse((await ctx.params).certificateId);
   const body = await parseBody(req, requestDeliverySchema);
 
@@ -40,9 +41,34 @@ export const PATCH = withRoute(async (req, ctx: Ctx) => {
       .from('certificates')
       .update({ requested_delivery: body.requested_delivery })
       .eq('id', certificateId)
-      .select()
+      .select('*, courses(name)')
       .single(),
   );
+
+  // Only when asking, not when withdrawing: a cancelled request is one fewer
+  // thing on the admin's list, which nobody needs an email about.
+  if (body.requested_delivery) {
+    const courseName = updated.courses?.name ?? 'kurs';
+    const href = `/admin/certificates/${certificateId}`;
+
+    notifyAfterResponse({
+      userIds: await adminIds(svc),
+      type: 'certificate_delivery_requested',
+      title: 'Zahtev za slanje sertifikata',
+      body: `${profile.full_name} traži štampani sertifikat za kurs „${courseName}”.`,
+      link: href,
+      email: {
+        subject: `Zahtev za slanje sertifikata — ${updated.readable_id}`,
+        heading: 'Zahtev za štampani sertifikat',
+        lines: [
+          `${profile.full_name} (${profile.email}) traži da mu/joj se pošalje štampani sertifikat za kurs „${courseName}”.`,
+          `Broj sertifikata: ${updated.readable_id}.`,
+          'Nakon slanja označite sertifikat kao poslat da zahtev nestane sa liste.',
+        ],
+        action: { label: 'Otvori sertifikat', href },
+      },
+    });
+  }
 
   return NextResponse.json({ data: updated });
 });

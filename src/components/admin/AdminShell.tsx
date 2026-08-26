@@ -13,6 +13,7 @@ import Typography from '@mui/material/Typography';
 import AdminNavList from './AdminNavList';
 import type { StaffRole } from './adminNav';
 import AdminUserMenu from './AdminUserMenu';
+import NotificationBell from '@/components/notifications/NotificationBell';
 
 const SIDEBAR_WIDTH = 264;
 
@@ -132,6 +133,7 @@ export default function AdminShell({
             {/* Pushes the user menu right on desktop, where there's no button. */}
             <Box sx={{ flex: 1 }} />
 
+            <NotificationBell />
             <AdminUserMenu fullName={profile.full_name} email={profile.email} role={profile.role} />
           </Toolbar>
         </AppBar>

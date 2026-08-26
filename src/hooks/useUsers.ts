@@ -67,12 +67,17 @@ export function useAdminUser(id: string | undefined) {
 }
 
 /**
- * PATCH /api/admin/users/:id — role is the only field this endpoint accepts.
+ * PATCH /api/admin/users/:id — rename, change role, deactivate/reactivate.
  *
- * Also invalidates `useMe`, since an admin can demote their own account and the
- * cached profile would otherwise keep showing admin UI.
+ * Send only the fields being changed. The endpoint treats every field as
+ * optional, so a rename that also restated `role` could silently revert a role
+ * change made from another tab.
+ *
+ * Also invalidates `useMe`: an admin can rename themselves, and the cached
+ * profile drives role-gated UI, so a stale copy would keep rendering the old
+ * name or the wrong navigation.
  */
-export function useUpdateUserRole() {
+export function useUpdateUser() {
   const queryClient = useQueryClient();
 
   return useMutation({

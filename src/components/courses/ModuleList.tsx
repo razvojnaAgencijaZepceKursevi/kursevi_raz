@@ -38,12 +38,13 @@ export type ModuleListItem = {
  */
 export default function ModuleList({
   modules,
-  courseId,
+  courseSlug,
   /** Explains the padlock. Differs for "not purchased" vs "finish the previous one". */
   lockedHint,
 }: {
   modules: ModuleListItem[];
-  courseId: string;
+  /** Used to build module hrefs, which live under the course's public URL. */
+  courseSlug: string;
   lockedHint: string;
 }) {
   return (
@@ -111,7 +112,7 @@ export default function ModuleList({
           <Stack
             key={module.id}
             component={NextLink}
-            href={`/courses/${courseId}/modules/${module.id}`}
+            href={`/courses/${courseSlug}/modules/${module.id}`}
             direction="row"
             sx={{
               ...sx,

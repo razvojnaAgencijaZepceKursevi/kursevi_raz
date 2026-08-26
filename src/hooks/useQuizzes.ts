@@ -29,6 +29,7 @@ export const quizKeys = {
 export const adminQuizKeys = {
   all: ['admin', 'quizzes'] as const,
   detail: (id: string) => [...adminQuizKeys.all, 'detail', id] as const,
+  byModule: (moduleId: string) => [...adminQuizKeys.all, 'module', moduleId] as const,
 };
 
 /** GET /api/modules/:moduleId/quiz — no answer key in this payload. */
@@ -67,6 +68,23 @@ export function useSubmitQuizAttempt() {
         }),
         queryClient.invalidateQueries({ queryKey: certificateKeys.all }),
       ]),
+  });
+}
+
+/**
+ * GET /api/admin/modules/:moduleId/quiz — the authoring shape, keyed by module.
+ *
+ * What the quiz editor uses: it is reached from a module, so a module id is all
+ * it has, and it needs the answer key that the student endpoint deliberately
+ * omits. **404 means "this module has no quiz yet"**, which the page treats as
+ * the create case — 4xx is not retried, so that costs one request.
+ */
+export function useAdminModuleQuiz(moduleId: string | undefined) {
+  return useQuery({
+    queryKey: adminQuizKeys.byModule(moduleId ?? ''),
+    queryFn: () => apiGet<Envelope<AdminQuiz>>(`/api/admin/modules/${moduleId}/quiz`),
+    enabled: Boolean(moduleId),
+    select: (response) => response.data,
   });
 }
 

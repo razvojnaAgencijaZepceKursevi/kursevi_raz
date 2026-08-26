@@ -1,8 +1,10 @@
 import { NextResponse } from 'next/server';
 import { unwrapMany, unwrapOne, parseBody, withRoute } from '@/lib/api/errors';
 import { requireStaff } from '@/lib/auth/guards';
+import { assertCanAuthorQuiz } from '@/lib/auth/courseAccess';
 import { createServiceRoleClient } from '@/lib/supabase/service-role';
 import { updateQuizSchema } from '@/lib/schemas/quizzes.schema';
+import { ADMIN_QUIZ_SELECT, flattenAdminQuiz } from '@/lib/api/adminQuiz';
 import { uuidSchema } from '@/lib/schemas/common.schema';
 
 export const dynamic = 'force-dynamic';
@@ -11,19 +13,17 @@ type Ctx = { params: Promise<{ id: string }> };
 
 /** GET /api/admin/quizzes/:id — full quiz including the answer key (admin). */
 export const GET = withRoute(async (_req, ctx: Ctx) => {
-  await requireStaff();
+  const auth = await requireStaff();
   const id = uuidSchema.parse((await ctx.params).id);
 
   const svc = createServiceRoleClient();
+  // Service role bypasses RLS — check ownership explicitly.
+  await assertCanAuthorQuiz(svc, id, auth);
   const quiz = unwrapOne(
-    await svc
-      .from('quizzes')
-      .select('*, questions(id, text, answers(id, text, answer_keys(is_correct)))')
-      .eq('id', id)
-      .maybeSingle(),
+    await svc.from('quizzes').select(ADMIN_QUIZ_SELECT).eq('id', id).maybeSingle(),
   );
 
-  return NextResponse.json({ data: quiz });
+  return NextResponse.json({ data: flattenAdminQuiz(quiz) });
 });
 
 /**
@@ -34,11 +34,13 @@ export const GET = withRoute(async (_req, ctx: Ctx) => {
  * merge would silently mis-associate answers.
  */
 export const PATCH = withRoute(async (req, ctx: Ctx) => {
-  await requireStaff();
+  const auth = await requireStaff();
   const id = uuidSchema.parse((await ctx.params).id);
   const body = await parseBody(req, updateQuizSchema);
 
   const svc = createServiceRoleClient();
+  // Service role bypasses RLS — check ownership explicitly.
+  await assertCanAuthorQuiz(svc, id, auth);
 
   if (body.passing_score !== undefined) {
     unwrapOne(
@@ -87,10 +89,12 @@ export const PATCH = withRoute(async (req, ctx: Ctx) => {
 
 /** DELETE /api/admin/quizzes/:id (admin). */
 export const DELETE = withRoute(async (_req, ctx: Ctx) => {
-  await requireStaff();
+  const auth = await requireStaff();
   const id = uuidSchema.parse((await ctx.params).id);
 
   const svc = createServiceRoleClient();
+  // Service role bypasses RLS — check ownership explicitly.
+  await assertCanAuthorQuiz(svc, id, auth);
   unwrapOne(await svc.from('quizzes').delete().eq('id', id).select('id').single());
 
   return new NextResponse(null, { status: 204 });

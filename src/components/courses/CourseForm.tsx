@@ -47,6 +47,12 @@ export default function CourseForm({
    * produce a permission error at save time.
    */
   canPublish = true,
+  /**
+   * Whether to expose the public URL slug. Edit only — on create the database
+   * derives it from the name, so an empty box there would just be a chance to
+   * get it wrong before the course even exists.
+   */
+  showSlugField = false,
 }: {
   defaultValues: Partial<CourseFormInput>;
   onSubmit: (values: CourseFormValues) => Promise<void>;
@@ -55,6 +61,7 @@ export default function CourseForm({
   currentThumbnailUrl?: string | null;
   pendingLabel?: string;
   canPublish?: boolean;
+  showSlugField?: boolean;
 }) {
   const form = useZodForm(courseFormSchema, { defaultValues });
   const categories = useCategoryOptions();
@@ -100,15 +107,37 @@ export default function CourseForm({
             <FormNumberField
               name="price"
               label="Cena"
-              suffix="RSD"
+              suffix="KM"
               min={0}
-              step={100}
+              // Marks, not dinars — courses land in the tens-to-hundreds, so the
+              // spinner steps by 10 rather than 100.
+              step={10}
               helperText="Unesite 0 za besplatan kurs."
               required
             />
           </Grid>
         </Grid>
       </ContentCard>
+
+      {showSlugField ? (
+        <ContentCard
+          title="Adresa stranice"
+          description="Deo URL-a po kojem je kurs dostupan javno."
+        >
+          <Stack spacing={2}>
+            <FormTextField
+              name="slug"
+              label="Adresa (slug)"
+              placeholder="uvod-u-web-programiranje"
+              helperText="Ostavite prazno da se adresa ponovo generiše iz naziva kursa."
+            />
+            <Alert severity="warning">
+              Promena adrese menja javni link ka kursu. Stari link prestaje da radi, pa ga nemojte
+              menjati ako je već negde podeljen. Preimenovanje kursa samo po sebi ne menja adresu.
+            </Alert>
+          </Stack>
+        </ContentCard>
+      ) : null}
 
       <ContentCard title="Naslovna slika" description="Prikazuje se na kartici kursa u katalogu.">
         <FormImageUpload

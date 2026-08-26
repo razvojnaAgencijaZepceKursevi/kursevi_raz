@@ -42,13 +42,34 @@ export const publishStatus = (published: boolean): StatusDisplay =>
   published ? { label: 'Objavljen', color: 'success' } : { label: 'Nacrt', color: 'default' };
 
 /**
- * Whether a student has asked for a printed certificate.
+ * Whether an account can still sign in.
  *
- * Note what this does *not* say: nothing about whether it was actually sent.
- * The schema has no fulfilment column, so "Zatražena dostava" means a request
- * exists and nothing more — don't let the UI imply otherwise.
+ * Takes the timestamp rather than a boolean so call sites pass
+ * `profile.deactivated_at` directly and can't disagree about what counts as
+ * deactivated.
  */
-export const deliveryStatus = (requested: boolean): StatusDisplay =>
-  requested
+export const accountStatus = (deactivatedAt: string | null): StatusDisplay =>
+  deactivatedAt ? { label: 'Deaktiviran', color: 'error' } : { label: 'Aktivan', color: 'success' };
+
+/**
+ * Where a printed certificate has got to.
+ *
+ * Three states, not two, since migration 0024 added `delivered_at`: nobody
+ * asked, somebody asked and it is waiting, and it has been posted. Before that
+ * column existed this could only ever say whether a request had been *made*,
+ * and the screens had to spell out that they knew nothing about fulfilment.
+ *
+ * Takes the timestamp rather than a boolean, so call sites pass
+ * `certificate.delivered_at` straight in and cannot disagree about what counts
+ * as sent — the same shape as `accountStatus`.
+ *
+ * Note "Poslato" wins over "Zatražena dostava": `requested_delivery` stays true
+ * after fulfilment (it is the student's record of having asked), so checking it
+ * first would leave every posted certificate reading as still pending.
+ */
+export const deliveryStatus = (requested: boolean, deliveredAt: string | null): StatusDisplay => {
+  if (deliveredAt) return { label: 'Poslato', color: 'success' };
+  return requested
     ? { label: 'Zatražena dostava', color: 'warning' }
     : { label: 'Bez zahteva', color: 'default' };
+};

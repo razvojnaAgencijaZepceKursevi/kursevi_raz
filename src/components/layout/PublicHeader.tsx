@@ -3,6 +3,7 @@
 import AppBar from '@mui/material/AppBar';
 import Box from '@mui/material/Box';
 import Button from '@mui/material/Button';
+import Link from '@mui/material/Link';
 import Skeleton from '@mui/material/Skeleton';
 import Stack from '@mui/material/Stack';
 import Toolbar from '@mui/material/Toolbar';
@@ -25,13 +26,11 @@ export default function PublicHeader() {
   return (
     <AppBar position="sticky" color="inherit" sx={{ bgcolor: 'background.paper' }}>
       <Toolbar sx={{ gap: 2, minHeight: { xs: 64, sm: 64 } }}>
-        {/* Plain wordmark, not a link: the public catalogue at `/courses` isn't
-            built yet, and a brand that 404s is worse than one that does
-            nothing. Once that page lands, make this a MUI `<Link href="/courses">`
-            — the theme already routes it through Next's Link. */}
-        <Typography variant="h5" component="span">
+        {/* The catalogue exists now, so the wordmark links to it. `<Link>` goes
+            through Next's router via the theme — no `component` prop needed. */}
+        <Link href="/courses" variant="h5" underline="none" color="text.primary">
           Kursevi
-        </Typography>
+        </Link>
 
         <Box sx={{ flex: 1 }} />
 

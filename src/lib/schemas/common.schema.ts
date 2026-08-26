@@ -68,7 +68,15 @@ export const idParamSchema = z.object({ id: uuidSchema });
  * for it — so a page must never assume it's there.
  */
 export const embeddedCourseSchema = z
-  .object({ id: uuidSchema, name: z.string() })
+  // `slug` rides along so admin screens can link to the *canonical* public URL
+  // (`/courses/{slug}`) rather than the uuid form. Both resolve, but only one
+  // should be the address that gets shared or indexed.
+  .object({
+    id: uuidSchema,
+    name: z.string(),
+    slug: z.string(),
+    thumbnail_path: z.string().nullable(),
+  })
   .nullable()
   .optional();
 

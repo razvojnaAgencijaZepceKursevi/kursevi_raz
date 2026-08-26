@@ -14,7 +14,10 @@ import { landingPathForRole } from '@/lib/auth/routes';
  * on concrete path prefixes instead. Keep these in sync when adding pages to a
  * protected group.
  */
-const PROTECTED_PREFIXES = ['/dashboard', '/admin'] as const;
+// `/notifications` and `/settings` are the `(account)` group: signed-in, any
+// role. They are listed here and *not* in ADMIN_PREFIXES, which is the whole
+// distinction between the two lists.
+const PROTECTED_PREFIXES = ['/dashboard', '/admin', '/notifications', '/settings'] as const;
 const AUTH_PAGES = ['/login', '/register'] as const;
 
 /**

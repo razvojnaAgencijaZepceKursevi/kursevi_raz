@@ -22,12 +22,46 @@
       "Bash(npm run *)",
       "Bash(node ./api-role-check.mjs)",
       "Bash(grep -n \"return { purchases\\\\|module_progress'\\).insert\\\\|Kako radi internet'\\\\].id, student_id\" scripts/seed.mjs)",
-      "Bash(grep -n -A3 \"modules\\\\`\" src/components/courses/CourseActions.tsx)"
+      "Bash(grep -n -A3 \"modules\\\\`\" src/components/courses/CourseActions.tsx)",
+      "Bash(node \"C:\\\\Users\\\\Korisnik\\\\AppData\\\\Local\\\\Temp\\\\claude\\\\c--Projects-kursevi-raz\\\\8a4702ad-309c-4e58-9362-42b88d6db22a\\\\scratchpad\\\\probe-count.mjs\")",
+      "Bash(cp \"C:\\\\Users\\\\Korisnik\\\\AppData\\\\Local\\\\Temp\\\\claude\\\\c--Projects-kursevi-raz\\\\8a4702ad-309c-4e58-9362-42b88d6db22a\\\\scratchpad\\\\probe-count.mjs\" ./probe-count.mjs)",
+      "Bash(node ./probe-count.mjs)",
+      "Bash(rm -f ./probe-count.mjs)",
+      "Bash(curl -s \"http://localhost:3007/api/categories\")",
+      "Bash(node -e \"let d='';process.stdin.on\\('data',c=>d+=c\\).on\\('end',\\(\\)=>console.log\\(JSON.stringify\\(JSON.parse\\(d\\),null,2\\)\\)\\)\")",
+      "Bash(curl -s -o /dev/null -w \"status=%{http_code} redirect=%{redirect_url}\\\\n\" \"http://localhost:3007/admin/categories\")",
+      "Bash(node -e \"const p=require\\('./package.json'\\);console.log\\(JSON.stringify\\({deps:Object.keys\\(p.dependencies||{}\\),dev:Object.keys\\(p.devDependencies||{}\\)},null,1\\)\\)\")",
+      "Bash(node ./probe-cat.mjs)",
+      "PowerShell($c = Get-NetTCPConnection -LocalPort 3000 -State Listen -ErrorAction SilentlyContinue; if \\($c\\) { $c | Select-Object -First 1 | ForEach-Object { $p = Get-Process -Id $_.OwningProcess; \"port 3000 LISTENING - pid $\\($p.Id\\) $\\($p.ProcessName\\), started $\\($p.StartTime\\)\" } } else { \"nothing listening on port 3000\" })",
+      "PowerShell(\"now:            $\\(Get-Date -Format 'HH:mm:ss'\\)\"; \"page.tsx saved: $\\(\\(Get-Item 'src\\\\app\\\\\\(admin\\)\\\\admin\\\\categories\\\\page.tsx'\\).LastWriteTime.ToString\\('HH:mm:ss'\\)\\)\"; \"server started: 16:16:33\"; if \\(Test-Path .next\\) { \"`n.next last written: $\\(\\(Get-Item .next\\).LastWriteTime.ToString\\('HH:mm:ss'\\)\\)\" })",
+      "Bash(curl -s \"http://localhost:3000/api/categories\")",
+      "Bash(node ./probe-render.cjs)",
+      "Bash(grep -v \"^$\")",
+      "Bash(grep -nA16 \"function public.can_author_course\" supabase/migrations/0016_course_ownership.sql)",
+      "Bash(grep -nA12 \"function public.owns_course\" supabase/migrations/0016_course_ownership.sql)",
+      "Bash(grep -rnA8 \"function public.is_teacher\\\\|function public.is_staff\" supabase/migrations/0016_course_ownership.sql)",
+      "Bash(grep -rnA10 \"function public.is_admin\" supabase/migrations/0002_helper_functions_and_triggers.sql)",
+      "Bash(npx supabase *)",
+      "Bash(grep -vE \"^\\\\s*$\")",
+      "Bash(node ./probe-ban.mjs)",
+      "Bash(node ./probe-slug.mjs)",
+      "Bash(git mv *)",
+      "Bash(mv \"src/app/\\(public\\)/courses/[id]\" \"src/app/\\(public\\)/courses/[slug]\" 2>&1 && echo \"moved ok\" || echo \"mv also failed\")",
+      "PowerShell($c = Get-NetTCPConnection -LocalPort 3000 -State Listen -ErrorAction SilentlyContinue; if \\($c\\) { \"dev server STILL RUNNING on 3000 \\(pid $\\($c[0].OwningProcess\\)\\) - likely holding the folder\" } else { \"port 3000 free\" })",
+      "PowerShell(Move-Item -LiteralPath 'src\\\\app\\\\\\(public\\)\\\\courses\\\\[id]' -Destination 'src\\\\app\\\\\\(public\\)\\\\courses\\\\[slug]' -ErrorAction Stop; \"moved\"; Get-ChildItem -LiteralPath 'src\\\\app\\\\\\(public\\)\\\\courses' -Recurse -File | ForEach-Object { $_.FullName.Replace\\(\\(Get-Location\\).Path + '\\\\', ''\\) })",
+      "Bash(perl -pi -e 's{/courses/\\\\$\\\\{row\\\\.courses\\\\.id\\\\}}{/courses/\\\\$\\\\{row.courses.slug\\\\}}g' \"src/app/\\(admin\\)/admin/certificates/[id]/page.tsx\" \"src/app/\\(admin\\)/admin/purchases/[id]/page.tsx\")",
+      "Bash(grep -rn 'href={`/courses/' \"src/app/\\(admin\\)/\")",
+      "Bash(curl -s \"http://localhost:3000/courses/uvod-u-web-programiranje\")",
+      "Bash(node ./probe-edit.mjs)",
+      "Bash(grep -n \"edit\\\\` is still a \\\\`PlaceholderPage\\\\|Revisit once\\\\|courses/\\\\[id\\\\]/edit\" docs/PROJECT-CONTEXT.md)",
+      "Bash(perl -0pi -e 's/\\(\\\\n          price: \\)12000,/${1}100,/g; s/\\(\\\\n          price: \\)18000,/${1}150,/g; s/\\(\\\\n          price: \\)9000,/${1}75,/g' scripts/seed.mjs)",
+      "Bash(node ./probe-prices.mjs)"
     ],
     "defaultMode": "bypassPermissions",
     "additionalDirectories": [
       "\\tmp",
-      "C:\\Projects\\kursevi-raz\\src\\app\\api\\admin\\users\\[id]"
+      "C:\\Projects\\kursevi-raz\\src\\app\\api\\admin\\users\\[id]",
+      "C:\\Projects\\kursevi-raz\\src\\app\\(public)\\courses\\[id]"
     ]
   }
 }

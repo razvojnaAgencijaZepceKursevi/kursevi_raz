@@ -1,6 +1,7 @@
 'use client';
 
 import * as React from 'react';
+import NextLink from 'next/link';
 import DeleteOutlinedIcon from '@mui/icons-material/DeleteOutlined';
 import EditOutlinedIcon from '@mui/icons-material/EditOutlined';
 import MoreVertIcon from '@mui/icons-material/MoreVert';
@@ -54,14 +55,22 @@ export default function CourseActions({ course }: { course: Course }) {
       </IconButton>
 
       <Menu anchorEl={anchorEl} open={Boolean(anchorEl)} onClose={close}>
-        <MenuItem href={`/admin/courses/${course.id}/edit`} onClick={close}>
+        {/*
+          `component={NextLink}` is required on MenuItem and *only* on MenuItem.
+          The theme's global `LinkComponent` doesn't reach it: ButtonBase swaps
+          in that component only while its root is the default `'button'`, and
+          MenuItem overrides the root with `'li'`. Without this, `href` lands on
+          an `<li>` and the item silently does nothing when clicked. Safe here
+          because this is a Client Component — see the note in `theme.ts`.
+        */}
+        <MenuItem component={NextLink} href={`/admin/courses/${course.id}/edit`} onClick={close}>
           <ListItemIcon>
             <EditOutlinedIcon fontSize="small" />
           </ListItemIcon>
           <Typography variant="body2">Izmeni</Typography>
         </MenuItem>
 
-        <MenuItem href={`/admin/courses/${course.id}/modules`} onClick={close}>
+        <MenuItem component={NextLink} href={`/admin/courses/${course.id}/modules`} onClick={close}>
           <ListItemIcon>
             <ViewModuleOutlinedIcon fontSize="small" />
           </ListItemIcon>

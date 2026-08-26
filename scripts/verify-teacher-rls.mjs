@@ -174,10 +174,46 @@ async function main() {
     check('teacher sees submissions on their own course', (data?.length ?? 0) > 0);
   }
   {
-    const { data } = await marko.from('task_submissions').select('id');
-    check("teacher does not see another teacher's submissions", (data?.length ?? 0) === 0);
+    // Asserted as "none of *Ana's*", not "none at all". The zero-rows form only
+    // held while Marko's own courses happened to have no submissions on them —
+    // so adding a task to his course through the UI failed a *security* check
+    // that had not been violated. What matters is the isolation, not the count.
+    const { data } = await marko.from('task_submissions').select('id, tasks(modules(course_id))');
+    const anasVisible = (data ?? []).filter((s) => s.tasks?.modules?.course_id === anaCourse.id);
+    check(
+      "teacher does not see another teacher's submissions",
+      anasVisible.length === 0,
+      `saw ${anasVisible.length} of Ana's`,
+    );
   }
   {
+    // Precondition, established rather than assumed: this block asserts that a
+    // *pending* request is enough to make a student visible, so a pending
+    // request has to exist. The seed creates one, but the seed is disposable and
+    // an admin working through the purchase queue legitimately clears it — which
+    // silently turned this into a check of nothing, then a failure.
+    //
+    // Set up with the service client, like the other lookups at the top. Only
+    // the assertions need a user JWT; arranging the data does not.
+    const { data: nikola } = await service
+      .from('profiles')
+      .select('id')
+      .eq('email', 'nikola@kursevi.test')
+      .single();
+
+    const { data: existing } = await service
+      .from('purchases')
+      .select('id')
+      .eq('course_id', anaCourse.id)
+      .eq('student_id', nikola.id)
+      .maybeSingle();
+
+    if (!existing) {
+      await service
+        .from('purchases')
+        .insert({ course_id: anaCourse.id, student_id: nikola.id, price: 0, status: 'requested' });
+    }
+
     const { data } = await ana.from('profiles').select('id, full_name');
     const names = (data ?? []).map((p) => p.full_name);
 
@@ -206,11 +242,19 @@ async function main() {
     const anaKeys = await ana.from('answer_keys').select('id, is_correct');
     check('teacher can read the answer key for their own quiz', (anaKeys.data?.length ?? 0) > 0);
 
-    const markoKeys = await marko.from('answer_keys').select('id');
+    // Again scoped to Ana's quiz rather than to a row count: Marko owning a
+    // quiz of his own is normal, and reading *its* key is exactly what the
+    // previous assertion says he may do.
+    const markoKeys = await marko
+      .from('answer_keys')
+      .select('id, answers(questions(quizzes(modules(course_id))))');
+    const anasKeys = (markoKeys.data ?? []).filter(
+      (k) => k.answers?.questions?.quizzes?.modules?.course_id === anaCourse.id,
+    );
     check(
       "teacher cannot read another teacher's answer key",
-      (markoKeys.data?.length ?? 0) === 0,
-      `saw ${markoKeys.data?.length} rows`,
+      anasKeys.length === 0,
+      `saw ${anasKeys.length} of Ana's`,
     );
 
     const studentKeys = await student.from('answer_keys').select('id');
@@ -219,6 +263,82 @@ async function main() {
       (studentKeys.data?.length ?? 0) === 0,
       `saw ${studentKeys.data?.length} rows`,
     );
+  }
+
+  // ---------------------------------------------------------------------------
+  // Losing staff status revokes authoring — migrations 0019 and 0020
+  // ---------------------------------------------------------------------------
+  //
+  // `courses.owner_id` survives a role change, and before 0019 that was the
+  // whole test: a teacher demoted to student kept every authoring grant on the
+  // courses they already owned. 0020 extends the same rule to deactivation.
+  //
+  // No re-authentication between these checks, deliberately. `is_staff()` reads
+  // `profiles` at query time, so an existing JWT is enough — which is exactly
+  // why the predicate has to carry the check rather than the login path.
+  console.log('\nLosing staff status revokes authoring');
+  try {
+    await service.from('profiles').update({ role: 'student' }).eq('id', anaCourse.owner_id);
+    {
+      const { data, error } = await ana
+        .from('courses')
+        .update({ description: 'Ne bi smelo da prođe.' })
+        .eq('id', anaCourse.id)
+        .select();
+      check(
+        'demoted teacher cannot edit a course they still own',
+        !error && (data?.length ?? 0) === 0,
+        error?.message ?? `updated ${data?.length} rows`,
+      );
+    }
+    {
+      const { error } = await ana
+        .from('modules')
+        .insert({ course_id: anaCourse.id, title: 'Ne bi smelo', order: 99 });
+      check('demoted teacher cannot add a module to their own course', Boolean(error));
+    }
+    {
+      const { data } = await ana.from('purchases').select('id').eq('course_id', anaCourse.id);
+      check("demoted teacher cannot read their course's purchases", (data?.length ?? 0) === 0);
+    }
+
+    await service.from('profiles').update({ role: 'teacher' }).eq('id', anaCourse.owner_id);
+    {
+      const { data, error } = await ana
+        .from('courses')
+        .update({ description: 'Vraćeno.' })
+        .eq('id', anaCourse.id)
+        .select();
+      check(
+        'restoring the teacher role restores authoring',
+        !error && (data?.length ?? 0) === 1,
+        error?.message,
+      );
+    }
+
+    await service
+      .from('profiles')
+      .update({ deactivated_at: new Date().toISOString() })
+      .eq('id', anaCourse.owner_id);
+    {
+      const { data, error } = await ana
+        .from('courses')
+        .update({ description: 'Ni ovo ne bi smelo.' })
+        .eq('id', anaCourse.id)
+        .select();
+      check(
+        'deactivated teacher cannot edit their own course',
+        !error && (data?.length ?? 0) === 0,
+        error?.message ?? `updated ${data?.length} rows`,
+      );
+    }
+  } finally {
+    // Always restore, or a failed run leaves the seeded teacher broken for the
+    // next one.
+    await service
+      .from('profiles')
+      .update({ role: 'teacher', deactivated_at: null })
+      .eq('id', anaCourse.owner_id);
   }
 
   // Clean up the row this script created, so it can be run repeatedly.

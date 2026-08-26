@@ -1,6 +1,7 @@
 import { NextResponse } from 'next/server';
 import {
   badRequest,
+  conflict,
   forbidden,
   parseBody,
   unwrapMany,
@@ -48,6 +49,25 @@ export const POST = withRoute(async (req, ctx: Ctx) => {
       .maybeSingle(),
   );
   if (!purchase) throw forbidden('An approved purchase is required for this course');
+
+  // A passed quiz is final: no retaking it.
+  //
+  // The UI hides the quiz once it is done, but that is presentation — this is
+  // what actually prevents a second attempt, because the endpoint is reachable
+  // directly. Read with the request-scoped client: students may SELECT their own
+  // progress under RLS, so no elevated access is needed to answer the question.
+  //
+  // Only a *pass* locks. A failed attempt leaves `quiz_done` false and may be
+  // retried, which is the point of a passing score rather than one shot.
+  const existing = unwrapMaybe(
+    await supabase
+      .from('module_progress')
+      .select('quiz_done')
+      .eq('module_id', moduleId)
+      .eq('student_id', userId)
+      .maybeSingle(),
+  );
+  if (existing?.quiz_done) throw conflict('You have already passed this quiz');
 
   const svc = createServiceRoleClient();
 

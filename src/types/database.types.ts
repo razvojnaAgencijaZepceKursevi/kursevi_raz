@@ -10,7 +10,7 @@ export type Database = {
   // Allows to automatically instantiate createClient with right options
   // instead of createClient<Database, { PostgrestVersion: 'XX' }>(URL, KEY)
   __InternalSupabase: {
-    PostgrestVersion: "14.15"
+    PostgrestVersion: "14.17"
   }
   graphql_public: {
     Tables: {
@@ -150,6 +150,8 @@ export type Database = {
           course_id: string
           created_at: string
           created_by: string | null
+          delivered_at: string | null
+          delivered_by: string | null
           id: string
           readable_id: string
           requested_delivery: boolean
@@ -161,6 +163,8 @@ export type Database = {
           course_id: string
           created_at?: string
           created_by?: string | null
+          delivered_at?: string | null
+          delivered_by?: string | null
           id?: string
           readable_id?: string
           requested_delivery?: boolean
@@ -172,6 +176,8 @@ export type Database = {
           course_id?: string
           created_at?: string
           created_by?: string | null
+          delivered_at?: string | null
+          delivered_by?: string | null
           id?: string
           readable_id?: string
           requested_delivery?: boolean
@@ -185,6 +191,13 @@ export type Database = {
             columns: ["course_id"]
             isOneToOne: false
             referencedRelation: "courses"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "certificates_delivered_by_fkey"
+            columns: ["delivered_by"]
+            isOneToOne: false
+            referencedRelation: "profiles"
             referencedColumns: ["id"]
           },
           {
@@ -207,6 +220,7 @@ export type Database = {
           owner_id: string | null
           price: number
           published: boolean
+          slug: string
           thumbnail_path: string | null
           updated_at: string
           updated_by: string | null
@@ -221,6 +235,7 @@ export type Database = {
           owner_id?: string | null
           price?: number
           published?: boolean
+          slug?: string
           thumbnail_path?: string | null
           updated_at?: string
           updated_by?: string | null
@@ -235,6 +250,7 @@ export type Database = {
           owner_id?: string | null
           price?: number
           published?: boolean
+          slug?: string
           thumbnail_path?: string | null
           updated_at?: string
           updated_by?: string | null
@@ -398,10 +414,90 @@ export type Database = {
           },
         ]
       }
+      notification_preferences: {
+        Row: {
+          created_at: string
+          email_enabled: boolean
+          id: string
+          in_app_enabled: boolean
+          type: Database["public"]["Enums"]["notification_type"]
+          updated_at: string
+          user_id: string
+        }
+        Insert: {
+          created_at?: string
+          email_enabled?: boolean
+          id?: string
+          in_app_enabled?: boolean
+          type: Database["public"]["Enums"]["notification_type"]
+          updated_at?: string
+          user_id: string
+        }
+        Update: {
+          created_at?: string
+          email_enabled?: boolean
+          id?: string
+          in_app_enabled?: boolean
+          type?: Database["public"]["Enums"]["notification_type"]
+          updated_at?: string
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "notification_preferences_user_id_fkey"
+            columns: ["user_id"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      notifications: {
+        Row: {
+          body: string
+          created_at: string
+          id: string
+          link: string | null
+          read_at: string | null
+          title: string
+          type: Database["public"]["Enums"]["notification_type"]
+          user_id: string
+        }
+        Insert: {
+          body: string
+          created_at?: string
+          id?: string
+          link?: string | null
+          read_at?: string | null
+          title: string
+          type: Database["public"]["Enums"]["notification_type"]
+          user_id: string
+        }
+        Update: {
+          body?: string
+          created_at?: string
+          id?: string
+          link?: string | null
+          read_at?: string | null
+          title?: string
+          type?: Database["public"]["Enums"]["notification_type"]
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "notifications_user_id_fkey"
+            columns: ["user_id"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       profiles: {
         Row: {
           created_at: string
           created_by: string | null
+          deactivated_at: string | null
           email: string
           full_name: string
           id: string
@@ -412,6 +508,7 @@ export type Database = {
         Insert: {
           created_at?: string
           created_by?: string | null
+          deactivated_at?: string | null
           email: string
           full_name: string
           id: string
@@ -422,6 +519,7 @@ export type Database = {
         Update: {
           created_at?: string
           created_by?: string | null
+          deactivated_at?: string | null
           email?: string
           full_name?: string
           id?: string
@@ -762,9 +860,23 @@ export type Database = {
       owns_course: { Args: { p_course_id: string }; Returns: boolean }
       owns_submission: { Args: { p_submission_id: string }; Returns: boolean }
       safe_uuid: { Args: { p_value: string }; Returns: string }
+      slugify: { Args: { p_text: string }; Returns: string }
       teaches_student: { Args: { p_student_id: string }; Returns: boolean }
     }
     Enums: {
+      notification_type:
+        | "purchase_requested"
+        | "purchase_approved"
+        | "purchase_denied"
+        | "submission_received"
+        | "submission_message"
+        | "submission_needs_revision"
+        | "submission_approved"
+        | "certificate_issued"
+        | "certificate_delivery_requested"
+        | "certificate_delivered"
+        | "course_published"
+        | "account_role_changed"
       purchase_status: "requested" | "denied" | "approved"
       task_submission_status: "pending" | "needs_revision" | "approved"
       user_role: "admin" | "student" | "teacher"
@@ -898,6 +1010,20 @@ export const Constants = {
   },
   public: {
     Enums: {
+      notification_type: [
+        "purchase_requested",
+        "purchase_approved",
+        "purchase_denied",
+        "submission_received",
+        "submission_message",
+        "submission_needs_revision",
+        "submission_approved",
+        "certificate_issued",
+        "certificate_delivery_requested",
+        "certificate_delivered",
+        "course_published",
+        "account_role_changed",
+      ],
       purchase_status: ["requested", "denied", "approved"],
       task_submission_status: ["pending", "needs_revision", "approved"],
       user_role: ["admin", "student", "teacher"],

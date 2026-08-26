@@ -16,7 +16,7 @@ log the rule that page established, or the trap it hit.
 | `npm run check`         | typecheck + lint + format:check — run before saying "done"                              |
 | `npm run typecheck`     | `next typegen && tsc --noEmit`; typegen MUST run first for new routes                   |
 | `npm run db:seed`       | Re-seed. Destroys and recreates its own accounts + courses                              |
-| `npm run db:verify-rls` | **24 assertions** that teacher isolation still holds. Run after ANY policy change       |
+| `npm run db:verify-rls` | **29 assertions** that teacher isolation still holds. Run after ANY policy change       |
 | `npm run db:types`      | Regenerate `src/types/database.types.ts` after a migration                              |
 | `npx supabase db push`  | Apply migrations to the remote project (needs `SUPABASE_DB_PASSWORD` from `.env.local`) |
 
@@ -65,6 +65,9 @@ Admins and teachers share the `/admin` shell; the sidebar is filtered by role
 | `error.tsx` prop          | **`unstable_retry`**, not `reset`                                                                                                                                                  |
 | MUI                       | **v9** — `Grid` uses `size={{ xs: 12 }}` (no `item`); `inputProps`→`slotProps.htmlInput`; `inputRef`→`slotProps.input.ref`; legacy `*Outline` icons removed (use `DeleteOutlined`) |
 | zod                       | **v4** — custom messages are `z.number({ error: '…' })`, formats are top-level (`z.uuid()`)                                                                                        |
+| PDF rendering             | `pdfjs-dist` — canvas viewer, dynamic import, worker via `import.meta.url`                                                                                                         |
+| PDF _generation_          | `pdf-lib` + `@pdf-lib/fontkit`, font vendored in `src/lib/pdf/fonts/` — see §7 for the three traps                                                                                 |
+| Email                     | **Resend** (`resend` package) — unconfigured by design; sends are skipped and logged until `RESEND_API_KEY` + `EMAIL_FROM` are set                                                 |
 | Forms                     | react-hook-form + `@hookform/resolvers/zod`                                                                                                                                        |
 
 `npm run typecheck` runs `next typegen && tsc --noEmit` — typegen must run first or
@@ -74,12 +77,33 @@ Admins and teachers share the `/admin` shell; the sidebar is filtered by role
 
 ## 3. Hard-won rules — violating these produces runtime errors
 
+### `<MenuItem href>` does not navigate — it needs `component={NextLink}`
+
+The one exception to the rule below, and it fails **silently**. ButtonBase only
+substitutes the theme's `LinkComponent` while its root is still the default
+`'button'`:
+
+```js
+if (ComponentProp === 'button' && isLink) ComponentProp = LinkComponent;
+```
+
+`MenuItem` overrides that root with `'li'`, so `<MenuItem href="…">` renders
+`<li href="…">` — no anchor, no warning, no navigation. Menu items that link
+must be written `<MenuItem component={NextLink} href="…">`, which is safe
+because every `<Menu>` in this app is inside a Client Component. This shipped
+broken in `CourseActions` (both "Izmeni" and "Moduli" were dead; "Obriši" worked
+because it uses `onClick`).
+
+`ListItemButton` defaults to `'div'` and yet _does_ resolve to an anchor, so the
+admin sidebar was never affected — MenuItem is the only component with this
+problem. Don't "fix" the others.
+
 ### Never write `component={NextLink}`
 
 The theme wires Next's Link into MUI globally:
 
 ```ts
-MuiButtonBase: { defaultProps: { LinkComponent: NextLink } },  // Button, MenuItem, ListItemButton, CardActionArea
+MuiButtonBase: { defaultProps: { LinkComponent: NextLink } },  // Button, ListItemButton, CardActionArea, IconButton — NOT MenuItem, see above
 MuiLink:       { defaultProps: { component: NextLink } },
 ```
 
@@ -138,10 +162,25 @@ violates the unique index. `recompute_module_progress_completed` derives
 
 `@next/next/no-assign-module-variable` rejects it. Use `currentModule`.
 
-### Don't put a layout on the whole `(public)` group
+### Public pages are split across two groups, by chrome
 
-The auth pages live there and render as a centred card with no chrome. Public chrome is
-scoped to subtrees (e.g. `(public)/courses/layout.tsx`) or applied via `<PublicHeader />`.
+There is no `(public)` group any more. It held both the marketing pages and the auth
+pages, which need opposite chrome — a nav bar versus a bare centred card — so no
+layout could sit at the group level and the header was scoped to `courses/` instead.
+Every new public section would have had to repeat it.
+
+| Group         | Layout provides                | Pages                                            |
+| ------------- | ------------------------------ | ------------------------------------------------ |
+| `(marketing)` | `<PublicHeader />` + `<main>`  | `/`, `/courses/…`, blog, legal — anything public |
+| `(auth)`      | full-viewport centring, no nav | login, register, forgot/reset password           |
+
+**Put a new public page in the right group and it inherits the correct chrome — don't
+re-wrap it.** In particular `AuthCard` is now just the card; the centring lives in
+`(auth)/layout.tsx`.
+
+Route groups contribute nothing to the URL, so this reshuffle changed no paths.
+`/auth/callback` is a route handler, not a page, and stays outside both groups at its
+literal Supabase-mandated path.
 
 ---
 
@@ -150,7 +189,9 @@ scoped to subtrees (e.g. `(public)/courses/layout.tsx`) or applied via `<PublicH
 ```
 src/
   app/
-    (public)/         login, register, reset — plus courses/ (public course pages)
+    (marketing)/      public chrome: landing, courses/, blog, legal
+    (auth)/           login, register, forgot/reset password — centred card, no nav
+    (account)/        notifications + settings — any signed-in role, own chrome
     (student)/        gated by proxy + layout
     (admin)/admin/    gated by proxy + server-side role check in the group layout
     api/              route handlers (backend, already built)
@@ -196,7 +237,8 @@ but must still handle a 403 on an individual resource.
 | Feedback                     | `toast.success(…)` / `toast.error(errorMessage(e))` from `@/store/useToastStore` — no hook needed                                   |
 | Error wording                | `errorMessage(error)` — **never render a raw error**                                                                                |
 | Status label + colour        | `@/lib/status.ts` (`PURCHASE_STATUS`, `SUBMISSION_STATUS`, `USER_ROLE`, `publishStatus`, `deliveryStatus`) → `<StatusChip {...} />` |
-| Money/dates                  | `@/lib/format.ts` — never format inline                                                                                             |
+| Money/dates                  | `@/lib/format.ts` — never format inline. Currency is **BAM**, rendered `1.500 KM`                                                   |
+| Counted nouns in Serbian     | `pluralSr(n, 'kurs', 'kursa', 'kurseva')` in `format.ts` — three forms, and 11–14 take the `many` one                               |
 
 ### Forms
 
@@ -255,10 +297,21 @@ but must still handle a 403 on an individual resource.
   ownership guard blocked — teacher accounts were undeletable until 0018 added an
   `auth.uid() is null` exemption (a cascade has no JWT). Any future column guard
   needs the same escape hatch.
-- **Teachers are not purchasers.** `/api/courses/:courseId/modules` gates on
-  "admin, else must have bought it", which 403'd teachers out of their own
-  material until an owner branch was added. Any endpoint written as
-  `role !== 'admin' → require purchase` has this bug.
+- **Teachers are not purchasers — use `assertCourseAccess`, never hand-roll the check.**
+  Written the obvious way, `role !== 'admin' → require purchase` 403s a teacher out of
+  their own material. That bug shipped in `/api/courses/:courseId/modules` and was still
+  live in `/api/modules/:moduleId/task` and `.../quiz`. All three now call
+  `assertCourseAccess` / `assertModuleAccess` from `src/lib/auth/courseAccess.ts`, which
+  allows an admin, the owning teacher, or an approved purchase — so a fourth caller
+  inherits the fix instead of re-deriving it. Same reasoning as putting the staff test
+  inside `owns_course()` in 0019 rather than at its three call sites.
+
+  Verified per role against the running app: owner teacher 200, other teacher 403,
+  approved student 200, pending student 403, admin 200, signed out 401.
+
+  (Not to be confused with `src/lib/courseAccess.ts`, which is the client-side
+  module-unlock rule.)
+
 - **`requireStaff()` vs `requireAdmin()`.** Authoring + shared read screens use
   `requireStaff` (admin or teacher) and let RLS scope the rows. Keep `requireAdmin`
   on users, categories and the purchase approve/deny transition. A route that
@@ -284,18 +337,302 @@ but must still handle a 403 on an individual resource.
   non-purchasers; sequential unlock + progress for purchasers; everything unlocked for
   admins. Rules live in `src/lib/courseAccess.ts`; viewer state in `useCourseAccess`.
 - **Module unlock rule:** completed modules ∪ the first incomplete one. Admins bypass it.
-- **Module pages guard themselves** (`(public)/courses/[id]/modules/[moduleId]`), because
+- **Module pages guard themselves** (`(marketing)/courses/[slug]/modules/[moduleId]`), because
   `proxy.ts` gates whole prefixes and can't express "under `/modules` but not the course
   page". Any sibling added there must repeat the check.
 - **Thumbnail upload is two-step**: create course → upload → PATCH `thumbnail_path`,
   because the storage path needs the course id. If the upload fails the course still
   exists, so that step warns instead of throwing.
-- **Admin users page is read-only.** A role-change endpoint and hook exist, but per the
-  original scope roles are changed via the Supabase dashboard.
+- **Admin users page is editable: name, role, activation.** This reverses the original
+  "read-only, change roles in the Supabase dashboard" scope. `PATCH /api/admin/users/:id`
+  now takes `full_name`, `role` and `deactivated`, all optional, and rejects an empty
+  body — send only what changed. Email is still not editable here; it lives in
+  `auth.users` and syncs _into_ `profiles` via a trigger, so writing the profile copy
+  would just be overwritten.
+- **Changing a role revokes access immediately, by database rule.** `is_staff()` reads
+  `profiles` at query time, so a demoted teacher loses authoring on their next request —
+  no re-login required, and no session to invalidate. This is why the check belongs in
+  the RLS predicates rather than the login path. See migration 0019.
+- **Deactivation is an auth ban, mirrored onto `profiles.deactivated_at`.** Enforcement
+  is `auth.admin.updateUserById(id, { ban_duration })` — it blocks sign-in where sign-in
+  happens, so no RLS policy needs to learn about it. The column exists only because
+  `auth.users` isn't exposed through PostgREST and the admin screens would otherwise be
+  unable to show or filter who is disabled. **The route bans first, then mirrors**: a
+  failure after the ban leaves an account locked out but shown as active (visibly wrong,
+  safe), whereas the reverse would show "deactivated" for someone who can still sign in.
+  Auth is the source of truth; if they disagree, the ban wins.
+- **Deactivating is not deleting.** Nothing is removed — purchases, certificates,
+  submissions and a teacher's courses all survive, and reactivating restores access. The
+  confirmation says so explicitly, because an admin expecting "delete" would misread a
+  vaguer prompt.
+- **An admin cannot demote or deactivate themselves.** Guarded in the route, since
+  nothing in the UI could undo either. The dialog disables the role field on your own
+  account rather than letting the request fail.
 - **Admin certificates are read-only.** "Mark as fulfilled" is impossible without a schema
   change — there is no such column, and `request-delivery` is student-scoped
   (`requireUser` + ownership). Don't fake it client-side.
 
+- **Prices are in convertible marks (BAM), shown as `KM`.** `formatPrice` passes
+  `currencyDisplay: 'narrowSymbol'`, and that is load-bearing: the default renders
+  BAM in a Serbian locale as **Cyrillic** `КМ` — visually near-identical to Latin
+  `KM` but a different pair of characters, and the only Cyrillic in an otherwise
+  Latin UI. The locale is `sr-BA`, not `bs-BA`, because `bs-BA` also changes date
+  formatting to `06. 08. 2026.` (with spaces). `price` is a plain
+  `numeric(10,2)` — no currency is stored, so the column means whatever
+  `format.ts` says it means. Changing currency again would silently reinterpret
+  every existing row.
+- **On edit, upload the thumbnail _before_ saving; on create, after.** Not an
+  inconsistency — the storage path is `{course_id}/{filename}`, so the create page
+  has no id until the course exists and must create first (a failed upload there
+  leaves a course behind and only warns). The edit page already has the id, so it
+  uploads first and then writes everything in a single PATCH: a failed upload means
+  nothing was saved at all and a retry is safe. Prefer that order whenever the
+  record already exists.
+- **The slug is editable only on the edit page** (`showSlugField`), because on
+  create the database derives it. Clearing the field submits `''`, which is the
+  trigger's instruction to regenerate from the current name — so the success toast
+  reads the slug back off the _response_, not off what was submitted. A collision
+  surfaces as 23505 → 409 → an inline error from `<Form>`. The database does not
+  sanitise a supplied slug, so `SLUG_PATTERN` in `src/lib/slug.ts` is the real
+  guard; it lives in its own module because a form schema may not import
+  `courses.schema.ts` at runtime (that pulls zod-to-openapi into the browser).
+- **`module_progress.completed` is derived, and a module's requirements can change
+  under it.** The formula is
+  `(no quiz OR quiz_done) AND (no task OR task_done)`, recomputed by a trigger on
+  `module_progress` — which only fires when _that row_ is written. Adding or removing a
+  quiz or task changes what the formula means for every existing row, and before 0023
+  nothing recomputed them: the stored value sat stale until something unrelated touched
+  the row, then silently flipped.
+
+  The harmful direction was deletion. A student who had **not** finished a quiz, on a
+  module whose quiz was then removed, stayed `completed = false` with nothing left to
+  do — permanently stranded under sequential unlock, with no UI action able to clear it.
+  Found on live data, not in theory.
+
+  0023 adds triggers on `quizzes` and `tasks` that touch the affected rows and let the
+  existing trigger re-derive them.
+
+- **The recompute deliberately skips rows that are already complete** (`where completed
+= false`). Once a student has finished a module it stays finished, even if an admin
+  later adds a requirement to it. Recomputing everything would retroactively un-complete
+  people who did nothing wrong, and on a final module would contradict a certificate
+  already issued. The restriction also makes the operation one-directional — an
+  incomplete row can only become complete — which is exactly the stranded case and
+  nothing else.
+
+  The accepted trade: adding a quiz to a module people have already passed does not ask
+  them to take it. That is the intended behaviour, not an oversight.
+
+- **`NEW` is unassigned during DELETE and `OLD` during INSERT.** `coalesce(new.x, old.x)`
+  in a trigger covering both raises _"record is not assigned yet"_ — branch on `TG_OP`
+  instead. See `recompute_progress_for_module()`.
+- **A service-role route owes the reader an ownership check on the next line.**
+  The four admin quiz routes used the service-role client — they must, `answer_keys`
+  has no policy for anyone else — behind nothing but `requireStaff()`. That proves
+  "is staff", not "owns this", and RLS was switched off, so **any teacher could read
+  another teacher's answer key and rewrite their quiz**. Confirmed against the running
+  app before fixing: `marko GET 200 / PATCH 200 / POST 201` on Ana's course, now all 403. `assertCanAuthorCourse` / `assertCanAuthorModule` / `assertCanAuthorQuiz` in
+  `src/lib/auth/courseAccess.ts` are the check; they take either client because they
+  compare `owner_id` explicitly rather than leaning on policies.
+
+  Note this is a _stricter_ question than `assertCourseAccess`: a student with an
+  approved purchase may read a module, but must never author one.
+
+- **The quiz form models correctness as an index, not as a flag per answer.**
+  The API says `is_correct` on each answer; `quiz-form.schema.ts` says `correctIndex`
+  on the question. A list of independent booleans can express two correct answers or
+  none — both of which the database and the API reject — so the form would be
+  validating against a rule its own shape permits breaking. An index cannot represent
+  either mistake, and it is what a radio group already is. `toQuizPayload` converts at
+  the boundary. The one failure an index _can_ have is dangling past the end of the
+  list, so removing an answer shifts it and a refinement checks it.
+
+- **`PATCH /api/admin/quizzes/:id` replaces the question set wholesale**, because the
+  authoring UI has no stable ids to diff against and a partial merge would re-pair
+  answers with the wrong questions. Two consequences: question and answer ids change
+  on every save (don't build anything that depends on them), and editing a live quiz
+  rewrites what in-progress students see on their next load. Already-scored
+  `module_progress` rows are untouched.
+
+- **`GET /api/admin/modules/:id/quiz` exists because the authoring screen only has a
+  module id.** Without it the page would need two round trips, the first of which
+  returns a payload deliberately stripped of the answer key. It shares
+  `ADMIN_QUIZ_SELECT` and `flattenAdminQuiz` with the by-id route (`src/lib/api/adminQuiz.ts`)
+  so the two cannot drift. The flattening matters: PostgREST nests the embed as
+  `answer_keys: [{is_correct}]` while `adminQuizSchema` declares a flat `is_correct`,
+  so without it `useAdminQuiz` was simply lying about its own type.
+
+- **Nested field arrays need a component per row.** `<QuizForm>` arrays over questions;
+  each `<QuizQuestionFields>` owns a second `useFieldArray` for its answers. Hooks
+  cannot run in a loop, so this split is forced — not a style choice.
+- **"At most one per module" gets one screen, not a list plus a `/new` route.**
+  `tasks.module_id` is `unique` (0008), so a task has nothing to list and no id worth
+  putting in a URL. The route is `/admin/courses/{id}/modules/{moduleId}/task`, and
+  whether it creates or edits is decided by what the server returns. **Quizzes are the
+  same shape** (`quizzes.module_id` is unique too) — follow this page when building that
+  one.
+- **A module with no task is a 404, and that is deliberate.** `GET /api/modules/:id/task`
+  uses `unwrapOne` on a `maybeSingle()`, so "no row" becomes 404 — which is
+  distinguishable from the 403 that means "not your course". The admin screen treats 404
+  as _the create case_. Don't soften it to `{ data: null }` without updating that page,
+  which branches on the status. 4xx is not retried (`queryClient.ts`), so it costs one
+  request.
+- **After creating a task the page stays put** rather than navigating back. Attachments
+  only become possible once the task exists (the row needs a `task_id`), and adding them
+  is almost always the next thing. `<TaskForm>` is keyed on the task id so the newly
+  saved text becomes the form's baseline instead of the blank `defaultValues` it mounted
+  with.
+- **`<TaskFiles>` and `<ModuleMaterials>` are near-twins on purpose, and must stay
+  separate.** They look alike but encode opposite policies: a module material is
+  protected content (PDF only, read in-app, never handed over), while a task file is a
+  working document (several formats, meant to be downloaded and edited). Merging them
+  would put both policies behind one set of props and let a future change silently apply
+  to both. If the duplication ever hurts, extract the row markup — not the policy.
+- **Module materials are served through a proxy, not a signed URL.**
+  `GET /api/module-files/:id/content` streams the object with the service-role client
+  after `assertModuleAccess`. A signed URL would also work, but it hands the client a
+  link that works for anyone holding it until it expires; a same-origin route is
+  useless without the caller's session cookie, and the storage URL is never produced.
+  `Content-Disposition: inline` and `Cache-Control: private, no-store` match that.
+
+  Note the access denial arrives as **404, not 403** — `module_files` is RLS-scoped, so
+  the row is invisible before `assertModuleAccess` runs. That is fine (it does not
+  confirm the file exists) but it is the reason the assert is defence in depth rather
+  than the primary gate.
+
+- **`<PdfViewer>` renders to canvas via `pdfjs-dist`.** `<iframe>`/`<embed>` hand the
+  file to the browser's PDF plugin, which brings its own download and print buttons —
+  the opposite of reading materials in-app. The library is imported **dynamically inside
+  an effect** (it touches browser globals at module scope, so it must never reach a
+  server render), and the worker resolves via
+  `new URL('pdfjs-dist/build/pdf.worker.min.mjs', import.meta.url)` — nothing copied
+  into `public/`, nothing to re-sync on upgrade.
+
+  Deliberately not done: blocking right-click or shortcuts. It stops nobody and breaks
+  accessibility. See the PDF-only note above for what this does and does not achieve.
+
+- **Video is Vimeo, always.** `modules.video_url` is a free-text URL, so `lib/vimeo.ts`
+  parses the id out of the shapes Vimeo hands out. The one that matters is the
+  **unlisted** form (`vimeo.com/123/abc123`), whose privacy hash must travel as `?h=`;
+  drop it and the embed loads and then refuses to play, which reads as a broken video
+  rather than a missing parameter. An unparseable link says so instead of rendering a
+  black rectangle.
+
+- **`checkModulePageAccess` is the guard for every `/courses/[slug]/modules/…` page.**
+  `proxy.ts` gates whole prefixes and cannot express "under `/modules` but not the
+  course page", so these pages check for themselves. At three of them (module, quiz,
+  task) that became three chances to forget, so it is one function returning both the
+  decision and the resolved course — a layout could not hand the course down, and all
+  three need it. It does **not** check the sequential unlock: that needs the whole
+  course's progress, which the client components already fetch.
+
+- **`GET /api/tasks/:taskId/submissions` was missing and is now added.** `POST` created
+  a submission but nothing listed one, so a student who navigated away could never find
+  their thread or learn the outcome. It is scoped to `student_id = caller` **explicitly**
+  rather than left to RLS: the select policy also admits admins and the reviewing
+  teacher, so without the filter a teacher would get everyone's work from what is meant
+  to be the student's own view.
+
+- **A submission is a thread, not a file upload.** `task_submissions` holds status,
+  `task_messages` holds the exchange, and both sides post to the same endpoint — only a
+  _reviewer's_ `status` is honoured. The API refuses a second submission while one is
+  `pending` or `needs_revision` (409), so the student screen offers _either_ the submit
+  form or the thread rather than letting them create a conflict and reading them the
+  error. A revision is a reply in the existing thread, which is why there is no
+  "resubmit" button.
+- **Module materials are PDF-only, and students view them in-app — never download.**
+  The PDF restriction is enforced in three places that share one list
+  (`ACCEPTED_MODULE_FILE_TYPES`): the OS picker's `accept`, `moduleFileSchema` in the
+  browser, and `/api/admin/uploads` on the server. Only the last is a boundary.
+
+  **The reason is not that PDF is harder to copy — it is not.** Anything the browser
+  renders has already been downloaded to the machine, and a PDF in a viewer is one
+  network-tab save away. PDF is the only format that renders reliably _inline_ in a
+  viewer we control, so a student never needs to be handed a file at all; a `.docx`
+  has to leave the site to be opened. Do not treat the format as a security control.
+
+  **When the student module viewer gets built, it must:**
+  - fetch the PDF through a short-lived signed URL or a server proxy, so the storage
+    URL never reaches the page — `module-files` is a private bucket and must stay one;
+  - render with a canvas-based viewer (PDF.js) with its toolbar off, rather than
+    `<embed>`/`<iframe>`, which give the browser's own download and print buttons;
+  - **not** bother blocking right-click or keyboard shortcuts. That stops nobody, and
+    it breaks accessibility and normal browser behaviour for everyone else.
+
+  What no implementation can prevent: screenshots, print-to-PDF, and reading the
+  response out of devtools. If leaks actually matter, the effective measure is a
+  per-student watermark (name + email burned into each page at render time) — it does
+  not stop copying, it makes a copy traceable to whoever leaked it. That is a
+  deliberate open decision, not an oversight.
+
+- **Module materials are not part of the module form.** A file is stored the moment it is
+  chosen and deleted the moment you confirm — neither waits for "Sačuvaj". Mixing that
+  into `<ModuleForm>` would give one Save button that commits some changes instantly and
+  others on click, so `<ModuleMaterials>` sits beside the form instead, the same way
+  `CourseDeleteSection` does. It exists **only on the edit page**: the storage path is
+  `{course_id}/{module_id}/…`, so a module must exist before a file has anywhere to go.
+- **The module-file folder order is silently unforgiving.** `[courseId, moduleId]` is
+  correct; reversing it uploads **with no error at all** — both segments are uuids, so the
+  upload route's depth check passes — and the object is then unreadable by everyone,
+  permanently, because the storage policy runs `can_author_course()` against the _first_
+  segment. This was verified against the real bucket: the reversed path is accepted. Build
+  these paths only via the `folders` argument, never by hand.
+- **Reordering modules is two PATCHes, run sequentially.** There is no bulk-reorder
+  endpoint, so a move swaps the `order` of one adjacent pair. Sequential rather than
+  concurrent so a mid-failure is describable: the two rows briefly share an `order`, which
+  `unlockedModuleIds` tolerates, and a refetch shows the truth. Fine for a handful of
+  modules; a real endpoint is the answer if courses ever grow large.
+- **`ACCEPTED_MODULE_FILE_TYPES` lives in `storage.ts`**, shared by the browser check
+  (`moduleFileSchema`) and `/api/admin/uploads`, so the two cannot drift into disagreeing
+  about what a material may be.
+- **Deleting a course lives outside `<CourseForm>`** (`CourseDeleteSection`), not in
+  `FormActions`. It ignores the form's values, and grouping it with "Sačuvaj" would
+  imply otherwise. It is separate from `CourseActions` because the two end
+  differently: the list stays put, the edit page must navigate away or sit on a 404.
+- **Courses are addressed publicly by slug, internally by uuid.** The public page is
+  `/courses/[slug]`; `/admin/courses/[id]/…` stays on uuids, because admin URLs are
+  never shared or indexed. `GET /api/courses/:courseId` accepts **either** — it picks
+  the column by testing the value's shape, so links made before 0021 still resolve.
+  The public page exchanges the slug for the course once and passes `course.id` to
+  everything downstream (`outline`, `progress`, `modules`, purchases), so only that one
+  endpoint ever had to learn about slugs.
+- **A slug never follows a rename.** `courses_set_slug` fills it on insert and leaves it
+  alone afterwards, because a URL is an address: silently changing it breaks inbound
+  links and throws away whatever ranking it had. To deliberately re-derive one, set
+  `slug` to NULL (or `''`) and the trigger regenerates it from the current name.
+- **`slugify()` transliterates, it doesn't strip.** Dropping diacritics would turn
+  "Osnove grafičkog dizajna" into `osnove-grafi-kog-dizajna`. Note `đ` is handled with
+  `replace()` before the `translate()` call — it expands to _two_ characters, and
+  `translate()` maps strictly one-to-one, silently truncating a longer replacement.
+- **`courses.slug` is `not null` with a `''` default, and the default matters.** Without
+  it `supabase gen types` emits `slug: string` as **required** on Insert, forcing every
+  caller to invent a value the trigger is about to overwrite. The empty string never
+  survives the statement — the trigger treats it exactly like NULL (migration 0022).
+- **`embeddedCourseSchema` carries `slug`** so admin screens link to the canonical
+  public URL rather than the uuid form. Both resolve; only one should be shared.
+- **Categories are managed entirely on one screen.** A category is a single text
+  field, so list → detail → edit-page would be three navigations to change one
+  word. `/admin/categories` lists them and opens `<CategoryFormDialog>` for both
+  create and edit. That trade is only right because the resource is this small —
+  a course still earns its own pages. The dialog is **mounted only while open**
+  (`{editing ? <Dialog/> : null}`), because `defaultValues` is read once at
+  mount; a permanently-mounted dialog shows the previous row's name.
+- **Deleting a category warns, it does not block.** `courses.category_id` is
+  `ON DELETE SET NULL`, so a delete never fails — it silently uncategorises every
+  course that used it, unrecoverably. The confirmation therefore names the count
+  ("Kategoriju X koristi 3 kursa"). Blocking was originally rejected because
+  `/admin/courses/[id]/edit` was a placeholder, so a block would have had no way
+  to be cleared. **That precondition is now gone** — the edit page exists and its
+  category field can reassign a course — so switching to a hard block is a live
+  option. Left as a warning until someone decides; the current behaviour is not
+  an accident.
+- **`GET /api/categories` returns `course_count`**, from a `courses(count)`
+  PostgREST embed flattened in the route (it arrives as `courses: [{count: n}]`,
+  and `[{count: 0}]` when empty). The number is **RLS-scoped, not absolute**: an
+  admin counts drafts too, `anon` counts only published courses. Both are
+  correct for who is asking, but two viewers can legitimately disagree — don't
+  treat it as a global total. Only the list route sends it, which is why
+  `categoryWithCountSchema` is separate from `categorySchema`.
 - **Admin list + detail screens follow one shape.** Users, purchases and certificates are
   the reference trio: `useListParams` → filter bar → `<QueryState>` → `<DataTable>` →
   `<PaginationBar>`, and a detail page built from `<DetailList>` blocks. Row actions live
@@ -314,12 +651,369 @@ but must still handle a 403 on an individual resource.
   migrations 0016–0017 as `can_author_*()` predicates, not in application code, so
   every client (app, API docs "try it", psql) obeys them identically.
 - **Teacher isolation has a regression test.** `npm run db:verify-rls` signs in as
-  the seeded accounts with the _anon_ key and asserts 24 properties (a teacher
+  the seeded accounts with the _anon_ key and asserts 29 properties (a teacher
   can't see another's draft, can't edit their course, can't publish, can't reassign
   ownership, can't read unrelated profiles, …). Re-run it after any policy change.
   A check that used the service-role key would prove nothing.
+- **Ownership alone is not authorisation — it must be paired with a role check.**
+  `courses.owner_id` survives a role change, so until 0019 `owns_course()` granted a
+  demoted teacher full authoring rights on courses they still owned: editing modules,
+  quizzes and tasks, and reading that course's purchases and certificates. The app hid
+  it (`/admin` is role-gated, the routes call `requireStaff()`), but the anon key and
+  project URL are public, so a demoted user with a valid JWT could reach PostgREST
+  directly. `owns_course()` now requires `is_staff()` — fixed at the predicate, not the
+  three call sites, so a fourth caller inherits it. The last five assertions in
+  `db:verify-rls` cover exactly this.
 - **`teaches_student()` deliberately ignores purchase status.** A teacher must see
   the names on their _pending_ request queue, not just their paying students.
+
+- **Approval closes the thread, and the server is what closes it.** Once a submission
+  is `approved` no one may add to it — not the student, not the reviewer, not an admin.
+  A decision and the transcript it was based on have to agree; letting either side keep
+  writing afterwards leaves a thread whose last word contradicts its own outcome, and
+  there is no "unapprove" to resolve that with. `needs_revision` is deliberately **not**
+  closed — that status exists precisely to invite a reply.
+
+  Enforced on all three write paths, because hiding a composer is not a control:
+  `POST /api/submissions/:id/messages`, `POST /api/submissions/:id/attachments` (so the
+  bucket never collects objects nothing will reference) and `PATCH /api/messages/:id`
+  all 409. Both UIs also replace their composer with a sentence saying why.
+
+  Verified per role against the running app: student 409, owning teacher 409, admin 409,
+  upload 409, attach 409 — while `GET .../messages` still returns 200, since closing the
+  thread must not hide it.
+
+- **A "reviewer" is an admin _or_ the owning teacher, and the route used to disagree
+  with the database.** `POST /api/submissions/:id/messages` gated its `status` handling
+  on `profile.role === 'admin'`, while `task_submissions_reviewer_update` (0017) has
+  always let the course's teacher decide. The effect was a teacher who could open the
+  thread and reply but never approve or request a revision — the one thing the screen
+  exists for. `canReviewTask` in `src/lib/auth/courseAccess.ts` is now the check, and it
+  is the same rule as the `can_review_submission()` predicate.
+
+  It matters that this branch runs on the **service-role client**: approving writes
+  `module_progress` and may insert a certificate, neither of which a teacher may touch
+  directly. RLS is therefore off for the whole branch, and the explicit ownership check
+  is what stands in its place — the rule of thumb from the quiz routes, again.
+
+- **`canAuthorCourse` is the boolean twin of `assertCanAuthorCourse`, and exists for
+  exactly one caller.** The message endpoint serves both sides of a thread, so "are you
+  the reviewer" decides whether a `status` field is _honoured_, not whether the request
+  is allowed: a student who sends one is ignored rather than rejected. Ignoring is not
+  something a thrower can express. Don't reach for the boolean form anywhere a 403 is
+  the right answer.
+
+- **The review decision rides on the message rather than being its own endpoint.**
+  A status change with no message would leave a student looking at "Potrebna izmena"
+  with nothing saying what to fix, so `<SubmissionReview>` sends body + `status` in one
+  request. One round trip, and every outcome arrives with its explanation attached.
+
+- **`<MessageThread>` is shared by both sides; `<MessageComposer>` is too.** This is not
+  the `<TaskFiles>` / `<ModuleMaterials>` situation — those look alike and must stay
+  apart because they encode opposite policies. A list of messages encodes none: a thread
+  has two participants and the same three things to show per message. What differs is
+  what each side can _do_, and that lives in the composers. Sides are decided by
+  comparing `sender_id` to the submission's `student_id`, not by role, because an admin
+  and the owning teacher may both reply and both read as "the reviewer"; the viewer's own
+  messages are labelled "Vi" regardless.
+
+- **`onSend` throwing means "not sent" — `<MessageComposer>` keeps the text.** It clears
+  itself only on a resolved send, catches the rejection (an escaping one goes unhandled
+  from a click handler), and leaves reporting to the caller. That contract is what lets
+  the approval `<ConfirmDialog>` work at all: the dialog cannot wrap the button, since
+  the composer owns it, so the answer travels back into the in-flight `onSend` through a
+  stored resolver, and cancelling throws a module-level sentinel compared by identity so
+  it is never reported as a failure.
+
+- **`ADMIN_SUBMISSION_SELECT` — `!inner` is load-bearing and `(count)` needs flattening.**
+  The list and detail routes share one projection (`src/lib/api/adminSubmission.ts`), the
+  way the two quiz routes share `ADMIN_QUIZ_SELECT`. Two traps in it: the `courseId`
+  filter is expressed as `tasks.modules.course_id`, and PostgREST only filters on an
+  embedded table when the embed is an **inner** join — drop `!inner` and the filter is
+  silently ignored and every submission comes back. And `task_messages(count)` arrives as
+  `[{ count: n }]`, so `flattenAdminSubmission` turns it into the flat `message_count`
+  that `adminSubmissionSchema` declares; without it the typed hook lies about its shape.
+
+- **Submissions get a full detail page, not a modal on the list.** Reviewing means
+  reading the brief, the whole thread and any attached work before answering — a
+  sit-down, and worth a URL that can be bookmarked or sent to a colleague. Categories
+  went the other way for the mirror-image reason: one text field is not worth a
+  navigation. The queue defaults to `status=pending`, the same call the purchases page
+  makes.
+
+- **`displayFileName()` lives in `storage.ts`, next to the function that adds the
+  prefix.** `safeFileName()` timestamps every upload so a re-upload never overwrites the
+  previous object, and that prefix is bookkeeping the reader must never see. Written
+  inline once it was `/^d+-/` — a missing backslash, so it matched nothing and every
+  attachment rendered as `1756213847312-resenje.pdf`. One helper, shared by the thread UI
+  and the download route's `Content-Disposition`.
+
+- **A module with no quiz and no task could never be completed, and the fix was a third
+  writer.** `module_progress` had exactly two: the quiz-attempt route and the
+  submission-approval route. A content-only module — a video, some materials, nothing to
+  hand in — had nobody to write its row, so **no row was ever created** and
+  `/api/courses/:id/progress` reported `completed: false` by absence, permanently.
+
+  The derivation was never wrong. `recompute_module_progress_completed` (0011) computes
+  `(no quiz OR quiz_done) AND (no task OR task_done)`, which is `true` for such a module
+  the instant a row exists — verified directly against the database. Nothing ever inserted
+  one. Note this is a _different_ bug from the one 0023 fixed: that was a stale row whose
+  requirements changed under it; this is no row at all.
+
+  The damage is bigger than it looks. Under sequential unlock ("completed ∪ first
+  incomplete") a content-only module anywhere in a course locks **every module after it**;
+  on the last module it instead means the certificate can never be issued. Found on the
+  final module, which is the mildest presentation.
+
+  `POST /api/modules/:moduleId/complete` is the third writer, surfaced as a "Završi modul"
+  card in `<ModuleViewer>`.
+
+- **That endpoint 409s on a module that _does_ have a quiz or a task, and that check is
+  the whole security of it.** Without it, it is a "skip the quiz" button: a student could
+  POST and have the module marked done without answering anything. Completion for those
+  modules stays where it was earned.
+
+- **Completion is a deliberate click, not "you opened the page".** The app cannot tell
+  whether a video was watched or a PDF read, so something has to stand in for it.
+  Auto-completing on view would mean a mis-click finishes a module — and on the final
+  module of a course, that **a certificate is issued because a page loaded**. That last
+  consequence is what settles it. The button keeps `completed` meaning "the student got
+  through this", which is what every other writer of the column also means.
+
+- **No backfill for existing students, deliberately.** Marking every content-only module
+  complete for everyone with an approved purchase would jump people's progress through
+  material they never opened, and silently issue certificates. Same reasoning as the
+  `where completed = false` restriction in 0023: only move in the direction the student
+  actually earned. Anyone currently stranded clears it with one click.
+
+- **The card is hidden from staff** (`bypassSequence`). An admin or the owning teacher
+  previewing a course is not studying it, and marking it would write progress against
+  their own account — and on a final module, issue _them_ a certificate. The endpoint
+  still accepts them (RLS-equivalent access is the only rule it enforces); only the UI
+  declines to offer it.
+
+- **The certificate page is public, and that was already the design.**
+  `/certificates/[certificateId]` renders `GET /api/certificates/:id`, which was built
+  unauthenticated from the start: `certificates` has no anon SELECT policy, so the route
+  is the only way in and it returns a fixed minimal projection — name, course, date,
+  `valid: true` — never the row. A certificate exists to be shown to someone, so the page
+  over it is public too, and the link in the completion notification, the link on the
+  dashboard, the link on the course page and a link pasted into an email are all the same
+  URL.
+
+  Addressed by `readable_id` (CERT-YYYY-NNNN), for the same reason courses are addressed
+  by slug: it is the form a person reads out and types in. The endpoint accepts the uuid
+  as well, so nothing that already links by id breaks.
+
+  **Known trade-off, not an oversight:** `readable_id` comes from a sequence, so it is
+  guessable, and a public page makes walking the range convenient in a way the bare API
+  did not. Nothing beyond a name, a course and a date is exposed, and that is what a
+  verification page is _for_ — but if that ever matters, the fix is a random suffix on
+  `next_certificate_readable_id()`, which is a migration plus a decision about existing
+  ids. Left as it stands deliberately.
+
+- **The owner sees one thing more than a stranger, and it needs a second query.** The
+  verification payload is identical for everybody, which means it cannot carry delivery
+  state — that is the owner's business, not a verifier's. `useOwnedCertificate` therefore
+  asks separately whether the identifier appears in the caller's _own_ certificate list,
+  and the printed-copy panel renders only if it does. No new endpoint: a student has a
+  handful of certificates, so one page of `/api/certificates` covers it. Signed-out
+  visitors never ask. Hiding the panel is presentation — `request-delivery` checks
+  ownership itself.
+
+- **The completion moment lives on the module viewer; the durable links live everywhere
+  else.** Finishing the last module is where the student actually is when the course ends,
+  so that is where the congratulation card goes. The course page's progress panel and the
+  dashboard's certificate rows carry the same link for when they come back later. All
+  three wait for the certificate row to exist rather than linking optimistically — it is
+  issued by the same request that completed the module, so for a moment it is in the
+  response but not yet in the query.
+
+- **`certificate_issued` and `certificate_delivered` link to the certificate, not the
+  dashboard.** Sending someone to a list to find the thing they were just told about is a
+  step for no reason, and the certificate page is the one that can also be forwarded.
+
+### The certificate PDF
+
+- **Generated server-side with pdf-lib, A4 landscape, from `src/lib/pdf/certificate.ts`.**
+  One route, `GET /api/certificates/:id/pdf`, serves both the preview and the download —
+  inline by default, `attachment` with `?download` — so what is previewed and what is
+  saved cannot drift apart. Public, matching the verification endpoint beside it and
+  carrying the same four facts.
+
+- **The font is vendored and embedded, and that is forced.** pdf-lib's built-in faces are
+  WinAnsi, which has no `č ć ž š đ`. Every Serbian name hits it. EB Garamond (SIL OFL)
+  lives in `src/lib/pdf/fonts/` with its licence, and `next.config.ts` names that
+  directory in `outputFileTracingIncludes` — nothing imports the `.ttf` files, so Next's
+  tracing cannot see them and a production build would ship without them, working in
+  `next dev` and 500-ing once deployed.
+
+- **Three traps, all found by rasterising the output rather than reading it.** They are
+  worth knowing because each one produces a file that passes every text-based check:
+
+  1. **Google Fonts subset files are not whole fonts.** `latin-ext` contains _only_ the
+     extended characters — no ASCII at all — so embedding one renders "Jovanović" as blank
+     boxes with a stray `ć`. The vendored files are the full faces.
+  2. **`subset: true` drops glyphs on this font.** EB Garamond builds accented characters
+     as composite glyphs and pdf-lib's subsetter fails to carry the components across. The
+     same line drew 1,621 ink pixels subsetted against 7,208 embedded whole. So
+     `subset: false`, which costs about half a megabyte per file — ordinary for a PDF with
+     embedded faces, and not negotiable against correctness.
+  3. **`liga` must be off.** With standard ligatures on, fontkit substitutes a single `fi`
+     glyph and pdf-lib writes it with a mismatched advance, rendering "certifi cates"
+     with a hole in it. `features: { liga: false }`. Kerning was tested and is innocent —
+     leave it on.
+
+  **The lesson underneath all three: verify a PDF by looking at it.** Text extraction reads
+  the ToUnicode map, not the glyphs, so a completely blank document returns exactly the
+  right string. A 17-assertion text probe passed against a file that rendered as a few
+  scattered accents on an empty page.
+
+- **`<PdfViewer>` is reused for the preview, and that is not a policy contradiction.** It
+  was written for module materials, whose rule is "never handed over" — but the viewer is
+  neutral machinery for drawing a PDF onto a canvas. The policy lives in the route's
+  `Content-Disposition` and in whether a download button sits beside it. Here both say the
+  opposite.
+
+### Notifications (migration 0025) and certificate delivery (0024)
+
+- **Certificate fulfilment is tracked now, and the fix was a column, not a button.**
+  `certificates.delivered_at` + `delivered_by` (0024). `requested_delivery` stays the
+  _student's_ flag, written only through `/api/certificates/:id/request-delivery`;
+  `delivered_at` is the admin's answer, written only through
+  `PATCH /api/admin/certificates/:id`. Two halves of one exchange, two endpoints, two
+  different people — one schema covering both would let either write the other's column.
+
+  A timestamp rather than a boolean because "when" is the question an admin chasing a
+  complaint actually has, and a nullable timestamp answers both. `deliveryStatus()` now
+  takes `(requested, deliveredAt)` and has three states; **"Poslato" is checked first**,
+  because `requested_delivery` stays true after fulfilment and testing it first would
+  leave every posted certificate reading as still pending.
+
+  `requireAdmin`, unlike the GET beside it — posting something physical has no course
+  scope. Reversible on purpose (`delivered: false`): mis-marking a row is an ordinary
+  slip, and unlike approving a submission there is no reason to make it final.
+
+- **The notification catalogue is the single source of truth**
+  (`src/lib/notifications/catalog.ts`). Its keys are typed as the generated
+  `notification_type`, so a missing or invented entry fails to compile. It carries the
+  Serbian label, the description, the settings-screen group, and `audience` — which is a
+  **UI filter, not a guard**: it stops a student being shown a switch for
+  `purchase_requested`, which no student is ever sent. Recipients are decided at the call
+  site; the database is what guarantees a row only ever reaches its own `user_id`.
+
+  Adding a type = a migration for the enum value (`ALTER TYPE … ADD VALUE` must be alone
+  in its file), an entry in the catalogue, and a `notifyAfterResponse` call.
+
+- **Delivery runs in `after()`, and cannot fail the request that triggered it.**
+  `notifyAfterResponse` (`src/lib/services/notifications.ts`) schedules the work with
+  `after()` from `next/server`, so it happens once the response is already sent. Two
+  reasons, both load-bearing: approving a purchase should not wait on an SMTP round trip,
+  and a notification is a side effect of an action that **has already succeeded** — if
+  Resend is down, a throw here would turn a completed approval into a 500 and invite the
+  admin to press the button again. Everything inside is caught and logged; the failure
+  mode is a missing notification, not a failed mutation.
+
+- **`notifications` has no INSERT or UPDATE policy, deliberately.** INSERT is service-role
+  only because a notification is always something the system decided to say. UPDATE is
+  service-role only for the reason this project keeps rediscovering: **a policy grants a
+  whole row, never a column.** "Mark as read" writes `read_at`, but a policy permitting it
+  would equally permit rewriting `title` and `body` through PostgREST — turning the record
+  of what someone was told into whatever they would rather it had said. So
+  `PATCH /api/notifications/:id/read` checks ownership with the caller's own client and
+  writes with the service role, exactly like `PATCH /api/messages/:id`.
+
+  `notification_preferences` is the opposite case and gets ordinary policies: the whole row
+  _is_ the user's to set, and `with check (user_id = auth.uid())` is the only rule needed.
+  Verified against PostgREST directly, not just through the routes: a signed-in student
+  cannot rewrite a notification (0 rows), forge one (42501), or write another user's
+  preferences (42501).
+
+- **`notification_preferences` is sparse, and absence means "on".** A row exists only once
+  someone changes a switch. That avoids backfilling every user × every type, avoids a
+  trigger to seed rows for new users, and makes adding a type a one-line enum change
+  instead of a data migration. The cost is that the read side must merge — so
+  `GET /api/notification-preferences` returns the **complete matrix** with defaults filled
+  in, and `mergeWithDefaults` is the one function that knows the rule. A screen forced to
+  treat a missing row as `true` would be one refactor away from defaulting people to
+  silence.
+
+  PATCH merges before upserting for the same reason `applyModuleProgress` does a
+  read-modify-write: an upsert writes whole rows, so sending only `email_enabled` would
+  reset `in_app_enabled` to its column default.
+
+- **Two channels, decided independently, and in-app can be switched off too.** It is
+  tempting to make the bell mandatory, but a switch that refuses is worse than no switch,
+  and nothing is actually lost — the underlying record is still on its own screen.
+
+- **The sender is never notified, and a decision sends two notifications.** `notifyThread`
+  in the messages route filters the sender out of the recipients (which also covers an
+  admin who is both reviewer and sender). A status change additionally notifies the
+  student with `submission_needs_revision` / `submission_approved` — separate from the
+  message notification on purpose: they are different facts, carry different preference
+  switches, and someone who muted thread chatter should still hear that their work was
+  accepted. `previousStatus` is compared, not just read, so re-selecting the status a
+  thread already has is not announced.
+
+- **`certificate_issued` is notified inside `maybeIssueCertificate`, not at the call
+  sites.** Two routes finish a course (the last quiz, the last task approval), and only
+  that function distinguishes actually issuing from the idempotent no-op — which is
+  exactly the distinction that must not be announced twice. Same reasoning as putting the
+  staff test inside `owns_course()`.
+
+- **Admin-directed notifications go to admins only, never "all staff".** A teacher may
+  _read_ the purchase requests on their own course but cannot act on them, and a
+  notification you can do nothing about is noise. `courseReviewerIds()` is the other
+  helper — admins plus the owning teacher — and it drops the owner if they are no longer
+  staff or are deactivated, mirroring `can_review_submission()`.
+
+- **Polling, not realtime.** The badge asks `?unread=true&pageSize=1` and reads
+  `meta.total` — the project's standing answer to "I need a count, not rows", which is why
+  there is no count endpoint; `notifications_unread_idx` is what makes it cheap. Refetches
+  every 60s and on window focus, which is what actually makes it feel quick. Supabase
+  realtime would work, but a websocket per signed-in tab is a connection to keep alive and
+  re-authenticate for latency nobody would notice on "an admin got round to approving your
+  purchase".
+
+- **Opening a notification marks it read; opening the bell does not.** Marking everything
+  read on open would clear the badge for things nobody looked at. There is a separate
+  explicit "mark all read". Marking read twice keeps the original timestamp — when you
+  _first_ saw it is the interesting fact.
+
+- **Notification text is denormalised on purpose.** A notification records what someone was
+  told at the time, so it must not rewrite itself when a course is renamed. Consequently
+  `link` may point at something since deleted, and the UI has to tolerate a 404 there.
+
+- **A fifth route group, `(account)`, for pages every signed-in role shares.** Same rule as
+  §3: **groups are decided by chrome.** `/notifications` and `/settings/notifications`
+  belong to admins, teachers and students alike, so they fit neither the `(admin)` shell
+  (a sidebar of things a student may not see) nor `(student)`. The alternative was a copy
+  of each page in both, and two copies of a settings screen drift. `proxy.ts` gates
+  `/notifications` and `/settings` as _protected_ but **not** admin-only — that pair of
+  lists is exactly the distinction.
+
+- **Email is fully wired against a Resend account that does not exist yet.** With
+  `RESEND_API_KEY` or `EMAIL_FROM` missing, `sendEmail` logs one line and returns
+  `{ status: 'skipped' }` — it never throws. `isEmailConfigured` rides along on
+  `GET /api/notification-preferences` as `meta.email_configured`, so the settings screen
+  says plainly that mail is not live rather than offering a toggle that quietly does
+  nothing. The same short-circuit keeps development from emailing real students while
+  someone clicks around the seeded data.
+
+  The templates are hand-written HTML with inline styles and a plain-text twin. That is
+  not laziness: email clients are not browsers (Outlook renders with Word, Gmail strips
+  `<style>` in places), so the app's theme cannot apply, and a HTML-only message looks
+  like bulk mail to a spam filter. Every interpolated value is escaped — course names and
+  message excerpts are user-supplied.
+
+  **Note for whoever plugs in the key:** the seeded admin's address is a real inbox. Probe
+  against the seeded test accounts only, or a live run will actually email someone.
+
+- **`displayFileName` / `formatRelativeTime` live in the shared libs, not in a component.**
+  `formatRelativeTime` uses `Intl.RelativeTimeFormat`, which knows the Serbian plural
+  forms — hand-rolling it with `pluralSr` would re-derive rules the platform already has.
+  It falls back to an absolute date past a week, where "pre 43 dana" stops being easier
+  than reading the date.
 
 ### Not every built page is reachable from the nav
 
@@ -330,29 +1024,13 @@ course-scoped page, add it there or it is URL-only.
 
 ## 8. Known gaps / next up
 
-- Public course catalogue `/courses` doesn't exist. `PublicHeader`'s wordmark is
-  deliberately not a link because of it.
-- **`(admin)/courses/[id]/edit` is still a `PlaceholderPage`** — the course
-  create/list/public-view pages are built, edit is not. Everything it needs
-  exists (`CourseForm`, `courseToFormValues`, `useAdminCourse`, `useUpdateCourse`);
-  it is close to a copy of `courses/new/page.tsx`.
-- `/admin/categories` and `/admin/submissions` are still `PlaceholderPage`s.
-- **The module pages are deliberate scaffolds, not placeholders.** They compile,
-  fetch real data and render something, but carry `TODO(intern)` blocks:
-  - `courses/[id]/modules/page.tsx` — list renders as plain text; needs real rows,
-    reordering (up/down beats drag-and-drop to start) and delete.
-  - `courses/[id]/modules/new/page.tsx` — works; `order` is auto-computed. Open
-    question: "save and add another".
-  - `courses/[id]/modules/[moduleId]/edit/page.tsx` — saving works; missing
-    materials, delete, quiz/task entry points.
-  - `components/modules/ModuleForm.tsx` — fields done, materials section is TODO.
-  - `lib/schemas/module-form.schema.ts` is **complete** and is the second worked
-    example of the form-schema pattern.
-    Quiz and task management pages do not exist at all yet.
-- Student pages (dashboard, purchases, certificates, quiz, task) not started.
-- **Certificate fulfilment is untracked.** `certificates` has no "sent" column, and
-  `request-delivery` is student-scoped, so the admin screens are read-only and say so.
-  Adding a real action means a migration first.
+- **No admin `PlaceholderPage` remains.** `/admin/submissions` was the last one.
+- The only remaining `TODO(intern)` is "save and add another" on the module create page.
+- **Student pages built:** dashboard, course catalogue, module viewer, quiz, task,
+  certificate. Still missing: downloads for task _attachments_ — those live in a private
+  bucket with no route serving them, and unlike module materials they are meant to be
+  downloaded.
+- ~~Certificate fulfilment is untracked.~~ **Closed** by migration 0024 — see §7.
 - Some early UI strings are still English (`(student)/dashboard`, `LogoutButton`).
 - **The database is seeded.** `npm run db:seed` (re-runnable; deletes its own
   accounts and courses first) creates admin / 2 teachers / 2 students, 4 courses
@@ -371,6 +1049,14 @@ course-scoped page, add it there or it is URL-only.
 
 - **No UI for assigning a course to a teacher.** A teacher owns what they create;
   an admin can change `owner_id` in the database but nothing exposes it yet.
+  Promoting someone to teacher is now possible from `/admin/users/{id}`, but that
+  only lets them author _new_ courses — it cannot hand them an existing one.
+- **Deactivation has a one-token-lifetime window.** The ban blocks the next sign-in,
+  and 0020 makes the three role predicates ignore deactivated staff, so an admin or
+  teacher loses their powers immediately. A deactivated _student_ keeps whatever an
+  already-issued access token allows (~1h) — their policies key off `auth.uid()`
+  directly, and re-checking a flag across all of them is the sprawl the ban design
+  avoids. Sign them out server-side if that window ever matters.
 
 ---
 

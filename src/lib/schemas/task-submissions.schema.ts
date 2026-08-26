@@ -1,5 +1,11 @@
 import { z } from '@/lib/openapi/zod';
-import { auditFields, paginatedResponse, paginationQuerySchema, uuidSchema } from './common.schema';
+import {
+  auditFields,
+  embeddedProfileSchema,
+  paginatedResponse,
+  paginationQuerySchema,
+  uuidSchema,
+} from './common.schema';
 
 export const taskSubmissionStatusSchema = z
   .enum(['pending', 'needs_revision', 'approved'])
@@ -27,6 +33,63 @@ export const taskSubmissionSchema = z
     ...auditFields,
   })
   .openapi('TaskSubmission');
+
+/**
+ * The task a submission answers, with the module and course it belongs to.
+ *
+ * A submission row on its own says almost nothing a reviewer can act on — it is
+ * three uuids and a status. The review screens need the brief that was set and
+ * where it sits, so the admin endpoints embed the whole chain
+ * (`task -> module -> course`) and this declares that shape.
+ *
+ * Nullable at every level for the usual reason: PostgREST omits a relation the
+ * select did not ask for, so a page must never assume it is there.
+ */
+export const embeddedSubmissionTaskSchema = z
+  .object({
+    id: uuidSchema,
+    // The brief itself. Carried on the *list* too, not only the detail, so both
+    // screens share one select — see `ADMIN_SUBMISSION_SELECT`.
+    text: z.string(),
+    module_id: uuidSchema,
+    modules: z
+      .object({
+        id: uuidSchema,
+        title: z.string(),
+        course_id: uuidSchema,
+        courses: z
+          .object({ id: uuidSchema, name: z.string(), slug: z.string() })
+          .nullable()
+          .optional(),
+      })
+      .nullable()
+      .optional(),
+  })
+  .nullable()
+  .optional();
+
+/**
+ * A submission as the admin endpoints return it: the student who sent it, the
+ * task chain it belongs to, and how many messages the thread holds.
+ *
+ * `message_count` is flattened in the route — PostgREST delivers a `count`
+ * embed as `task_messages: [{ count: n }]`, which no page should have to know.
+ */
+export const adminSubmissionSchema = taskSubmissionSchema
+  .extend({
+    profiles: embeddedProfileSchema,
+    tasks: embeddedSubmissionTaskSchema,
+    message_count: z.number().int(),
+  })
+  .openapi('AdminSubmission');
+
+export const adminSubmissionListResponseSchema = paginatedResponse(adminSubmissionSchema).openapi(
+  'AdminSubmissionListResponse',
+);
+
+export const adminSubmissionResponseSchema = z
+  .object({ data: adminSubmissionSchema })
+  .openapi('AdminSubmissionResponse');
 
 export const listSubmissionsQuerySchema = paginationQuerySchema
   .extend({
@@ -68,6 +131,19 @@ export const createMessageSchema = z
   })
   .openapi('CreateMessageRequest');
 
+/**
+ * Attaching a file to a message that already exists.
+ *
+ * Separate from `createMessageSchema` because it answers a different question:
+ * not "what is this message" but "the upload that could not happen before the
+ * submission existed has now happened". See `PATCH /api/messages/:id`.
+ */
+export const updateMessageSchema = z
+  .object({
+    attachment_path: z.string().trim().min(1),
+  })
+  .openapi('UpdateMessageRequest');
+
 export const createSubmissionResponseSchema = z
   .object({
     data: taskSubmissionSchema.extend({ message: taskMessageSchema }),
@@ -84,6 +160,7 @@ export const createMessageResponseSchema = z
   .openapi('CreateMessageResponse');
 
 export type TaskSubmission = z.infer<typeof taskSubmissionSchema>;
+export type AdminSubmission = z.infer<typeof adminSubmissionSchema>;
 export type TaskSubmissionStatus = z.infer<typeof taskSubmissionStatusSchema>;
 export type TaskMessage = z.infer<typeof taskMessageSchema>;
 export type CreateSubmissionResponse = z.infer<typeof createSubmissionResponseSchema>;
@@ -91,3 +168,4 @@ export type CreateMessageResponse = z.infer<typeof createMessageResponseSchema>;
 export type CreateSubmissionRequest = z.infer<typeof createSubmissionSchema>;
 export type CreateMessageRequest = z.infer<typeof createMessageSchema>;
 export type ListSubmissionsQuery = z.infer<typeof listSubmissionsQuerySchema>;
+export type UpdateMessageRequest = z.infer<typeof updateMessageSchema>;

@@ -1,6 +1,7 @@
 import { z } from 'zod';
 import type { DefaultValues } from 'react-hook-form';
 import { imageFileSchema } from '@/lib/forms/fileSchema';
+import { SLUG_MAX_LENGTH, SLUG_MESSAGE, SLUG_PATTERN } from '@/lib/slug';
 import type { Course, CreateCourseRequest, UpdateCourseRequest } from './courses.schema';
 
 /**
@@ -53,6 +54,22 @@ export const courseFormSchema = z.object({
 
   published: z.boolean().default(false),
 
+  /**
+   * The public URL segment. Only shown on the edit page — on create the
+   * database derives it from the name (migration 0021).
+   *
+   * Empty is valid and meaningful: it tells the trigger to regenerate the slug
+   * from the current name, which is the supported way to fix one after a
+   * rename. `.refine` rather than `.regex` so that empty passes without a
+   * second alternative branch.
+   */
+  slug: z
+    .string()
+    .trim()
+    .max(SLUG_MAX_LENGTH, `Adresa može imati najviše ${SLUG_MAX_LENGTH} karaktera.`)
+    .refine((value) => value === '' || SLUG_PATTERN.test(value), SLUG_MESSAGE)
+    .default(''),
+
   /** Not sent with the create/update body — uploaded separately, see the page. */
   thumbnail: imageFileSchema.nullable().default(null),
 });
@@ -74,6 +91,7 @@ export const emptyCourseFormValues: DefaultValues<CourseFormInput> = {
   description: '',
   category_id: null,
   published: false,
+  slug: '',
   thumbnail: null,
 };
 
@@ -85,6 +103,7 @@ export function courseToFormValues(course: Course): CourseFormInput {
     category_id: course.category_id,
     price: course.price,
     published: course.published,
+    slug: course.slug,
     thumbnail: null,
   };
 }
@@ -107,7 +126,16 @@ export function toCreateCoursePayload(values: CourseFormValues): CreateCourseReq
   };
 }
 
-/** Form values → `PATCH /api/admin/courses/:id` body. */
+/**
+ * Form values → `PATCH /api/admin/courses/:id` body.
+ *
+ * Everything the create payload sends, plus `slug`, which only the edit form
+ * offers. `''` is passed through rather than dropped — it is the instruction to
+ * regenerate the slug from the name, not an absent value.
+ */
 export function toUpdateCoursePayload(values: CourseFormValues): UpdateCourseRequest {
-  return toCreateCoursePayload(values);
+  return {
+    ...toCreateCoursePayload(values),
+    slug: values.slug,
+  };
 }

@@ -1,15 +1,19 @@
 'use client';
 
 import * as React from 'react';
+import AssignmentOutlinedIcon from '@mui/icons-material/AssignmentOutlined';
+import QuizOutlinedIcon from '@mui/icons-material/QuizOutlined';
+import Button from '@mui/material/Button';
+import Stack from '@mui/material/Stack';
 import { useRouter } from 'next/navigation';
-import Alert from '@mui/material/Alert';
-import AlertTitle from '@mui/material/AlertTitle';
 import PageContainer from '@/components/layout/PageContainer';
 import PageHeader from '@/components/layout/PageHeader';
 import ContentCard from '@/components/layout/ContentCard';
 import QueryState from '@/components/feedback/QueryState';
 import EmptyState from '@/components/feedback/EmptyState';
 import ModuleForm from '@/components/modules/ModuleForm';
+import ModuleMaterials from '@/components/modules/ModuleMaterials';
+import ModuleDeleteSection from '@/components/modules/ModuleDeleteSection';
 import { useAdminCourse } from '@/hooks/useCourses';
 import { useCourseModules, useUpdateModule } from '@/hooks/useModules';
 import { moduleToFormValues, toUpdateModulePayload } from '@/lib/schemas/module-form.schema';
@@ -18,11 +22,10 @@ import { toast } from '@/store/useToastStore';
 
 /**
  * ═══════════════════════════════════════════════════════════════════════════
- *  EDIT MODULE — SCAFFOLD, working but incomplete.
+ *  EDIT MODULE
  * ═══════════════════════════════════════════════════════════════════════════
  *
- * Saving the four basic fields works. What is missing: materials (see
- * `ModuleForm`), delete, and the quiz/task entry points.
+ * Saving, materials, delete and the quiz/task entry points are all built.
  *
  * ## Read this first: there is no "get one module" endpoint
  *
@@ -97,6 +100,24 @@ export default function EditModulePage(
                 ]}
                 title={currentModule.title}
                 description="Izmena modula."
+                actions={
+                  <Stack direction="row" spacing={1.5}>
+                    <Button
+                      href={`/admin/courses/${courseId}/modules/${currentModule.id}/quiz`}
+                      variant="outlined"
+                      startIcon={<QuizOutlinedIcon />}
+                    >
+                      Kviz
+                    </Button>
+                    <Button
+                      href={`/admin/courses/${courseId}/modules/${currentModule.id}/task`}
+                      variant="outlined"
+                      startIcon={<AssignmentOutlinedIcon />}
+                    >
+                      Zadatak
+                    </Button>
+                  </Stack>
+                }
               />
 
               <ModuleForm
@@ -107,40 +128,13 @@ export default function EditModulePage(
                 cancelHref={`/admin/courses/${courseId}/modules`}
               />
 
-              {/*
-               * ───────────────────────────────────────────────────────────
-               *  TODO(intern) — what still belongs on this page
-               * ───────────────────────────────────────────────────────────
-               *
-               * 1. MATERIALS. This is the page where file upload belongs,
-               *    because the module id exists here (it does not on the
-               *    create page). Pass `moduleId` into <ModuleForm> and build
-               *    the section described in its comment.
-               *
-               * 2. DELETE. `useDeleteModule()` behind a <ConfirmDialog>, in
-               *    its own component so the list page can reuse it — copy
-               *    `CourseActions`. Warn that the quiz, task and files are
-               *    deleted with it; the FK cascade makes that irreversible.
-               *    After deleting, navigate back to the module list.
-               *
-               * 3. QUIZ AND TASK. A module may have one of each. Neither page
-               *    exists yet. Both are nested payloads — a quiz arrives with
-               *    its questions, its answers and the answer key in one
-               *    request — so read the schema in
-               *    `src/lib/schemas/quizzes.schema.ts` before designing the
-               *    form. Enforce single-correct-answer with radios, matching
-               *    the database constraint.
-               *
-               *    `answer_keys` is a separate table on purpose: it holds
-               *    which answer is correct, and students are denied SELECT on
-               *    it by RLS. Never merge it into `answers` "for convenience"
-               *    — that is what stops the quiz page leaking its own answers.
-               */}
-              <Alert severity="info">
-                <AlertTitle>Delovi ove stranice još nisu napravljeni</AlertTitle>
-                Materijali, brisanje modula i upravljanje kvizom/zadatkom. Uputstvo se nalazi u
-                komentarima u ovom fajlu.
-              </Alert>
+              <ModuleMaterials
+                courseId={courseId}
+                moduleId={currentModule.id}
+                files={currentModule.module_files}
+              />
+
+              <ModuleDeleteSection currentModule={currentModule} courseId={courseId} />
             </>
           );
         }}

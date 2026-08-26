@@ -12,11 +12,12 @@ import EmptyState from '@/components/feedback/EmptyState';
 import DetailList from '@/components/data/DetailList';
 import DataTable from '@/components/data/DataTable';
 import StatusChip from '@/components/data/StatusChip';
+import UserAccountActions from '@/components/users/UserAccountActions';
 import { useAdminUser } from '@/hooks/useUsers';
 import { useAdminPurchases } from '@/hooks/usePurchases';
 import { useAdminCertificates } from '@/hooks/useCertificates';
 import { formatDateTime, formatPrice } from '@/lib/format';
-import { PURCHASE_STATUS, USER_ROLE, deliveryStatus } from '@/lib/status';
+import { PURCHASE_STATUS, USER_ROLE, accountStatus, deliveryStatus } from '@/lib/status';
 import { isStatus } from '@/lib/api/errorMessage';
 import type { AdminPurchase } from '@/lib/schemas/purchases.schema';
 import type { AdminCertificate } from '@/lib/schemas/certificates.schema';
@@ -58,8 +59,15 @@ export default function AdminUserDetailPage(props: PageProps<'/admin/users/[id]'
               ]}
               title={profile.full_name}
               description={profile.email}
-              actions={<StatusChip {...USER_ROLE[profile.role]} size="medium" />}
+              actions={<UserAccountActions profile={profile} />}
             />
+
+            {profile.deactivated_at ? (
+              <Alert severity="warning">
+                Ovaj nalog je deaktiviran {formatDateTime(profile.deactivated_at)} i trenutno se ne
+                može prijaviti. Podaci su sačuvani.
+              </Alert>
+            ) : null}
 
             <Grid container spacing={3}>
               <Grid size={{ xs: 12, lg: 7 }}>
@@ -69,6 +77,10 @@ export default function AdminUserDetailPage(props: PageProps<'/admin/users/[id]'
                       { label: 'Ime i prezime', value: profile.full_name },
                       { label: 'Email', value: profile.email },
                       { label: 'Uloga', value: <StatusChip {...USER_ROLE[profile.role]} /> },
+                      {
+                        label: 'Status naloga',
+                        value: <StatusChip {...accountStatus(profile.deactivated_at)} />,
+                      },
                       { label: 'Registrovan', value: formatDateTime(profile.created_at) },
                       { label: 'Poslednja izmena', value: formatDateTime(profile.updated_at) },
                       {
@@ -81,10 +93,11 @@ export default function AdminUserDetailPage(props: PageProps<'/admin/users/[id]'
               </Grid>
 
               <Grid size={{ xs: 12, lg: 5 }}>
-                <ContentCard title="Uloga korisnika">
+                <ContentCard title="Uloge i prava">
                   <Alert severity="info">
-                    Uloge se menjaju ručno kroz Supabase dashboard, ne kroz ovu stranicu. Ovaj ekran
-                    je namerno samo za pregled.
+                    Email adresu menja sam korisnik kroz svoj nalog — ovde se ne može izmeniti.
+                    Predavač uređuje isključivo kurseve koje poseduje; ako mu oduzmete tu ulogu,
+                    odmah gubi pristup njihovom sadržaju, ali kursevi ostaju sačuvani.
                   </Alert>
                 </ContentCard>
               </Grid>
@@ -158,7 +171,11 @@ export default function AdminUserDetailPage(props: PageProps<'/admin/users/[id]'
                       {
                         id: 'delivery',
                         header: 'Dostava',
-                        cell: (row) => <StatusChip {...deliveryStatus(row.requested_delivery)} />,
+                        cell: (row) => (
+                          <StatusChip
+                            {...deliveryStatus(row.requested_delivery, row.delivered_at)}
+                          />
+                        ),
                       },
                       {
                         id: 'created',

@@ -5,8 +5,8 @@ import { landingPathForRole } from '@/store/useAuthStore';
 /**
  * Supabase email-confirmation / magic-link / recovery callback.
  *
- * Not under `(public)` — this is a plain route handler, matching the callback
- * pattern Supabase requires.
+ * Not under `(auth)` — this is a plain route handler, not a page, and it sits
+ * at the literal `/auth/callback` path Supabase requires.
  */
 export async function GET(request: NextRequest) {
   const { searchParams, origin } = request.nextUrl;

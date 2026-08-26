@@ -3,6 +3,7 @@
 import * as React from 'react';
 import LocalShippingOutlinedIcon from '@mui/icons-material/LocalShippingOutlined';
 import Alert from '@mui/material/Alert';
+import AlertTitle from '@mui/material/AlertTitle';
 import Grid from '@mui/material/Grid';
 import Link from '@mui/material/Link';
 import Typography from '@mui/material/Typography';
@@ -13,17 +14,18 @@ import QueryState from '@/components/feedback/QueryState';
 import EmptyState from '@/components/feedback/EmptyState';
 import DetailList from '@/components/data/DetailList';
 import StatusChip from '@/components/data/StatusChip';
+import CertificateDeliveryActions from '@/components/certificates/CertificateDeliveryActions';
 import { useAdminCertificate } from '@/hooks/useCertificates';
 import { formatDateTime } from '@/lib/format';
 import { deliveryStatus } from '@/lib/status';
 import { isStatus } from '@/lib/api/errorMessage';
 
 /**
- * One certificate.
+ * One certificate, and the delivery decision on it.
  *
- * Read-only — see the note on the list page for why marking a delivery as
- * fulfilled isn't possible without a schema change. The page states that
- * limitation plainly rather than offering a button that would lie.
+ * The delivery panel appears only once a student has actually asked for a
+ * printed copy — `requested_delivery` is their half of the exchange, and
+ * `delivered_at` (migration 0024) is the admin's answer to it.
  */
 export default function AdminCertificateDetailPage(props: PageProps<'/admin/certificates/[id]'>) {
   const { id } = React.use(props.params);
@@ -51,15 +53,30 @@ export default function AdminCertificateDetailPage(props: PageProps<'/admin/cert
               ]}
               title={row.readable_id}
               description={row.courses?.name ?? undefined}
-              actions={<StatusChip {...deliveryStatus(row.requested_delivery)} size="medium" />}
+              actions={
+                <StatusChip
+                  {...deliveryStatus(row.requested_delivery, row.delivered_at)}
+                  size="medium"
+                />
+              }
             />
 
             {row.requested_delivery ? (
-              <Alert severity="warning" icon={<LocalShippingOutlinedIcon fontSize="inherit" />}>
-                Student je zatražio štampanu verziju sertifikata. Evidencija o tome da li je
-                pošiljka poslata ne postoji u bazi — vodite je van sistema dok se ne doda
-                odgovarajuće polje.
-              </Alert>
+              row.delivered_at ? (
+                <Alert severity="success" icon={<LocalShippingOutlinedIcon fontSize="inherit" />}>
+                  <AlertTitle>Štampani sertifikat je poslat</AlertTitle>
+                  Poslato {formatDateTime(row.delivered_at)}
+                  {row.deliverer ? ` — označio/la ${row.deliverer.full_name}` : ''}. Student je
+                  obavešten.
+                </Alert>
+              ) : (
+                <ContentCard
+                  title="Zahtev za štampani sertifikat"
+                  description="Student je zatražio da mu se sertifikat pošalje poštom. Označite kada je pošiljka predata."
+                >
+                  <CertificateDeliveryActions certificate={row} size="medium" />
+                </ContentCard>
+              )
             ) : null}
 
             <Grid container spacing={3}>
@@ -90,7 +107,7 @@ export default function AdminCertificateDetailPage(props: PageProps<'/admin/cert
                       {
                         label: 'Naziv',
                         value: row.courses ? (
-                          <Link href={`/courses/${row.courses.id}`} underline="hover">
+                          <Link href={`/courses/${row.courses.slug}`} underline="hover">
                             {row.courses.name}
                           </Link>
                         ) : (
@@ -109,7 +126,19 @@ export default function AdminCertificateDetailPage(props: PageProps<'/admin/cert
                   { label: 'Broj sertifikata', value: row.readable_id },
                   {
                     label: 'Zahtev za dostavu',
-                    value: <StatusChip {...deliveryStatus(row.requested_delivery)} />,
+                    value: (
+                      <StatusChip {...deliveryStatus(row.requested_delivery, row.delivered_at)} />
+                    ),
+                  },
+                  {
+                    label: 'Poslato',
+                    value: formatDateTime(row.delivered_at),
+                    hidden: !row.delivered_at,
+                  },
+                  {
+                    label: 'Poslao/la',
+                    value: row.deliverer?.full_name ?? '—',
+                    hidden: !row.delivered_at,
                   },
                   { label: 'Izdat', value: formatDateTime(row.created_at) },
                   { label: 'Poslednja izmena', value: formatDateTime(row.updated_at) },

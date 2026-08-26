@@ -8,6 +8,8 @@ import Divider from '@mui/material/Divider';
 import ListItemIcon from '@mui/material/ListItemIcon';
 import Menu from '@mui/material/Menu';
 import MenuItem from '@mui/material/MenuItem';
+import NextLink from 'next/link';
+import NotificationsNoneOutlinedIcon from '@mui/icons-material/NotificationsNoneOutlined';
 import Stack from '@mui/material/Stack';
 import Typography from '@mui/material/Typography';
 import { useLogout } from '@/hooks/useLogout';
@@ -73,7 +75,23 @@ export default function AdminUserMenu({
 
         <Divider />
 
-        <MenuItem onClick={() => void logout()} disabled={pending} sx={{ mt: 0.5 }}>
+        {/* `component={NextLink}` is mandatory on MenuItem: it overrides
+            ButtonBase's root to 'li', so a bare `href` renders `<li href>` and
+            silently does not navigate. Every other MUI link component picks up
+            NextLink from the theme on its own — don't add this elsewhere. */}
+        <MenuItem
+          component={NextLink}
+          href="/settings/notifications"
+          onClick={() => setAnchorEl(null)}
+          sx={{ mt: 0.5 }}
+        >
+          <ListItemIcon>
+            <NotificationsNoneOutlinedIcon fontSize="small" />
+          </ListItemIcon>
+          <Typography variant="body2">Obaveštenja</Typography>
+        </MenuItem>
+
+        <MenuItem onClick={() => void logout()} disabled={pending}>
           <ListItemIcon>
             <LogoutIcon fontSize="small" />
           </ListItemIcon>

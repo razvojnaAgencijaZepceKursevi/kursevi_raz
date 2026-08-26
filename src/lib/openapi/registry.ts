@@ -61,6 +61,8 @@ import {
   updatePurchaseSchema,
 } from '@/lib/schemas/purchases.schema';
 import {
+  adminSubmissionListResponseSchema,
+  adminSubmissionResponseSchema,
   createMessageResponseSchema,
   createMessageSchema,
   createSubmissionResponseSchema,
@@ -68,8 +70,21 @@ import {
   listSubmissionsQuerySchema,
   messageListResponseSchema,
   submissionListResponseSchema,
+  taskMessageSchema,
+  updateMessageSchema,
 } from '@/lib/schemas/task-submissions.schema';
-import { courseProgressResponseSchema } from '@/lib/schemas/module-progress.schema';
+import {
+  completeModuleResponseSchema,
+  courseProgressResponseSchema,
+} from '@/lib/schemas/module-progress.schema';
+import {
+  listNotificationsQuerySchema,
+  markAllReadResponseSchema,
+  notificationListResponseSchema,
+  notificationPreferencesResponseSchema,
+  notificationResponseSchema,
+  updateNotificationPreferencesSchema,
+} from '@/lib/schemas/notifications.schema';
 import {
   adminCertificateListResponseSchema,
   adminCertificateResponseSchema,
@@ -77,6 +92,7 @@ import {
   certificateResponseSchema,
   certificateVerificationResponseSchema,
   listCertificatesQuerySchema,
+  markDeliveredSchema,
   requestDeliverySchema,
 } from '@/lib/schemas/certificates.schema';
 import {
@@ -155,7 +171,7 @@ registry.registerPath({
   method: 'patch',
   path: '/api/admin/users/{id}',
   tags: ['Users'],
-  summary: "Update a user's role (admin)",
+  summary: "Update a user's name, role or activation state (admin)",
   security,
   request: {
     params: idParam,
@@ -415,6 +431,16 @@ registry.registerPath({
 
 registry.registerPath({
   method: 'get',
+  path: '/api/admin/modules/{id}/quiz',
+  tags: ['Quizzes'],
+  summary: "Get a module's quiz for authoring, including the answer key (staff)",
+  security,
+  request: { params: idParam },
+  responses: { 200: json(adminQuizResponseSchema, 'The quiz'), ...errors },
+});
+
+registry.registerPath({
+  method: 'get',
   path: '/api/admin/quizzes/{id}',
   tags: ['Quizzes'],
   summary: 'Get a quiz including the answer key (admin)',
@@ -548,25 +574,133 @@ registry.registerPath({
   method: 'post',
   path: '/api/submissions/{id}/messages',
   tags: ['Submissions'],
-  summary: 'Add a message to the thread (student or admin)',
-  description:
-    'An admin may also set `status`; a student supplying it is ignored. Reaching `approved` marks the task done.',
+  summary: 'Add a message to the thread (student or reviewer)',
+  description: [
+    'A **reviewer** — an admin, or the teacher who owns the course — may also set',
+    '`status`; a student supplying it is ignored rather than rejected, so both',
+    'sides use the same endpoint. Reaching `approved` marks the task done and may',
+    'complete the module and issue a certificate.',
+    '',
+    '`approved` also **closes the thread**: every later message on that submission',
+    'is refused with 409, for the student and the reviewer alike.',
+  ].join(' '),
   security,
   request: {
     params: idParam,
     body: { content: { 'application/json': { schema: createMessageSchema } } },
   },
-  responses: { 201: json(createMessageResponseSchema, 'Created'), ...errors },
+  responses: {
+    201: json(createMessageResponseSchema, 'Created'),
+    ...errors,
+    409: json(errorResponseSchema, 'The submission is approved and the thread is closed'),
+  },
+});
+
+registry.registerPath({
+  method: 'get',
+  path: '/api/tasks/{taskId}/submissions',
+  tags: ['Submissions'],
+  summary: 'List your own submissions for a task (student)',
+  description:
+    'Scoped to the caller explicitly, not by RLS alone — the select policy also admits admins and the reviewing teacher. Newest first, so the first row is the current one.',
+  security,
+  request: { params: z.object({ taskId: uuidSchema }), query: paginationQuerySchema },
+  responses: { 200: json(submissionListResponseSchema, 'Paginated submissions'), ...errors },
+});
+
+registry.registerPath({
+  method: 'patch',
+  path: '/api/messages/{id}',
+  tags: ['Submissions'],
+  summary: 'Attach a file to a message that already exists',
+  description: [
+    'Only needed for the **first** message of a submission: its attachment cannot',
+    'be uploaded until the submission exists, because the storage path is keyed on',
+    'the submission id. Replies upload first and post the path with the message.',
+    '',
+    'Sender only, once only — an attachment already set cannot be swapped.',
+  ].join(' '),
+  security,
+  request: {
+    params: idParam,
+    body: { content: { 'application/json': { schema: updateMessageSchema } } },
+  },
+  responses: {
+    200: json(z.object({ data: taskMessageSchema }), 'Updated'),
+    ...errors,
+    409: json(errorResponseSchema, 'Already has an attachment, or the thread is closed'),
+  },
+});
+
+registry.registerPath({
+  method: 'get',
+  path: '/api/messages/{id}/attachment',
+  tags: ['Submissions'],
+  summary: "Download a message's attachment",
+  description:
+    'Streams the object through the app rather than handing out a signed URL. `Content-Disposition: attachment` — unlike module materials, submission attachments are meant to be downloaded.',
+  security,
+  request: { params: idParam },
+  responses: {
+    200: { description: 'The file' },
+    ...errors,
+    502: json(errorResponseSchema, 'Storage could not be read'),
+  },
+});
+
+registry.registerPath({
+  method: 'post',
+  path: '/api/submissions/{id}/attachments',
+  tags: ['Submissions'],
+  summary: 'Upload a file for one submission thread',
+  description: [
+    'Accepts `multipart/form-data`. Exists because `/api/admin/uploads` is',
+    'staff-only, which left students unable to attach anything at all. The',
+    'submission id comes from the path, not a client-supplied `folder`, so an',
+    'upload cannot be aimed at a thread the caller is not part of.',
+    '',
+    'Open to both participants, and refused once the submission is approved.',
+  ].join(' '),
+  security,
+  request: {
+    params: idParam,
+    body: {
+      content: {
+        'multipart/form-data': {
+          schema: z.object({ file: z.string().openapi({ type: 'string', format: 'binary' }) }),
+        },
+      },
+    },
+  },
+  responses: {
+    201: json(uploadResponseSchema, 'Uploaded'),
+    ...errors,
+    409: json(errorResponseSchema, 'The submission is approved and the thread is closed'),
+    413: json(errorResponseSchema, 'File too large'),
+    502: json(errorResponseSchema, 'Storage rejected the upload'),
+  },
 });
 
 registry.registerPath({
   method: 'get',
   path: '/api/admin/submissions',
   tags: ['Submissions'],
-  summary: 'List/filter all submissions (admin)',
+  summary: 'List/filter submissions (staff)',
+  description:
+    'Scoped by RLS: an admin sees every submission, a teacher only those on courses they own. Rows carry the student and the task -> module -> course chain.',
   security,
   request: { query: listSubmissionsQuerySchema },
-  responses: { 200: json(submissionListResponseSchema, 'Paginated submissions'), ...errors },
+  responses: { 200: json(adminSubmissionListResponseSchema, 'Paginated submissions'), ...errors },
+});
+
+registry.registerPath({
+  method: 'get',
+  path: '/api/admin/submissions/{id}',
+  tags: ['Submissions'],
+  summary: 'Get one submission (staff)',
+  security,
+  request: { params: idParam },
+  responses: { 200: json(adminSubmissionResponseSchema, 'The submission'), ...errors },
 });
 
 /* -------------------------------------------------------------------------- */
@@ -638,7 +772,7 @@ registry.registerPath({
   tags: ['Progress'],
   summary: 'Your progress across a course (student)',
   description:
-    'Read-only. module_progress is written exclusively by the quiz-attempt and submission-approval routes.',
+    'Read-only. `module_progress` is written by the quiz-attempt, submission-approval and module-complete routes.',
   security,
   request: { params: z.object({ courseId: uuidSchema }) },
   responses: { 200: json(courseProgressResponseSchema, 'Course progress'), ...errors },
@@ -687,6 +821,26 @@ registry.registerPath({
 
 registry.registerPath({
   method: 'get',
+  path: '/api/certificates/{certificateId}/pdf',
+  tags: ['Certificates'],
+  summary: 'The certificate as an A4 PDF',
+  description: [
+    'Public, matching the verification endpoint beside it, and carrying exactly the',
+    'same four facts. Accepts the readable id or the uuid.',
+    '',
+    'Inline by default so the page can preview it; `?download` switches',
+    '`Content-Disposition` to `attachment`. One route serves both so the preview and',
+    'the download cannot drift apart.',
+  ].join(' '),
+  request: { params: z.object({ certificateId: z.string() }) },
+  responses: {
+    200: { description: 'application/pdf, A4 landscape, one page' },
+    404: json(errorResponseSchema, 'No certificate for that identifier'),
+  },
+});
+
+registry.registerPath({
+  method: 'get',
   path: '/api/admin/certificates',
   tags: ['Certificates'],
   summary: 'List all certificates and delivery requests (admin)',
@@ -699,12 +853,130 @@ registry.registerPath({
   method: 'get',
   path: '/api/admin/certificates/{id}',
   tags: ['Certificates'],
-  summary: 'Get one certificate with course + student (admin)',
-  description:
-    'Read-only. `requested_delivery` belongs to the student and is set through /api/certificates/{certificateId}/request-delivery, which checks ownership; there is no admin write. Tracking fulfilment would require a new column on `certificates`.',
+  summary: 'Get one certificate with course + student (staff)',
   security,
   request: { params: idParam },
   responses: { 200: json(adminCertificateResponseSchema, 'The certificate'), ...errors },
+});
+
+registry.registerPath({
+  method: 'patch',
+  path: '/api/admin/certificates/{id}',
+  tags: ['Certificates'],
+  summary: 'Mark a printed certificate as posted (admin)',
+  description: [
+    'Sets `delivered_at` and `delivered_by`, added in migration 0024. It never touches',
+    "`requested_delivery` — that is the *student's* flag, set through",
+    '/api/certificates/{certificateId}/request-delivery, and the two together are the',
+    'two halves of one exchange.',
+    '',
+    'Admin only, unlike the GET beside it: posting something physical has no course',
+    'scope, and `certificates_admin_update` is the matching database rule. Reversible',
+    'with `delivered: false`. Marking sent notifies the student; un-marking does not.',
+  ].join(' '),
+  security,
+  request: {
+    params: idParam,
+    body: { content: { 'application/json': { schema: markDeliveredSchema } } },
+  },
+  responses: { 200: json(adminCertificateResponseSchema, 'The certificate'), ...errors },
+});
+
+registry.registerPath({
+  method: 'post',
+  path: '/api/modules/{moduleId}/complete',
+  tags: ['Progress'],
+  summary: 'Mark a module with no quiz and no task as completed',
+  description: [
+    'The third writer of `module_progress`, alongside the quiz-attempt and',
+    'submission-approval routes. A module with neither a quiz nor a task had no',
+    'writer at all, so no progress row was ever created and it stayed incomplete',
+    'forever — which under sequential unlock strands the student on it.',
+    '',
+    '**409 when the module has a quiz or a task.** Without that this endpoint would',
+    'be a way to skip them. Idempotent; issues a certificate if it completes the',
+    'final module of a course.',
+  ].join(' '),
+  security,
+  request: { params: z.object({ moduleId: uuidSchema }) },
+  responses: {
+    200: json(completeModuleResponseSchema, 'The resulting progress'),
+    ...errors,
+    409: json(errorResponseSchema, 'The module has a quiz or a task'),
+  },
+});
+
+/* -------------------------------------------------------------------------- */
+/* Notifications                                                               */
+/* -------------------------------------------------------------------------- */
+
+registry.registerPath({
+  method: 'get',
+  path: '/api/notifications',
+  tags: ['Notifications'],
+  summary: 'Your own notifications, newest first',
+  description: [
+    'Also serves as the unread counter: ask for `?unread=true&pageSize=1` and read',
+    '`meta.total`. There is deliberately no separate count endpoint — the partial',
+    'index `notifications_unread_idx` is what makes that cheap.',
+  ].join(' '),
+  security,
+  request: { query: listNotificationsQuerySchema },
+  responses: { 200: json(notificationListResponseSchema, 'Paginated notifications'), ...errors },
+});
+
+registry.registerPath({
+  method: 'patch',
+  path: '/api/notifications/{id}/read',
+  tags: ['Notifications'],
+  summary: 'Mark one notification as read',
+  description:
+    'Idempotent — marking an already-read notification keeps the original timestamp. `notifications` has no UPDATE policy on purpose (RLS cannot restrict columns, and one would also permit rewriting the text), so ownership is checked in the route and the write uses the service role.',
+  security,
+  request: { params: idParam },
+  responses: { 200: json(notificationResponseSchema, 'The notification'), ...errors },
+});
+
+registry.registerPath({
+  method: 'post',
+  path: '/api/notifications/read-all',
+  tags: ['Notifications'],
+  summary: 'Mark all of your notifications as read',
+  security,
+  responses: { 200: json(markAllReadResponseSchema, 'How many were marked'), ...errors },
+});
+
+registry.registerPath({
+  method: 'get',
+  path: '/api/notification-preferences',
+  tags: ['Notifications'],
+  summary: 'Your notification settings, with defaults filled in',
+  description: [
+    'The stored table is sparse — a row exists only once a switch has been changed —',
+    'and a missing row means both channels are on. This returns the complete matrix',
+    "for the caller's role so no client has to encode that rule.",
+    '',
+    '`meta.email_configured` reports whether mail can actually be sent.',
+  ].join(' '),
+  security,
+  responses: {
+    200: json(notificationPreferencesResponseSchema, 'The full matrix'),
+    ...errors,
+  },
+});
+
+registry.registerPath({
+  method: 'patch',
+  path: '/api/notification-preferences',
+  tags: ['Notifications'],
+  summary: 'Change notification settings',
+  description:
+    "Send only what changed; an unmentioned channel keeps its current value. Returns the whole refreshed matrix. Types the caller's role can never receive are ignored rather than rejected.",
+  security,
+  request: {
+    body: { content: { 'application/json': { schema: updateNotificationPreferencesSchema } } },
+  },
+  responses: { 200: json(notificationPreferencesResponseSchema, 'The full matrix'), ...errors },
 });
 
 /* -------------------------------------------------------------------------- */

@@ -16,7 +16,7 @@ import StatusChip from '@/components/data/StatusChip';
 import { useAdminUsers } from '@/hooks/useUsers';
 import { useListParams } from '@/hooks/useListParams';
 import { formatDate } from '@/lib/format';
-import { USER_ROLE } from '@/lib/status';
+import { USER_ROLE, accountStatus } from '@/lib/status';
 import type { Profile } from '@/lib/schemas/users.schema';
 
 /**
@@ -26,7 +26,7 @@ import type { Profile } from '@/lib/schemas/users.schema';
  * state, `<QueryState>` for the four states, `<DataTable>` for the rows.
  */
 export default function AdminUsersPage() {
-  const list = useListParams({ role: '' }, { pageSize: 20 });
+  const list = useListParams({ role: '', deactivated: '' }, { pageSize: 20 });
   const users = useAdminUsers(list.queryParams);
 
   return (
@@ -60,14 +60,17 @@ export default function AdminUsersPage() {
             <MenuItem value="admin">Administratori</MenuItem>
           </TextField>
 
-          <Typography
-            variant="body2"
-            color="text.secondary"
-            sx={{ ml: { md: 'auto' }, flexShrink: 0 }}
+          <TextField
+            select
+            label="Status"
+            value={list.filters.deactivated}
+            onChange={(event) => list.setFilter('deactivated', event.target.value)}
+            sx={{ maxWidth: { md: 200 } }}
           >
-            {/* Uloge se menjaju kroz Supabase dashboard, ne kroz ovaj ekran. */}
-            Pregled bez izmena
-          </Typography>
+            <MenuItem value="">Svi nalozi</MenuItem>
+            <MenuItem value="false">Aktivni</MenuItem>
+            <MenuItem value="true">Deaktivirani</MenuItem>
+          </TextField>
         </Stack>
 
         <QueryState
@@ -117,6 +120,11 @@ export default function AdminUsersPage() {
                     id: 'role',
                     header: 'Uloga',
                     cell: (user) => <StatusChip {...USER_ROLE[user.role]} />,
+                  },
+                  {
+                    id: 'status',
+                    header: 'Status',
+                    cell: (user) => <StatusChip {...accountStatus(user.deactivated_at)} />,
                   },
                   {
                     id: 'created',

@@ -145,7 +145,7 @@ async function seedContent(users) {
           name: COURSE_NAMES[0],
           description:
             'Od nule do prve stranice na internetu. Kroz kurs gradimo HTML, CSS i osnovni JavaScript, korak po korak, bez pretpostavke o prethodnom znanju.',
-          price: 12000,
+          price: 100,
           published: true,
           category_id: categoryId['Programiranje'],
           owner_id: users.ana,
@@ -153,7 +153,7 @@ async function seedContent(users) {
         {
           name: COURSE_NAMES[1],
           description: 'Nastavak za one koji već pišu JavaScript. Još u pripremi.',
-          price: 18000,
+          price: 150,
           // Draft on purpose: proves the courses list "Nacrti" filter and that a
           // teacher can see their own unpublished work.
           published: false,
@@ -163,7 +163,7 @@ async function seedContent(users) {
         {
           name: COURSE_NAMES[2],
           description: 'Teorija boja, tipografija i kompozicija kroz praktične primere.',
-          price: 9000,
+          price: 75,
           published: true,
           category_id: categoryId['Dizajn'],
           owner_id: users.marko,
@@ -301,13 +301,61 @@ async function seedQuiz({ moduleByTitle }) {
  * The path shape is what the storage RLS policies parse for access, so it is
  * built exactly as `storagePath()` would: `{course_id}/{module_id}/{name}`.
  */
-async function uploadAndRecord({ bucket, folders, fileName, body, table, row }) {
+/**
+ * A tiny, valid, single-page PDF — enough to seed a realistic module material.
+ *
+ * Written by hand rather than pulled in as a dependency: the seed needs one
+ * throwaway document, and a PDF generator would be the heaviest thing in
+ * `package.json` for the least reason.
+ *
+ * Offsets in the xref table are **byte** offsets, so they are measured with
+ * `Buffer.byteLength`, not `String.length` — those differ the moment a
+ * non-ASCII character appears and a reader will reject the file.
+ *
+ * Text is ASCII-only on purpose: the base-14 Helvetica used here is WinAnsi
+ * encoded and has no glyphs for č/ć/š/ž/đ, so Serbian text would render as
+ * mojibake. Seed content is transliterated instead.
+ */
+function minimalPdf(lines) {
+  const escape = (text) => text.replace(/([\\()])/g, '\\$1');
+
+  const content = lines
+    .map((line, i) => `BT /F1 12 Tf 60 ${780 - i * 20} Td (${escape(line)}) Tj ET`)
+    .join('\n');
+
+  const objects = [
+    '<< /Type /Catalog /Pages 2 0 R >>',
+    '<< /Type /Pages /Kids [3 0 R] /Count 1 >>',
+    '<< /Type /Page /Parent 2 0 R /MediaBox [0 0 595 842] ' +
+      '/Resources << /Font << /F1 5 0 R >> >> /Contents 4 0 R >>',
+    `<< /Length ${Buffer.byteLength(content)} >>\nstream\n${content}\nendstream`,
+    '<< /Type /Font /Subtype /Type1 /BaseFont /Helvetica >>',
+  ];
+
+  let pdf = '%PDF-1.4\n';
+  const offsets = [];
+
+  objects.forEach((body, i) => {
+    offsets.push(Buffer.byteLength(pdf));
+    pdf += `${i + 1} 0 obj\n${body}\nendobj\n`;
+  });
+
+  const xrefOffset = Buffer.byteLength(pdf);
+  pdf += `xref\n0 ${objects.length + 1}\n0000000000 65535 f \n`;
+  for (const offset of offsets) pdf += `${String(offset).padStart(10, '0')} 00000 n \n`;
+  pdf += `trailer\n<< /Size ${objects.length + 1} /Root 1 0 R >>\n`;
+  pdf += `startxref\n${xrefOffset}\n%%EOF\n`;
+
+  return pdf;
+}
+
+async function uploadAndRecord({ bucket, folders, fileName, body, contentType, table, row }) {
   const path = `${folders.join('/')}/${Date.now()}-${fileName}`;
 
   const { error: uploadError } = await supabase.storage
     .from(bucket)
-    .upload(path, new Blob([body], { type: 'text/plain' }), {
-      contentType: 'text/plain',
+    .upload(path, new Blob([body], { type: contentType }), {
+      contentType,
       upsert: true,
     });
   if (uploadError) throw new Error(`upload ${bucket}/${path}: ${uploadError.message}`);
@@ -326,8 +374,19 @@ async function seedFiles({ courseId, moduleByTitle }, task) {
   await uploadAndRecord({
     bucket: 'module-files',
     folders: [courseId[COURSE_NAMES[0]], htmlModule.id],
-    fileName: 'html-cheatsheet.txt',
-    body: 'Osnovni HTML tagovi:\n<h1>-<h6> naslovi\n<p> pasus\n<a href> link\n<img src alt> slika\n',
+    fileName: 'html-cheatsheet.pdf',
+    // Module materials are PDF-only (see ACCEPTED_MODULE_FILE_TYPES), so the
+    // seed produces a real PDF rather than a .txt the student viewer could not
+    // render. ASCII only — see the note on minimalPdf.
+    body: minimalPdf([
+      'Osnovni HTML tagovi',
+      '',
+      '<h1>-<h6>   naslovi',
+      '<p>         pasus',
+      '<a href>    link',
+      '<img>       slika',
+    ]),
+    contentType: 'application/pdf',
     table: 'module_files',
     row: { module_id: htmlModule.id },
   });
@@ -337,6 +396,9 @@ async function seedFiles({ courseId, moduleByTitle }, task) {
     folders: [courseId[COURSE_NAMES[0]], htmlModule.id],
     fileName: 'zadatak-primer.txt',
     body: 'Primer strukture koju treba da napravite:\nindex.html\nstyle.css\n',
+    // Task files are not restricted to PDF — only module materials are, because
+    // only those are rendered in-page for students.
+    contentType: 'text/plain',
     table: 'task_files',
     row: { task_id: task.id },
   });
@@ -355,21 +417,21 @@ async function seedActivity(users, { courseId, moduleByTitle }) {
         {
           student_id: users.jovana,
           course_id: courseId[COURSE_NAMES[0]],
-          price: 12000,
+          price: 100,
           status: 'approved',
         },
         // Pending: gives the admin purchases queue a row needing a decision.
         {
           student_id: users.nikola,
           course_id: courseId[COURSE_NAMES[0]],
-          price: 12000,
+          price: 100,
           status: 'requested',
         },
         // Pending on Marko's course, so each teacher has something of their own.
         {
           student_id: users.jovana,
           course_id: courseId[COURSE_NAMES[2]],
-          price: 9000,
+          price: 75,
           status: 'requested',
         },
         // Approved on the one-module course, so a certificate can be earned.

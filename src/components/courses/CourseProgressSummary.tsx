@@ -2,6 +2,7 @@
 
 import WorkspacePremiumOutlinedIcon from '@mui/icons-material/WorkspacePremiumOutlined';
 import Alert from '@mui/material/Alert';
+import Button from '@mui/material/Button';
 import LinearProgress from '@mui/material/LinearProgress';
 import Stack from '@mui/material/Stack';
 import Typography from '@mui/material/Typography';
@@ -17,10 +18,17 @@ export default function CourseProgressSummary({
   completedCount,
   moduleCount,
   courseCompleted,
+  certificateReadableId,
 }: {
   completedCount: number;
   moduleCount: number;
   courseCompleted: boolean;
+  /**
+   * Present once the certificate for this course exists. Optional because the
+   * panel renders long before there is one, and for the moment between the
+   * final module completing and the certificate query catching up.
+   */
+  certificateReadableId?: string;
 }) {
   const percent = progressPercent(completedCount, moduleCount);
 
@@ -51,8 +59,24 @@ export default function CourseProgressSummary({
         />
 
         {courseCompleted ? (
-          <Alert severity="success" icon={<WorkspacePremiumOutlinedIcon fontSize="inherit" />}>
-            Završili ste sve module. Sertifikat je dostupan u vašem nalogu.
+          <Alert
+            severity="success"
+            icon={<WorkspacePremiumOutlinedIcon fontSize="inherit" />}
+            // The link only appears once the certificate is actually there, so
+            // the alert never offers a button that would 404.
+            action={
+              certificateReadableId ? (
+                <Button
+                  href={`/certificates/${certificateReadableId}`}
+                  size="small"
+                  color="inherit"
+                >
+                  Otvori
+                </Button>
+              ) : undefined
+            }
+          >
+            Završili ste sve module. Sertifikat je izdat na vaše ime.
           </Alert>
         ) : null}
       </Stack>

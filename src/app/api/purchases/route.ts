@@ -10,6 +10,8 @@ import {
 } from '@/lib/api/errors';
 import { requireUser } from '@/lib/auth/guards';
 import { createClient } from '@/lib/supabase/server';
+import { createServiceRoleClient } from '@/lib/supabase/service-role';
+import { adminIds, notifyAfterResponse } from '@/lib/services/notifications';
 import { metaFor, rangeFor } from '@/lib/schemas/common.schema';
 import { createPurchaseSchema, listPurchasesQuerySchema } from '@/lib/schemas/purchases.schema';
 
@@ -25,7 +27,7 @@ export const GET = withRoute(async (req) => {
 
   let q = supabase
     .from('purchases')
-    .select('*, courses(id, name, thumbnail_path)', { count: 'exact' })
+    .select('*, courses(id, name, slug, thumbnail_path)', { count: 'exact' })
     .eq('student_id', userId);
 
   if (query.status) q = q.eq('status', query.status);
@@ -47,7 +49,7 @@ export const GET = withRoute(async (req) => {
  * own price or self-approve. RLS enforces the same rule independently.
  */
 export const POST = withRoute(async (req) => {
-  const { userId } = await requireUser();
+  const { userId, profile } = await requireUser();
   const body = await parseBody(req, createPurchaseSchema);
 
   const supabase = await createClient();
@@ -55,7 +57,7 @@ export const POST = withRoute(async (req) => {
   const course = unwrapOne(
     await supabase
       .from('courses')
-      .select('id, price')
+      .select('id, name, price')
       .eq('id', body.course_id)
       .eq('published', true)
       .maybeSingle(),
@@ -90,6 +92,26 @@ export const POST = withRoute(async (req) => {
       .select()
       .single(),
   );
+
+  // Admins are the only ones who can act on this, so they are the only ones
+  // told. Scheduled after the response — the student's request has already
+  // succeeded and must not depend on anyone's inbox.
+  notifyAfterResponse({
+    userIds: await adminIds(createServiceRoleClient()),
+    type: 'purchase_requested',
+    title: 'Novi zahtev za kupovinu',
+    body: `${profile.full_name} je zatražio/la pristup kursu „${course.name}”.`,
+    link: `/admin/purchases/${created.id}`,
+    email: {
+      subject: `Novi zahtev za pristup — ${course.name}`,
+      heading: 'Novi zahtev za kupovinu',
+      lines: [
+        `${profile.full_name} (${profile.email}) je zatražio/la pristup kursu „${course.name}”.`,
+        'Odobrite zahtev tek nakon što je uplata potvrđena.',
+      ],
+      action: { label: 'Otvori zahtev', href: `/admin/purchases/${created.id}` },
+    },
+  });
 
   return NextResponse.json({ data: created }, { status: 201 });
 });

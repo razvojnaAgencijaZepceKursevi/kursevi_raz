@@ -13,6 +13,7 @@ import {
 } from '@/lib/api/client';
 import type {
   Category,
+  CategoryWithCount,
   CreateCategoryRequest,
   UpdateCategoryRequest,
 } from '@/lib/schemas/categories.schema';
@@ -33,11 +34,16 @@ export const categoryKeys = {
   list: (params: CategoryListParams) => [...categoryKeys.lists(), params] as const,
 };
 
-/** GET /api/categories */
+/**
+ * GET /api/categories
+ *
+ * Rows carry `course_count` — how many courses the *caller* can see in that
+ * category. The admin screen uses it to warn before a delete uncategorises them.
+ */
 export function useCategories(params: CategoryListParams = {}) {
   return useQuery({
     queryKey: categoryKeys.list(params),
-    queryFn: () => apiGet<Paginated<Category>>(`/api/categories${toSearchParams(params)}`),
+    queryFn: () => apiGet<Paginated<CategoryWithCount>>(`/api/categories${toSearchParams(params)}`),
   });
 }
 

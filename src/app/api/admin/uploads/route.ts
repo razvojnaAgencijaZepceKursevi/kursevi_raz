@@ -5,6 +5,9 @@ import { createClient } from '@/lib/supabase/server';
 import { bucketNameSchema, uploadFolderSchema } from '@/lib/schemas/uploads.schema';
 import {
   ACCEPTED_IMAGE_TYPES,
+  ACCEPTED_MESSAGE_ATTACHMENT_TYPES,
+  ACCEPTED_MODULE_FILE_TYPES,
+  ACCEPTED_TASK_FILE_TYPES,
   BUCKETS,
   BUCKET_PATH_SEGMENTS,
   MAX_UPLOAD_BYTES,
@@ -25,30 +28,14 @@ export const dynamic = 'force-dynamic';
  */
 const ACCEPTED_TYPES: Record<BucketName, readonly string[]> = {
   [BUCKETS.courseThumbnails]: ACCEPTED_IMAGE_TYPES,
-  [BUCKETS.moduleFiles]: [
-    ...ACCEPTED_IMAGE_TYPES,
-    'application/pdf',
-    'application/zip',
-    'application/msword',
-    'application/vnd.openxmlformats-officedocument.wordprocessingml.document',
-    'application/vnd.ms-excel',
-    'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet',
-    'text/plain',
-    'text/csv',
-  ],
-  [BUCKETS.taskFiles]: [
-    ...ACCEPTED_IMAGE_TYPES,
-    'application/pdf',
-    'application/zip',
-    'text/plain',
-    'text/csv',
-  ],
-  [BUCKETS.taskMessageAttachments]: [
-    ...ACCEPTED_IMAGE_TYPES,
-    'application/pdf',
-    'application/zip',
-    'text/plain',
-  ],
+  // Shared with the browser-side check in `moduleFileSchema`, so the two
+  // cannot disagree about what a material may be.
+  [BUCKETS.moduleFiles]: ACCEPTED_MODULE_FILE_TYPES,
+  // Shared with `taskFileSchema` in the browser.
+  [BUCKETS.taskFiles]: ACCEPTED_TASK_FILE_TYPES,
+
+  // Shared with `messageAttachmentSchema` in the browser.
+  [BUCKETS.taskMessageAttachments]: ACCEPTED_MESSAGE_ATTACHMENT_TYPES,
 };
 
 /**

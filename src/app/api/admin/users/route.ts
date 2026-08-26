@@ -23,6 +23,11 @@ export const GET = withRoute(async (req) => {
   if (query.role) {
     q = q.eq('role', query.role);
   }
+  // `deactivated_at` is a nullable timestamp, so the filter is a null test
+  // rather than an equality check on a boolean column.
+  if (query.deactivated !== undefined) {
+    q = query.deactivated ? q.not('deactivated_at', 'is', null) : q.is('deactivated_at', null);
+  }
 
   const result = await q.order('created_at', { ascending: false }).range(from, to);
   const rows = unwrapMany(result);

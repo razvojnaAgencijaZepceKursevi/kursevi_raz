@@ -2,6 +2,7 @@ import 'server-only';
 
 import { unwrapMany, unwrapMaybe, unwrapOne } from '@/lib/api/errors';
 import type { createServiceRoleClient } from '@/lib/supabase/service-role';
+import { notifyAfterResponse } from '@/lib/services/notifications';
 
 /**
  * Derived from the factory rather than hand-written as `SupabaseClient<Database>`
@@ -112,9 +113,47 @@ export async function maybeIssueCertificate(
     await svc
       .from('certificates')
       .insert({ course_id: courseId, student_id: studentId })
-      .select('id')
+      .select('id, readable_id')
       .single(),
   );
+
+  /*
+   * Notified here rather than at the call sites, on purpose.
+   *
+   * Two routes finish a course — the last quiz and the last task approval —
+   * and both already have to remember to pass the right ids through. "A
+   * certificate was newly issued" is a fact only this function knows for
+   * certain: it is the one place that distinguishes issuing from the
+   * idempotent no-op above, which is exactly the distinction that must not be
+   * announced twice. A third caller inherits it instead of re-deriving it.
+   */
+  const course = unwrapMaybe(
+    await svc.from('courses').select('name, slug').eq('id', courseId).maybeSingle(),
+  );
+  const courseName = course?.name ?? 'kurs';
+
+  // Points at the certificate itself rather than the dashboard. The page is
+  // public and addressed by `readable_id`, so this is the same URL the student
+  // can forward to anyone who wants to check it.
+  const certificateHref = `/certificates/${inserted.readable_id}`;
+
+  notifyAfterResponse({
+    userIds: [studentId],
+    type: 'certificate_issued',
+    title: 'Čestitamo — završili ste kurs!',
+    body: `Sertifikat za kurs „${courseName}” je izdat na vaše ime. Broj: ${inserted.readable_id}.`,
+    link: certificateHref,
+    email: {
+      subject: `Sertifikat za kurs ${courseName}`,
+      heading: 'Završili ste kurs',
+      lines: [
+        `Završili ste sve module kursa „${courseName}”. Čestitamo!`,
+        `Broj vašeg sertifikata je ${inserted.readable_id}.`,
+        'Na stranici sertifikata možete zatražiti i štampani primerak koji vam šaljemo poštom.',
+      ],
+      action: { label: 'Pogledaj sertifikat', href: certificateHref },
+    },
+  });
 
   return { issued: true, certificateId: inserted.id };
 }

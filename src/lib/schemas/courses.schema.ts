@@ -1,4 +1,5 @@
 import { z } from '@/lib/openapi/zod';
+import { SLUG_MAX_LENGTH, SLUG_PATTERN } from '@/lib/slug';
 import {
   auditFields,
   booleanQueryParam,
@@ -12,6 +13,11 @@ export const courseSchema = z
     id: uuidSchema,
     category_id: uuidSchema.nullable(),
     name: z.string(),
+    /**
+     * The public URL segment: `/courses/{slug}`. Generated from the name by a
+     * trigger and deliberately stable across renames — see migration 0021.
+     */
+    slug: z.string().openapi({ example: 'uvod-u-web-programiranje' }),
     description: z.string().nullable(),
     // numeric(10,2) comes back from PostgREST as a string; normalise to number.
     price: z.coerce.number(),
@@ -48,7 +54,30 @@ export const createCourseSchema = z
   })
   .openapi('CreateCourseRequest');
 
-export const updateCourseSchema = createCourseSchema.partial().openapi('UpdateCourseRequest');
+/**
+ * `slug` is updatable but not creatable: on create the trigger derives it from
+ * the name, and letting a caller set one at that point would just be a second
+ * way to get it wrong.
+ *
+ * An empty string is accepted and *means something* — the trigger regenerates
+ * the slug from the current name when it sees NULL or `''`. That is the
+ * supported way to re-derive one after a rename, so the edit form can offer
+ * "clear it to regenerate" simply by sending `''`.
+ */
+export const updateCourseSchema = createCourseSchema
+  .partial()
+  .extend({
+    slug: z
+      .string()
+      .trim()
+      .max(SLUG_MAX_LENGTH)
+      .refine((value) => value === '' || SLUG_PATTERN.test(value), {
+        error: 'Slug must be lowercase alphanumeric words separated by hyphens, or empty.',
+      })
+      .optional()
+      .openapi({ example: 'uvod-u-web-programiranje' }),
+  })
+  .openapi('UpdateCourseRequest');
 
 export type Course = z.infer<typeof courseSchema>;
 export type ListCoursesQuery = z.infer<typeof listCoursesQuerySchema>;

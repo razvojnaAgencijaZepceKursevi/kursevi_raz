@@ -40,5 +40,23 @@ export const courseProgressResponseSchema = z
   .object({ data: courseProgressSchema })
   .openapi('CourseProgressResponse');
 
+/**
+ * What `POST /api/modules/:id/complete` gives back.
+ *
+ * `certificate_issued` rides along so the screen can say "you finished the
+ * course" in the same breath rather than refetching to discover it — the same
+ * shape the quiz-attempt and message endpoints already use.
+ */
+export const completeModuleResponseSchema = z
+  .object({
+    data: z.object({
+      module_id: uuidSchema,
+      completed: z.boolean(),
+      certificate_issued: z.boolean(),
+    }),
+  })
+  .openapi('CompleteModuleResponse');
+
+export type CompleteModuleResponse = z.infer<typeof completeModuleResponseSchema>;
 export type ModuleProgress = z.infer<typeof moduleProgressSchema>;
 export type CourseProgress = z.infer<typeof courseProgressSchema>;

@@ -1,5 +1,12 @@
 import { z } from 'zod';
-import { ACCEPTED_IMAGE_TYPES, MAX_UPLOAD_BYTES, formatBytes } from '@/lib/storage';
+import {
+  ACCEPTED_IMAGE_TYPES,
+  ACCEPTED_MESSAGE_ATTACHMENT_TYPES,
+  ACCEPTED_MODULE_FILE_TYPES,
+  ACCEPTED_TASK_FILE_TYPES,
+  MAX_UPLOAD_BYTES,
+  formatBytes,
+} from '@/lib/storage';
 
 /**
  * Zod schemas for file inputs.
@@ -37,4 +44,32 @@ export function fileSchema({
 export const imageFileSchema = fileSchema({
   acceptedTypes: ACCEPTED_IMAGE_TYPES,
   typeErrorMessage: 'Dozvoljeni formati su JPG, PNG, WebP i AVIF.',
+});
+
+/**
+ * A course material. PDF only — see the note on ACCEPTED_MODULE_FILE_TYPES for
+ * why that is about being *displayable in-page*, not about being harder to copy.
+ */
+export const moduleFileSchema = fileSchema({
+  acceptedTypes: ACCEPTED_MODULE_FILE_TYPES,
+  typeErrorMessage: 'Materijali moraju biti PDF fajlovi.',
+});
+
+/**
+ * A file attached to a task brief. Unlike a module material this is meant to be
+ * downloaded and worked on, so the format list is wider — see
+ * ACCEPTED_TASK_FILE_TYPES.
+ */
+export const taskFileSchema = fileSchema({
+  acceptedTypes: ACCEPTED_TASK_FILE_TYPES,
+  typeErrorMessage: 'Dozvoljeni formati su PDF, ZIP, TXT, CSV i slike.',
+});
+
+/**
+ * A file attached to one message in a submission thread. Evidence of work, so
+ * documents and images are both fair game — see ACCEPTED_MESSAGE_ATTACHMENT_TYPES.
+ */
+export const messageAttachmentSchema = fileSchema({
+  acceptedTypes: ACCEPTED_MESSAGE_ATTACHMENT_TYPES,
+  typeErrorMessage: 'Dozvoljeni formati su PDF, ZIP, TXT i slike (JPG, PNG, WebP, AVIF).',
 });

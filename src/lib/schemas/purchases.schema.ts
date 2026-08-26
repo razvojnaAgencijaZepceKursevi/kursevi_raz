@@ -19,6 +19,12 @@ export const purchaseSchema = z
     course_id: uuidSchema,
     price: z.coerce.number().openapi({ description: 'Price snapshot at request time' }),
     status: purchaseStatusSchema,
+    /**
+     * `/api/purchases` embeds the course, and the student dashboard depends on
+     * it: an approved purchase *is* the enrolment, so this is what turns the
+     * list into "my courses" with names, thumbnails and links.
+     */
+    courses: embeddedCourseSchema,
     ...auditFields,
   })
   .openapi('Purchase');
@@ -27,13 +33,12 @@ export const purchaseSchema = z
  * A purchase as the admin endpoints return it — with the course and student
  * rows embedded, which is what lets the admin UI show names instead of uuids.
  *
- * Kept separate from `purchaseSchema` because the student-facing
- * `/api/purchases` embeds a different projection (course only, plus a
- * thumbnail); conflating them would promise students data they never receive.
+ * Only `profiles` separates this from `purchaseSchema` now — every route
+ * embeds the same course projection. The student endpoint deliberately does not
+ * embed the student: it is always the caller.
  */
 export const adminPurchaseSchema = purchaseSchema
   .extend({
-    courses: embeddedCourseSchema,
     profiles: embeddedProfileSchema,
   })
   .openapi('AdminPurchase');

@@ -13,10 +13,14 @@ import { toast } from '@/store/useToastStore';
 
 /**
  * ═══════════════════════════════════════════════════════════════════════════
- *  CREATE MODULE — SCAFFOLD, but very nearly done.
+ *  CREATE MODULE
  * ═══════════════════════════════════════════════════════════════════════════
  *
- * The flow below works as written. Two things are left, both marked TODO.
+ * There is no materials section here, and there cannot be: a module file is
+ * stored at `{course_id}/{module_id}/…`, and the module id does not exist until
+ * the create call returns. Files are added from the edit page instead — see
+ * `<ModuleMaterials>`. One TODO remains, marked below.
+ *
  * Compare against `src/app/(admin)/admin/courses/new/page.tsx`, which is the
  * finished reference for a create page.
  *
@@ -76,7 +80,7 @@ export default function NewModulePage(props: PageProps<'/admin/courses/[id]/modu
           { label: 'Novi modul' },
         ]}
         title="Novi modul"
-        description="Modul se dodaje na kraj kursa. Redosled možete promeniti u listi modula."
+        description="Modul se dodaje na kraj kursa. Materijale i redosled podešavate nakon kreiranja."
       />
 
       {/*
@@ -99,26 +103,6 @@ export default function NewModulePage(props: PageProps<'/admin/courses/[id]/modu
           );
         }}
       </QueryState>
-
-      {/*
-       * TODO(intern) #2 — materials on create.
-       *
-       * `<ModuleForm>` has a "Materijali" section that is not built yet. It
-       * cannot work on *this* page at all: a module file's storage path is
-       * `{course_id}/{module_id}/…`, and the module id does not exist until
-       * after the create call returns.
-       *
-       * So either:
-       *   (a) hide the section here and add files from the edit page (simplest,
-       *       and what the course thumbnail does *not* do — read why in
-       *       courses/new/page.tsx), or
-       *   (b) collect the files in form state and upload them after the create
-       *       succeeds, exactly like the course thumbnail's two-step save.
-       *
-       * If you pick (b), copy the partial-failure handling from the course
-       * create page: the module already exists, so a failed upload must warn
-       * rather than throw — otherwise the user retries and creates a duplicate.
-       */}
     </PageContainer>
   );
 }

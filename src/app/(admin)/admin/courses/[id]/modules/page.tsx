@@ -1,10 +1,14 @@
 'use client';
 
 import * as React from 'react';
+import NextLink from 'next/link';
 import AddIcon from '@mui/icons-material/Add';
-import Alert from '@mui/material/Alert';
-import AlertTitle from '@mui/material/AlertTitle';
+import AttachFileIcon from '@mui/icons-material/AttachFile';
+import VideocamOutlinedIcon from '@mui/icons-material/VideocamOutlined';
+import Box from '@mui/material/Box';
 import Button from '@mui/material/Button';
+import Divider from '@mui/material/Divider';
+import LinearProgress from '@mui/material/LinearProgress';
 import Stack from '@mui/material/Stack';
 import Typography from '@mui/material/Typography';
 import PageContainer from '@/components/layout/PageContainer';
@@ -12,17 +16,16 @@ import PageHeader from '@/components/layout/PageHeader';
 import ContentCard from '@/components/layout/ContentCard';
 import QueryState from '@/components/feedback/QueryState';
 import EmptyState from '@/components/feedback/EmptyState';
+import ModuleActions from '@/components/modules/ModuleActions';
 import { useAdminCourse } from '@/hooks/useCourses';
-import { useCourseModules } from '@/hooks/useModules';
+import { useCourseModules, useUpdateModule } from '@/hooks/useModules';
+import { errorMessage } from '@/lib/api/errorMessage';
+import { pluralSr } from '@/lib/format';
+import { toast } from '@/store/useToastStore';
+import type { ModuleWithFiles } from '@/lib/schemas/modules.schema';
 
 /**
- * ═══════════════════════════════════════════════════════════════════════════
- *  MODULE LIST — SCAFFOLD. Not finished. Instructions below.
- * ═══════════════════════════════════════════════════════════════════════════
- *
- * The data wiring is done and correct; the rendering is not. Everything you
- * need is already fetched by the two hooks below — start by replacing the
- * "not implemented" block in the middle with a real list.
+ * The modules of one course — open, edit, reorder, delete.
  *
  * ## Why this list lives under a course
  *
@@ -30,49 +33,13 @@ import { useCourseModules } from '@/hooks/useModules';
  * outside its course, and every read endpoint is course-scoped
  * (`/api/courses/:courseId/modules`). The course id comes from the URL.
  *
- * ## What to build, in order
+ * ## Why not `<DataTable>`
  *
- * ### 1. The list itself
- * Render `modules.data.data` (a `ModuleWithFiles[]`, already sorted by `order`).
- * Do **not** reach for `<DataTable>` here — reordering needs the rows to be
- * drag targets or to carry up/down buttons, which a column config can't express.
- * Copy the row markup from `src/components/courses/ModuleList.tsx` instead; it
- * already renders a numbered, ordered module row and looks right.
- *
- * Each row wants: position, title, whether it has a video, how many files, and
- * actions (edit / delete / move).
- *
- * ### 2. Reordering — the interesting problem
- * `modules.order` drives the student's sequential unlock, so it is not
- * cosmetic. Two options, and the simpler one is genuinely fine:
- *
- *   (a) Up/down buttons. Swap the `order` of two adjacent modules with two
- *       `useUpdateModule()` calls. No new dependency, keyboard-accessible for
- *       free, and obvious to read. **Start here.**
- *   (b) Drag and drop (`@dnd-kit`). Nicer with 20 modules, but it is a new
- *       dependency plus a keyboard-accessibility burden you must not skip.
- *
- * WATCH OUT: there is no bulk-reorder endpoint. Moving one module means
- * PATCHing the two rows whose `order` changed. If you later renumber a whole
- * list, you will fire N requests — acceptable for a handful of modules, and a
- * reason to add a proper endpoint if courses ever get large.
- *
- * There is no unique constraint on `(course_id, order)`, so duplicate values
- * are *possible*. The student-side unlock rule tolerates them (see
- * `unlockedModuleIds` in `src/lib/courseAccess.ts`), but the admin list should
- * not create them.
- *
- * ### 3. Delete
- * `useDeleteModule()` behind a `<ConfirmDialog>`. Say plainly in the dialog
- * that the module's quiz, task and files go with it — the FK cascade means
- * this is not recoverable from the UI. Copy `CourseActions` for the shape of a
- * component that owns its own mutation and confirmation.
- *
- * ### 4. Quiz and task
- * Each module may have one quiz and one task. Neither has a page yet. When
- * they do, link to them from the row. Note the schema has no "has_quiz" flag —
- * existence is the signal, so you need the module's quiz/task endpoints to
- * know. Until then, leave the row without those links rather than faking them.
+ * The other admin lists are column configs, but a module row is a *sequence*
+ * position with move controls attached — the ordering is the point, and a
+ * column config cannot express a row that knows whether it is first or last.
+ * The row markup follows `components/courses/ModuleList.tsx` instead, which
+ * already renders a numbered module row.
  */
 export default function AdminCourseModulesPage(props: PageProps<'/admin/courses/[id]/modules'>) {
   // `params` is a Promise in Next 16; a Client Component unwraps it with `use`.
@@ -81,9 +48,39 @@ export default function AdminCourseModulesPage(props: PageProps<'/admin/courses/
   const course = useAdminCourse(courseId);
 
   // The modules endpoint is purchase-gated for students, but an admin — or the
-  // teacher who owns this course — reads it freely. If you get a 403 here as a
-  // teacher, the course is not yours.
+  // teacher who owns this course — reads it freely. A 403 here as a teacher
+  // means the course is not yours.
   const modules = useCourseModules(courseId);
+  const updateModule = useUpdateModule();
+
+  /**
+   * Swap one module with its neighbour.
+   *
+   * `order` drives the student's sequential unlock, so this is not cosmetic.
+   * There is no bulk-reorder endpoint, so a move is two PATCHes — the pair whose
+   * positions exchange. Fine for a handful of modules; if courses ever grow
+   * large, that is the moment to add a proper endpoint rather than firing N
+   * requests.
+   *
+   * The two writes are sequential rather than concurrent so that a failure on
+   * the second leaves a state we can describe: both rows briefly share an
+   * `order`, which the unlock rule tolerates (`unlockedModuleIds` sorts and
+   * de-duplicates), and a refetch shows the truth.
+   */
+  async function handleMove(list: ModuleWithFiles[], index: number, direction: 'up' | 'down') {
+    const target = direction === 'up' ? index - 1 : index + 1;
+    if (target < 0 || target >= list.length) return;
+
+    const a = list[index];
+    const b = list[target];
+
+    try {
+      await updateModule.mutateAsync({ id: a.id, body: { order: b.order } });
+      await updateModule.mutateAsync({ id: b.id, body: { order: a.order } });
+    } catch (error) {
+      toast.error(errorMessage(error));
+    }
+  }
 
   return (
     <PageContainer>
@@ -94,9 +91,7 @@ export default function AdminCourseModulesPage(props: PageProps<'/admin/courses/
           { label: 'Moduli' },
         ]}
         title="Moduli"
-        description={
-          course.data ? `Redosled modula određuje kojim redom ih studenti otključavaju.` : undefined
-        }
+        description="Redosled modula određuje kojim redom ih studenti otključavaju."
         actions={
           <Button
             href={`/admin/courses/${courseId}/modules/new`}
@@ -109,6 +104,9 @@ export default function AdminCourseModulesPage(props: PageProps<'/admin/courses/
       />
 
       <ContentCard disablePadding>
+        {/* A move is two requests; the bar keeps the row from looking stuck. */}
+        {updateModule.isPending ? <LinearProgress /> : null}
+
         <QueryState
           query={modules}
           errorTitle="Module nije moguće učitati"
@@ -130,26 +128,95 @@ export default function AdminCourseModulesPage(props: PageProps<'/admin/courses/
           }
         >
           {(page) => (
-            <Stack sx={{ p: 3 }} spacing={2}>
-              {/* TODO(intern): replace this block with the real module list.
-                  See instructions at the top of this file. */}
-              <Alert severity="warning">
-                <AlertTitle>Lista modula još nije napravljena</AlertTitle>
-                Podaci se već učitavaju — ispod je privremeni prikaz. Uputstvo za izradu nalazi se u
-                komentaru na vrhu <code>page.tsx</code>.
-              </Alert>
+            <Stack divider={<Divider />}>
+              {page.data.map((currentModule, index) => {
+                const fileCount = currentModule.module_files.length;
+                const editHref = `/admin/courses/${courseId}/modules/${currentModule.id}/edit`;
 
-              <Stack spacing={1}>
-                {page.data.map((module, index) => (
-                  <Typography key={module.id} variant="body2">
-                    {index + 1}. {module.title}
-                    {module.video_url ? ' · video' : ''}
-                    {module.module_files.length > 0
-                      ? ` · ${module.module_files.length} materijala`
-                      : ''}
-                  </Typography>
-                ))}
-              </Stack>
+                return (
+                  <Stack
+                    key={currentModule.id}
+                    direction="row"
+                    spacing={2}
+                    sx={{ px: 3, py: 2, alignItems: 'center' }}
+                  >
+                    <Box
+                      sx={{
+                        display: 'grid',
+                        placeItems: 'center',
+                        width: 32,
+                        height: 32,
+                        flexShrink: 0,
+                        borderRadius: '50%',
+                        bgcolor: 'action.hover',
+                        fontSize: '0.8125rem',
+                        fontWeight: 600,
+                      }}
+                    >
+                      {index + 1}
+                    </Box>
+
+                    {/* The title is the link, so the row is openable by click,
+                        keyboard and middle-click without the whole row having
+                        to fake being an anchor around the action buttons. */}
+                    <Stack spacing={0.25} sx={{ flex: 1, minWidth: 0 }}>
+                      <Typography
+                        component={NextLink}
+                        href={editHref}
+                        variant="body2"
+                        sx={{
+                          fontWeight: 600,
+                          color: 'text.primary',
+                          textDecoration: 'none',
+                          '&:hover': { textDecoration: 'underline' },
+                        }}
+                      >
+                        {currentModule.title}
+                      </Typography>
+
+                      <Stack
+                        direction="row"
+                        spacing={1.5}
+                        sx={{ alignItems: 'center', flexWrap: 'wrap' }}
+                      >
+                        {currentModule.video_url ? (
+                          <Stack direction="row" spacing={0.5} sx={{ alignItems: 'center' }}>
+                            <VideocamOutlinedIcon sx={{ fontSize: 16, color: 'text.disabled' }} />
+                            <Typography variant="caption" color="text.secondary">
+                              Video
+                            </Typography>
+                          </Stack>
+                        ) : null}
+
+                        {fileCount > 0 ? (
+                          <Stack direction="row" spacing={0.5} sx={{ alignItems: 'center' }}>
+                            <AttachFileIcon sx={{ fontSize: 16, color: 'text.disabled' }} />
+                            <Typography variant="caption" color="text.secondary">
+                              {fileCount}{' '}
+                              {pluralSr(fileCount, 'materijal', 'materijala', 'materijala')}
+                            </Typography>
+                          </Stack>
+                        ) : null}
+
+                        {!currentModule.video_url && fileCount === 0 ? (
+                          <Typography variant="caption" color="text.disabled">
+                            Bez sadržaja
+                          </Typography>
+                        ) : null}
+                      </Stack>
+                    </Stack>
+
+                    <ModuleActions
+                      currentModule={currentModule}
+                      courseId={courseId}
+                      canMoveUp={index > 0}
+                      canMoveDown={index < page.data.length - 1}
+                      isMoving={updateModule.isPending}
+                      onMove={(direction) => void handleMove(page.data, index, direction)}
+                    />
+                  </Stack>
+                );
+              })}
             </Stack>
           )}
         </QueryState>
