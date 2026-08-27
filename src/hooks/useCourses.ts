@@ -12,6 +12,7 @@ import {
 } from '@/lib/api/client';
 import type {
   Course,
+  CourseStats,
   CreateCourseRequest,
   ListCoursesQuery,
   UpdateCourseRequest,
@@ -161,5 +162,22 @@ export function useDeleteCourse() {
   return useMutation({
     mutationFn: (id: string) => apiDelete(`/api/admin/courses/${id}`),
     onSuccess: invalidate,
+  });
+}
+
+/**
+ * One course's progress picture: who is enrolled, how far each has got, and
+ * what is waiting on a decision.
+ *
+ * Staff only. `module_progress` grants staff nothing, so this cannot be
+ * assembled from the client — the endpoint does it with the service role behind
+ * an ownership check.
+ */
+export function useCourseStats(courseId: string | undefined) {
+  return useQuery({
+    queryKey: [...adminCourseKeys.detail(courseId ?? ''), 'stats'] as const,
+    queryFn: () => apiGet<Envelope<CourseStats>>(`/api/admin/courses/${courseId}/stats`),
+    enabled: Boolean(courseId),
+    select: (response) => response.data,
   });
 }

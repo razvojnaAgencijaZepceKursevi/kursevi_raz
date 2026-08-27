@@ -1,20 +1,13 @@
 'use client';
 
-import * as React from 'react';
-import RefreshIcon from '@mui/icons-material/Refresh';
-import Button from '@mui/material/Button';
-import PageContainer from '@/components/layout/PageContainer';
-import ContentCard from '@/components/layout/ContentCard';
-import EmptyState from '@/components/feedback/EmptyState';
+import RouteError from '@/components/feedback/RouteError';
 
 /**
  * Last-resort boundary for uncaught errors anywhere under `/admin`.
  *
- * This is not where expected failures belong — a failed query renders
- * `<ErrorState>` inside its own page, keeping the rest of the screen usable.
- * Reaching this component means something threw during render.
- *
- * Error boundaries must be Client Components; that's what the directive is for.
+ * Kept separate from the root boundary so the sidebar and top bar survive: an
+ * admin who hits an error is mid-task, and losing the shell would mean losing
+ * their place as well as the page.
  */
 export default function AdminError({
   error,
@@ -25,25 +18,13 @@ export default function AdminError({
       only cleared the boundary without re-fetching anything. */
   unstable_retry: () => void;
 }) {
-  React.useEffect(() => {
-    // In production a server-side error arrives with only a `digest` — that's
-    // the id to match against the server logs.
-    console.error('[admin] unhandled error', error);
-  }, [error]);
-
   return (
-    <PageContainer>
-      <ContentCard>
-        <EmptyState
-          title="Nešto je pošlo naopako"
-          description="Stranicu nije bilo moguće prikazati. Pokušajte ponovo — ako se greška ponavlja, javite se timu koji održava aplikaciju."
-          action={
-            <Button variant="contained" startIcon={<RefreshIcon />} onClick={unstable_retry}>
-              Pokušaj ponovo
-            </Button>
-          }
-        />
-      </ContentCard>
-    </PageContainer>
+    <RouteError
+      error={error}
+      retry={unstable_retry}
+      scope="admin"
+      homeHref="/admin"
+      homeLabel="Pregled"
+    />
   );
 }

@@ -191,7 +191,7 @@ src/
   app/
     (marketing)/      public chrome: landing, courses/, blog, legal
     (auth)/           login, register, forgot/reset password — centred card, no nav
-    (account)/        notifications + settings — any signed-in role, own chrome
+    (account)/        notifications, settings, certificates, issues — any signed-in role
     (student)/        gated by proxy + layout
     (admin)/admin/    gated by proxy + server-side role check in the group layout
     api/              route handlers (backend, already built)
@@ -792,7 +792,12 @@ but must still handle a 403 on an individual resource.
   still accepts them (RLS-equivalent access is the only rule it enforces); only the UI
   declines to offer it.
 
-- **The certificate page is public, and that was already the design.**
+- ~~**The certificate page is public, and that was already the design.**~~ **Reversed** —
+  see "Certificates are private" above. The reasoning below is kept because it explains
+  what the `readable_id` scheme was _for_, which is what a future reader needs to know
+  before considering re-opening verification.
+
+- **(superseded)** The certificate page was public, and that was already the design.
   `/certificates/[certificateId]` renders `GET /api/certificates/:id`, which was built
   unauthenticated from the start: `certificates` has no anon SELECT policy, so the route
   is the only way in and it returns a fixed minimal projection — name, course, date,
@@ -1015,6 +1020,149 @@ but must still handle a 403 on an individual resource.
   It falls back to an absolute date past a week, where "pre 43 dana" stops being easier
   than reading the date.
 
+### Certificates are private (reversal of the public-verification design)
+
+- **`/certificates/[id]` and its two endpoints are signed-in only.** They were briefly
+  public — an unauthenticated verification lookup returning a fixed four-field payload so
+  an employer could check a number. The project owner reversed that: a certificate is
+  visible to the student it belongs to, any admin, and the teacher who owns the course.
+
+  That trio is exactly `certificates_select_own_admin_or_course_owner` (0017), so the
+  routes dropped the service-role client and run on the caller's own. RLS _is_ the access
+  control; a certificate that is not yours 404s, deliberately indistinguishable from one
+  that does not exist. The page moved from `(marketing)` to `(account)`, and
+  `/certificates` joined `PROTECTED_PREFIXES`.
+
+  Two simplifications fell out: the response can now carry the whole row (it could not
+  while public), so `useOwnedCertificate` — which existed only to answer "is this mine?"
+  from a separate list query — is gone, and the page reads `student_id` directly.
+
+  **Consequence, accepted:** nobody outside those three can verify a certificate. The
+  `readable_id` scheme was designed for exactly that and is now just an address. Restoring
+  verification means a _separate_, deliberately minimal public endpoint — not loosening
+  this one.
+
+### Task-brief attachments are downloadable (`/api/task-files/:id/content`)
+
+- The near-twin of `/api/module-files/:id/content` with the opposite ending. Same private
+  bucket, same `assertModuleAccess`, same service-role stream — but
+  `Content-Disposition: attachment`, because a task file is a **working document** ("start
+  from the attached spreadsheet") while a module material is protected reading. That is
+  the `<TaskFiles>` / `<ModuleMaterials>` split expressed at the API. Until this existed
+  the student screen showed "Preuzimanje uskoro" beside every attachment.
+
+- Content type comes from the stored object rather than being hard-coded, since task files
+  may be any of `ACCEPTED_TASK_FILE_TYPES` — unlike module materials, which are PDF-only.
+
+### An admin may reassign a course to any teacher
+
+- `owner_id` is now in `updateCourseSchema`, surfaced as `<CourseOwnerSection>` on the edit
+  page, **admin only**. No service-role escalation was needed:
+  `guard_course_privileged_columns()` already exempts `is_admin()`, exactly as it does for
+  `published`. The route checks the role as well, so a teacher gets a sentence rather than
+  a bare 42501 — the trigger remains the guarantee.
+
+- Outside `<CourseForm>`, beside `<CourseDeleteSection>`, for the same reason: it ignores
+  every value in the form and has a different audience.
+
+- **Ownerless is a real state and the UI says so.** `owner_id` is `ON DELETE SET NULL`, so
+  deleting a teacher strands their courses with no author. The section warns about that
+  case and about a deactivated owner, and deactivated teachers stay in the dropdown —
+  hiding them would make the current owner vanish from the control meant to explain the
+  problem.
+
+- **`courseSchema` never declared `owner_id`.** The column was always in the payload
+  (`select('*')`); the schema simply omitted it, so every typed caller was blind to it.
+  Declaring it changed nothing about what the API sends.
+
+### Error and 404 boundaries for everyone
+
+- `app/error.tsx` (everything without a nearer boundary), `app/not-found.tsx`,
+  `(admin)/admin/not-found.tsx`, and `app/global-error.tsx`. `<RouteError>` is the shared
+  body — boundaries must be Client Components at fixed paths, so the files are thin and
+  the forty lines live once.
+
+- **`global-error.tsx` cannot use MUI, the theme, or the query client.** It fires when the
+  _root layout_ threw, so its providers never mounted; it renders its own `<html>`/`<body>`
+  with inline styles, and must stay that way however tempting it looks to prettify. Its
+  plain `<a href="/">` carries an eslint-disable on purpose: a `<Link>` would attempt a
+  client navigation through the tree that just failed.
+
+- `<html lang="sr">` — the UI has been Serbian throughout; the document said `en`.
+
+### Per-course view for staff (`/admin/courses/[id]`)
+
+- A course's landing page is now an overview — enrolment, completion, pending submissions,
+  and per-student progress — with editing one click away rather than the other way round.
+  Staff open a course to look far more often than to change it.
+
+- **`GET /api/admin/courses/:id/stats` must use the service role, and that is the point.**
+  `module_progress` grants staff nothing at all — students may read their own rows and
+  nobody else can — so a teacher's own client cannot see progress on their own course.
+  That is why this is an endpoint rather than something assembled client-side, and why
+  `assertCanAuthorCourse` above it is doing real work.
+
+- Counting happens in JavaScript over four indexed reads. Honest at a course's scale; if
+  one ever has thousands of students this wants to be a view or an RPC, and the signature
+  would not change.
+
+- The stat cards link into the submissions and purchases queues **scoped by `?courseId`**,
+  which meant teaching those two lists to read it from the URL. A link that promised
+  filtering and delivered everything would have been worse than no link.
+
+### Support issues (migration 0026/0027)
+
+- A channel between any signed-in user and the admins, modelled on
+  `task_submissions` / `task_messages` because it is the same shape: a record with a status
+  and a thread beneath it.
+
+- **The authorization is deliberately narrower than the submission equivalent.**
+  `can_review_submission()` admits the owning teacher; `issues` admits only the reporter
+  and admins. An issue has no course and may well be _about_ a teacher. Widening it later
+  is a policy change; leaking it now would not be undoable.
+
+- **Closing is not final, and that is the opposite of approving a submission.** An approved
+  submission is sealed because a decision and its transcript must agree. "Closed" on an
+  issue is only the admin's belief that it is dealt with, and the person best placed to
+  disagree is the one who raised it — so a reporter's reply **re-opens it automatically**.
+  A support channel that cannot be re-opened just teaches people to file a second ticket.
+  An admin replying to a closed issue must say what should happen to it (409 otherwise).
+
+- A reporter re-opening their own issue goes through the service role: `issues` grants
+  UPDATE to admins only, and the `issue` lookup above it — already RLS-scoped to them — is
+  the ownership check.
+
+- One endpoint serves both sides, with RLS deciding scope, so `/api/issues` is "my issues"
+  for a user and the whole queue for an admin. There is no `useAdminIssues` twin.
+
+### Public pages
+
+- Landing, blog index, blog post, terms, privacy, contact — plus `<PublicFooter />` in the
+  marketing layout, which is what makes the legal pages reachable at all.
+
+- **`/` was a `redirect('/login')`.** A visitor typing the domain got a login form and no
+  route to the catalogue that had been public all along. It is now a real landing page:
+  placeholder copy, but a finished structure.
+
+- **`<DraftPage>` is not `<PlaceholderPage>`.** The admin one listed _engineering_ work
+  still to do. These pages are not waiting on code — route, chrome and footer link are
+  finished — they are waiting on **copy**, which is someone else's job, so the notice says
+  that. It matters most for the legal pages: terms with invented boilerplate would be worse
+  than terms that admit they are unwritten. `sections` sketches the intended outline.
+
+- **The blog is a typed array in `src/lib/blog.ts`, not a table.** The point is indexable
+  public content, not a publishing workflow; an array beats a table plus an editor plus
+  policies, and makes publishing a code review. Empty on purpose rather than seeded with
+  lorem ipsum, which would be indexed before anyone remembered to delete it. If it outgrows
+  a couple of dozen posts the next step is MDX on disk, **not** a database — both keep
+  "publishing is a deploy".
+
+### Deliberately not built
+
+- **Self-service account editing.** No changing your own name, email or password while
+  signed in — the project owner's call. Password recovery remains the signed-out
+  forgot-password flow; an admin can rename or re-role someone from `/admin/users/[id]`.
+
 ### Not every built page is reachable from the nav
 
 The sidebar (`adminNav.ts`) only lists top-level sections. Course-scoped pages are
@@ -1027,9 +1175,7 @@ course-scoped page, add it there or it is URL-only.
 - **No admin `PlaceholderPage` remains.** `/admin/submissions` was the last one.
 - The only remaining `TODO(intern)` is "save and add another" on the module create page.
 - **Student pages built:** dashboard, course catalogue, module viewer, quiz, task,
-  certificate. Still missing: downloads for task _attachments_ — those live in a private
-  bucket with no route serving them, and unlike module materials they are meant to be
-  downloaded.
+  certificate, issues. Task-file downloads are done (`/api/task-files/:id/content`).
 - ~~Certificate fulfilment is untracked.~~ **Closed** by migration 0024 — see §7.
 - Some early UI strings are still English (`(student)/dashboard`, `LogoutButton`).
 - **The database is seeded.** `npm run db:seed` (re-runnable; deletes its own
@@ -1047,6 +1193,8 @@ course-scoped page, add it there or it is URL-only.
   | `jovana@kursevi.test` | student | approved purchase, 1 module done, open submission, a certificate                                                 |
   | `nikola@kursevi.test` | student | pending request + a `needs_revision` submission                                                                  |
 
+- ~~No UI for assigning a course to a teacher.~~ **Closed** — `<CourseOwnerSection>` on
+  the course edit page, admin only. (Original note:)
 - **No UI for assigning a course to a teacher.** A teacher owns what they create;
   an admin can change `owner_id` in the database but nothing exposes it yet.
   Promoting someone to teacher is now possible from `/admin/users/{id}`, but that

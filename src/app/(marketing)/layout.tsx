@@ -1,4 +1,5 @@
 import Box from '@mui/material/Box';
+import PublicFooter from '@/components/layout/PublicFooter';
 import PublicHeader from '@/components/layout/PublicHeader';
 
 /**
@@ -17,8 +18,9 @@ import PublicHeader from '@/components/layout/PublicHeader';
  * contribute nothing to the URL, so `/login` and `/courses/…` are unchanged by
  * the move.
  *
- * Add a footer here when the legal and contact pages exist — this is the one
- * place it needs to go.
+ * The footer lives here for the same reason as the header: one place, every
+ * public page, nothing to repeat. It is what makes the legal and contact pages
+ * reachable at all — nobody navigates *to* a privacy policy.
  *
  * No auth check: these pages are public by design. What a signed-in visitor
  * sees differs per page (see `useCourseAccess`), not per layout.
@@ -30,6 +32,7 @@ export default function MarketingLayout({ children }: { children: React.ReactNod
       <Box component="main" sx={{ p: { xs: 2, sm: 3, lg: 4 } }}>
         {children}
       </Box>
+      <PublicFooter />
     </Box>
   );
 }

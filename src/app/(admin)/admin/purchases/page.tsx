@@ -1,5 +1,8 @@
 'use client';
 
+import * as React from 'react';
+
+import Chip from '@mui/material/Chip';
 import MenuItem from '@mui/material/MenuItem';
 import Stack from '@mui/material/Stack';
 import TextField from '@mui/material/TextField';
@@ -29,9 +32,20 @@ import type { AdminPurchase } from '@/lib/schemas/purchases.schema';
  * No search box — the endpoint's `search` param has nothing sensible to match
  * on a purchase row. Filtering is by status instead.
  */
-export default function AdminPurchasesPage() {
+export default function AdminPurchasesPage(props: PageProps<'/admin/purchases'>) {
+  /*
+   * Scoped to one course when arrived at from that course's overview page.
+   * Read from the URL rather than held in state so the link is shareable and
+   * the back button behaves — and so the StatCard that points here is telling
+   * the truth about what it will show.
+   */
+  const { courseId } = React.use(props.searchParams);
+  const scopedCourseId = typeof courseId === 'string' ? courseId : undefined;
   const list = useListParams({ status: 'requested' }, { pageSize: 20 });
-  const purchases = useAdminPurchases(list.queryParams);
+  const purchases = useAdminPurchases({
+    ...list.queryParams,
+    ...(scopedCourseId ? { courseId: scopedCourseId } : {}),
+  });
 
   return (
     <PageContainer>
@@ -58,6 +72,22 @@ export default function AdminPurchasesPage() {
             <MenuItem value="approved">Odobreni</MenuItem>
             <MenuItem value="denied">Odbijeni</MenuItem>
           </TextField>
+
+          {/* A filter the bar cannot clear would look like a bug, so the
+              scope announces itself and offers the way out. */}
+          {scopedCourseId ? (
+            <Chip
+              label="Filtrirano po kursu"
+              size="small"
+              variant="outlined"
+              onDelete={undefined}
+              // `component`/`href` is safe on Chip — it is ButtonBase-based, so
+              // the theme swaps in NextLink on its own.
+              component="a"
+              href="/admin/purchases"
+              clickable
+            />
+          ) : null}
 
           <Typography
             variant="body2"

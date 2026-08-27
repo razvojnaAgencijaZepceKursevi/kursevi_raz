@@ -10,6 +10,7 @@ import Menu from '@mui/material/Menu';
 import MenuItem from '@mui/material/MenuItem';
 import NextLink from 'next/link';
 import NotificationsNoneOutlinedIcon from '@mui/icons-material/NotificationsNoneOutlined';
+import SupportOutlinedIcon from '@mui/icons-material/SupportOutlined';
 import Stack from '@mui/material/Stack';
 import Typography from '@mui/material/Typography';
 import { useLogout } from '@/hooks/useLogout';
@@ -79,6 +80,13 @@ export default function AdminUserMenu({
             ButtonBase's root to 'li', so a bare `href` renders `<li href>` and
             silently does not navigate. Every other MUI link component picks up
             NextLink from the theme on its own — don't add this elsewhere. */}
+        <MenuItem component={NextLink} href="/issues" onClick={() => setAnchorEl(null)}>
+          <ListItemIcon>
+            <SupportOutlinedIcon fontSize="small" />
+          </ListItemIcon>
+          <Typography variant="body2">Moje prijave</Typography>
+        </MenuItem>
+
         <MenuItem
           component={NextLink}
           href="/settings/notifications"

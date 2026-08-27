@@ -1,4 +1,5 @@
 import type { PurchaseStatus } from '@/lib/schemas/purchases.schema';
+import type { IssueStatus } from '@/lib/schemas/issues.schema';
 import type { TaskSubmissionStatus } from '@/lib/schemas/task-submissions.schema';
 import type { UserRole } from '@/lib/schemas/users.schema';
 
@@ -26,6 +27,17 @@ export const SUBMISSION_STATUS: Record<TaskSubmissionStatus, StatusDisplay> = {
   pending: { label: 'Čeka pregled', color: 'warning' },
   needs_revision: { label: 'Potrebna izmena', color: 'info' },
   approved: { label: 'Prihvaćeno', color: 'success' },
+};
+
+/**
+ * A support issue. Three states, and the middle one carries the point: an
+ * admin has replied but nobody has agreed it is finished, which is different
+ * from both "untouched" and "done".
+ */
+export const ISSUE_STATUS: Record<IssueStatus, StatusDisplay> = {
+  open: { label: 'Otvorena', color: 'warning' },
+  answered: { label: 'Odgovoreno', color: 'info' },
+  closed: { label: 'Zatvorena', color: 'default' },
 };
 
 export const USER_ROLE: Record<UserRole, StatusDisplay> = {

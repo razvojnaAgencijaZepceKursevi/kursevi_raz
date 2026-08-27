@@ -11,6 +11,7 @@ import QueryState from '@/components/feedback/QueryState';
 import EmptyState from '@/components/feedback/EmptyState';
 import CourseForm from '@/components/courses/CourseForm';
 import CourseDeleteSection from '@/components/courses/CourseDeleteSection';
+import CourseOwnerSection from '@/components/courses/CourseOwnerSection';
 import { useAdminCourse, useUpdateCourse } from '@/hooks/useCourses';
 import { useUploadFile } from '@/hooks/useUploads';
 import { isStatus } from '@/lib/api/errorMessage';
@@ -156,6 +157,10 @@ function EditCourseContent({ course }: { course: Course }) {
         canPublish={isAdmin}
         showSlugField
       />
+
+      {/* Admin only: reassigning a course is not something a teacher may do to
+          their own work, and the column guard would reject it anyway. */}
+      {isAdmin ? <CourseOwnerSection course={course} /> : null}
 
       <CourseDeleteSection course={course} />
     </Stack>

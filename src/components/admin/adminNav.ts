@@ -5,6 +5,7 @@ import LibraryBooksOutlinedIcon from '@mui/icons-material/LibraryBooksOutlined';
 import PeopleOutlinedIcon from '@mui/icons-material/PeopleOutlined';
 import ReceiptLongOutlinedIcon from '@mui/icons-material/ReceiptLongOutlined';
 import AssignmentTurnedInOutlinedIcon from '@mui/icons-material/AssignmentTurnedInOutlined';
+import SupportOutlinedIcon from '@mui/icons-material/SupportOutlined';
 import WorkspacePremiumOutlinedIcon from '@mui/icons-material/WorkspacePremiumOutlined';
 
 import type { UserRole } from '@/lib/auth/routes';
@@ -69,6 +70,14 @@ export const ADMIN_NAV: AdminNavSection[] = [
       { label: 'Predati zadaci', href: '/admin/submissions', icon: AssignmentTurnedInOutlinedIcon },
       { label: 'Sertifikati', href: '/admin/certificates', icon: WorkspacePremiumOutlinedIcon },
       { label: 'Korisnici', href: '/admin/users', icon: PeopleOutlinedIcon, roles: ['admin'] },
+      {
+        label: 'Prijave',
+        href: '/admin/issues',
+        icon: SupportOutlinedIcon,
+        // Admins only: an issue may be about a teacher, so teachers do not see
+        // the queue. RLS enforces it regardless of what the nav shows.
+        roles: ['admin'],
+      },
     ],
   },
 ];

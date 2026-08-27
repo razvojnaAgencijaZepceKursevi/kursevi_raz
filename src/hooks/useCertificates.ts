@@ -2,11 +2,9 @@
 
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 import { apiGet, apiPatch, toSearchParams, type Envelope, type Paginated } from '@/lib/api/client';
-import { useAuthStore } from '@/store/useAuthStore';
 import type {
   AdminCertificate,
   Certificate,
-  CertificateVerification,
   ListCertificatesQuery,
 } from '@/lib/schemas/certificates.schema';
 
@@ -16,8 +14,7 @@ export const certificateKeys = {
   all: ['certificates'] as const,
   lists: () => [...certificateKeys.all, 'list'] as const,
   list: (params: CertificateListParams) => [...certificateKeys.lists(), params] as const,
-  verification: (certificateId: string) =>
-    [...certificateKeys.all, 'verification', certificateId] as const,
+  detail: (identifier: string) => [...certificateKeys.all, 'detail', identifier] as const,
 };
 
 export const adminCertificateKeys = {
@@ -46,49 +43,22 @@ export function useCertificates(
 }
 
 /**
- * The caller's own certificate row for one identifier, if it is theirs.
+ * GET /api/certificates/:idOrReadableId — one certificate.
  *
- * The certificate page is public and reads its facts from the *verification*
- * endpoint, which deliberately returns a fixed minimal projection and no row.
- * That is the right answer for a stranger following a link, but it means the
- * owner sees no more than the stranger does — and the owner is the one who may
- * ask for a printed copy.
+ * Signed in only. RLS admits the student it belongs to, an admin, or the
+ * teacher who owns the course; anyone else gets a 404. Accepts either the
+ * readable id or the uuid.
  *
- * So ownership is established the only way it can be without a new endpoint:
- * look for the identifier in the caller's own certificate list. A student has a
- * handful of these, so one page covers it. Signed-out visitors never ask.
- *
- * Accepts either form of identifier, matching what the verification route does.
+ * This replaced a public verification lookup and its separate "is it mine?"
+ * list query. Now that the response is scoped, it can carry the whole row —
+ * so the page reads `student_id` directly instead of hunting for the id in the
+ * caller's own certificate list.
  */
-export function useOwnedCertificate(identifier: string | undefined) {
-  const signedIn = useAuthStore((s) => Boolean(s.profile));
-  const authLoading = useAuthStore((s) => s.loading);
-
-  const list = useCertificates({ pageSize: 100 }, { enabled: signedIn && Boolean(identifier) });
-
-  const certificate = identifier
-    ? list.data?.data.find((c) => c.id === identifier || c.readable_id === identifier)
-    : undefined;
-
-  return {
-    certificate,
-    /** False until we can actually tell — avoids flashing the wrong panel. */
-    isResolved: !authLoading && (!signedIn || !list.isPending),
-  };
-}
-
-/**
- * GET /api/certificates/:certificateId — public verification.
- *
- * Unauthenticated, and accepts either the readable id (CERT-YYYY-NNNN) or the
- * uuid. A bad identifier is a 404 by design, so an error here means "not a
- * valid certificate" rather than a failure worth retrying.
- */
-export function useVerifyCertificate(certificateId: string | undefined) {
+export function useCertificate(identifier: string | undefined) {
   return useQuery({
-    queryKey: certificateKeys.verification(certificateId ?? ''),
-    queryFn: () => apiGet<Envelope<CertificateVerification>>(`/api/certificates/${certificateId}`),
-    enabled: Boolean(certificateId),
+    queryKey: certificateKeys.detail(identifier ?? ''),
+    queryFn: () => apiGet<Envelope<AdminCertificate>>(`/api/certificates/${identifier}`),
+    enabled: Boolean(identifier),
     select: (response) => response.data,
   });
 }

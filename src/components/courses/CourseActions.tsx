@@ -9,6 +9,7 @@ import ViewModuleOutlinedIcon from '@mui/icons-material/ViewModuleOutlined';
 import IconButton from '@mui/material/IconButton';
 import ListItemIcon from '@mui/material/ListItemIcon';
 import Menu from '@mui/material/Menu';
+import InsightsOutlinedIcon from '@mui/icons-material/InsightsOutlined';
 import MenuItem from '@mui/material/MenuItem';
 import Typography from '@mui/material/Typography';
 import ConfirmDialog from '@/components/feedback/ConfirmDialog';
@@ -63,6 +64,13 @@ export default function CourseActions({ course }: { course: Course }) {
           an `<li>` and the item silently does nothing when clicked. Safe here
           because this is a Client Component — see the note in `theme.ts`.
         */}
+        <MenuItem component={NextLink} href={`/admin/courses/${course.id}`} onClick={close}>
+          <ListItemIcon>
+            <InsightsOutlinedIcon fontSize="small" />
+          </ListItemIcon>
+          <Typography variant="body2">Pregled</Typography>
+        </MenuItem>
+
         <MenuItem component={NextLink} href={`/admin/courses/${course.id}/edit`} onClick={close}>
           <ListItemIcon>
             <EditOutlinedIcon fontSize="small" />

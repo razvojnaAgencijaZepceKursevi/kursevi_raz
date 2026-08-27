@@ -25,6 +25,7 @@ import {
   createCourseSchema,
   listCoursesQuerySchema,
   updateCourseSchema,
+  courseStatsResponseSchema,
 } from '@/lib/schemas/courses.schema';
 import {
   courseOutlineResponseSchema,
@@ -77,6 +78,16 @@ import {
   completeModuleResponseSchema,
   courseProgressResponseSchema,
 } from '@/lib/schemas/module-progress.schema';
+import {
+  createIssueMessageResponseSchema,
+  createIssueMessageSchema,
+  createIssueResponseSchema,
+  createIssueSchema,
+  issueListResponseSchema,
+  issueMessageListResponseSchema,
+  issueResponseSchema,
+  listIssuesQuerySchema,
+} from '@/lib/schemas/issues.schema';
 import {
   listNotificationsQuerySchema,
   markAllReadResponseSchema,
@@ -903,6 +914,106 @@ registry.registerPath({
     200: json(completeModuleResponseSchema, 'The resulting progress'),
     ...errors,
     409: json(errorResponseSchema, 'The module has a quiz or a task'),
+  },
+});
+
+/* -------------------------------------------------------------------------- */
+/* Support issues                                                              */
+/* -------------------------------------------------------------------------- */
+
+registry.registerPath({
+  method: 'get',
+  path: '/api/issues',
+  tags: ['Issues'],
+  summary: 'List issues — your own, or all of them for an admin',
+  description:
+    "One endpoint for both sides. RLS returns the caller's own issues, or every issue when the caller is an admin. Teachers get no special access: an issue may be about a teacher.",
+  security,
+  request: { query: listIssuesQuerySchema },
+  responses: { 200: json(issueListResponseSchema, 'Paginated issues'), ...errors },
+});
+
+registry.registerPath({
+  method: 'post',
+  path: '/api/issues',
+  tags: ['Issues'],
+  summary: 'Open an issue, with its first message',
+  security,
+  request: { body: { content: { 'application/json': { schema: createIssueSchema } } } },
+  responses: { 201: json(createIssueResponseSchema, 'Created'), ...errors },
+});
+
+registry.registerPath({
+  method: 'get',
+  path: '/api/issues/{id}',
+  tags: ['Issues'],
+  summary: 'Get one issue',
+  security,
+  request: { params: idParam },
+  responses: { 200: json(issueResponseSchema, 'The issue'), ...errors },
+});
+
+registry.registerPath({
+  method: 'get',
+  path: '/api/issues/{id}/messages',
+  tags: ['Issues'],
+  summary: 'The issue thread, oldest first',
+  security,
+  request: { params: idParam, query: paginationQuerySchema },
+  responses: { 200: json(issueMessageListResponseSchema, 'Paginated messages'), ...errors },
+});
+
+registry.registerPath({
+  method: 'post',
+  path: '/api/issues/{id}/messages',
+  tags: ['Issues'],
+  summary: 'Reply to an issue (reporter or admin)',
+  description: [
+    'An admin may set `status` alongside the reply; a reporter supplying it is',
+    'ignored, so one endpoint serves both sides.',
+    '',
+    '**Closing is not final.** A reporter replying to a closed issue re-opens it',
+    'automatically — the person best placed to disagree that something is resolved',
+    'is the one who raised it. An admin replying to a closed issue must say what',
+    'should happen to it (409 otherwise).',
+  ].join(' '),
+  security,
+  request: {
+    params: idParam,
+    body: { content: { 'application/json': { schema: createIssueMessageSchema } } },
+  },
+  responses: {
+    201: json(createIssueMessageResponseSchema, 'Created'),
+    ...errors,
+    409: json(errorResponseSchema, 'Closed issue needs an explicit status'),
+  },
+});
+
+registry.registerPath({
+  method: 'get',
+  path: '/api/admin/courses/{id}/stats',
+  tags: ['Courses'],
+  summary: 'Enrolment and progress for one course (staff)',
+  description:
+    'Admin, or the teacher who owns the course. Runs with the service role because `module_progress` grants staff nothing at all — the ownership check is the access control.',
+  security,
+  request: { params: idParam },
+  responses: { 200: json(courseStatsResponseSchema, 'Course statistics'), ...errors },
+});
+
+registry.registerPath({
+  method: 'get',
+  path: '/api/task-files/{id}/content',
+  tags: ['Tasks'],
+  summary: 'Download a file attached to a task brief',
+  description:
+    'The twin of `/api/module-files/{id}/content`, with the opposite `Content-Disposition`: a module material is read in the app and never handed over, while a task file is a working document meant to be opened elsewhere.',
+  security,
+  request: { params: idParam },
+  responses: {
+    200: { description: 'The file' },
+    ...errors,
+    502: json(errorResponseSchema, 'Storage could not be read'),
   },
 });
 

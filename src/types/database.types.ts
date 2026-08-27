@@ -272,6 +272,93 @@ export type Database = {
           },
         ]
       }
+      issue_messages: {
+        Row: {
+          body: string
+          created_at: string
+          id: string
+          issue_id: string
+          sender_id: string
+        }
+        Insert: {
+          body: string
+          created_at?: string
+          id?: string
+          issue_id: string
+          sender_id: string
+        }
+        Update: {
+          body?: string
+          created_at?: string
+          id?: string
+          issue_id?: string
+          sender_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "issue_messages_issue_id_fkey"
+            columns: ["issue_id"]
+            isOneToOne: false
+            referencedRelation: "issues"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "issue_messages_sender_id_fkey"
+            columns: ["sender_id"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      issues: {
+        Row: {
+          closed_at: string | null
+          closed_by: string | null
+          created_at: string
+          id: string
+          reporter_id: string
+          status: Database["public"]["Enums"]["issue_status"]
+          subject: string
+          updated_at: string
+        }
+        Insert: {
+          closed_at?: string | null
+          closed_by?: string | null
+          created_at?: string
+          id?: string
+          reporter_id: string
+          status?: Database["public"]["Enums"]["issue_status"]
+          subject: string
+          updated_at?: string
+        }
+        Update: {
+          closed_at?: string | null
+          closed_by?: string | null
+          created_at?: string
+          id?: string
+          reporter_id?: string
+          status?: Database["public"]["Enums"]["issue_status"]
+          subject?: string
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "issues_closed_by_fkey"
+            columns: ["closed_by"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "issues_reporter_id_fkey"
+            columns: ["reporter_id"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       module_files: {
         Row: {
           created_at: string
@@ -858,12 +945,14 @@ export type Database = {
       is_teacher: { Args: never; Returns: boolean }
       next_certificate_readable_id: { Args: never; Returns: string }
       owns_course: { Args: { p_course_id: string }; Returns: boolean }
+      owns_issue: { Args: { p_issue_id: string }; Returns: boolean }
       owns_submission: { Args: { p_submission_id: string }; Returns: boolean }
       safe_uuid: { Args: { p_value: string }; Returns: string }
       slugify: { Args: { p_text: string }; Returns: string }
       teaches_student: { Args: { p_student_id: string }; Returns: boolean }
     }
     Enums: {
+      issue_status: "open" | "answered" | "closed"
       notification_type:
         | "purchase_requested"
         | "purchase_approved"
@@ -877,6 +966,9 @@ export type Database = {
         | "certificate_delivered"
         | "course_published"
         | "account_role_changed"
+        | "issue_opened"
+        | "issue_reply"
+        | "issue_closed"
       purchase_status: "requested" | "denied" | "approved"
       task_submission_status: "pending" | "needs_revision" | "approved"
       user_role: "admin" | "student" | "teacher"
@@ -1010,6 +1102,7 @@ export const Constants = {
   },
   public: {
     Enums: {
+      issue_status: ["open", "answered", "closed"],
       notification_type: [
         "purchase_requested",
         "purchase_approved",
@@ -1023,6 +1116,9 @@ export const Constants = {
         "certificate_delivered",
         "course_published",
         "account_role_changed",
+        "issue_opened",
+        "issue_reply",
+        "issue_closed",
       ],
       purchase_status: ["requested", "denied", "approved"],
       task_submission_status: ["pending", "needs_revision", "approved"],

@@ -41,6 +41,9 @@ export default async function StudentLayout({ children }: { children: React.Reac
           <Link href="/courses" variant="body2" underline="hover" color="text.secondary">
             Katalog
           </Link>
+          <Link href="/issues" variant="body2" underline="hover" color="text.secondary">
+            Prijave
+          </Link>
         </Stack>
         <Stack direction="row" spacing={1.5} sx={{ alignItems: 'center' }}>
           <NotificationBell />

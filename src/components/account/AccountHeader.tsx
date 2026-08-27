@@ -1,6 +1,7 @@
 'use client';
 
 import ArrowBackIcon from '@mui/icons-material/ArrowBack';
+import SupportOutlinedIcon from '@mui/icons-material/SupportOutlined';
 import AppBar from '@mui/material/AppBar';
 import Box from '@mui/material/Box';
 import Button from '@mui/material/Button';
@@ -33,6 +34,10 @@ export default function AccountHeader({ role, fullName }: { role: UserRole; full
 
         <Button href={home} startIcon={<ArrowBackIcon />} size="small" color="inherit">
           {role === 'student' ? 'Moji kursevi' : 'Admin panel'}
+        </Button>
+
+        <Button href="/issues" size="small" color="inherit" startIcon={<SupportOutlinedIcon />}>
+          Prijave
         </Button>
 
         <Box sx={{ flex: 1 }} />

@@ -1,6 +1,7 @@
 import { NextResponse } from 'next/server';
 import { notFound, unwrapMaybe, withRoute } from '@/lib/api/errors';
-import { createServiceRoleClient } from '@/lib/supabase/service-role';
+import { requireUser } from '@/lib/auth/guards';
+import { createClient } from '@/lib/supabase/server';
 import { z } from '@/lib/openapi/zod';
 
 export const dynamic = 'force-dynamic';
@@ -8,46 +9,52 @@ export const dynamic = 'force-dynamic';
 type Ctx = { params: Promise<{ certificateId: string }> };
 
 /**
- * GET /api/certificates/:readableId — public verification lookup.
+ * GET /api/certificates/:idOrReadableId — one certificate.
  *
- * Deliberately unauthenticated, and deliberately service-role: `certificates`
- * has no anon SELECT policy (students may only read their own), so a public
- * verifier cannot query the table directly. This route is the only way in, and
- * it returns a fixed minimal projection — never the row — so it cannot be used
- * to enumerate student data.
+ * ## Signed in only, and RLS decides who
  *
- * The segment is named `certificateId` rather than `readableId` because
- * `request-delivery` sits beneath the same path position, and Next.js allows
- * only one dynamic parameter name per segment. Both forms are accepted.
+ * This used to be public: an unauthenticated verification lookup returning a
+ * fixed four-field projection, so an employer could check a number. That was
+ * reversed deliberately — a certificate is now private to the people it
+ * concerns. Three of them, exactly as `certificates_select_own_admin_or_course_owner`
+ * (migration 0017) already spelled out:
+ *
+ *   - the **student** it was issued to;
+ *   - any **admin**;
+ *   - the **teacher who owns the course** it was earned on.
+ *
+ * Which is why this runs on the caller's own client rather than the service
+ * role. The policy is the access control; a row that is not yours simply is not
+ * found, and 404 is the honest answer — telling a stranger "forbidden" would
+ * confirm the number is real.
+ *
+ * The projection can be the whole row now. It could not be while this was
+ * public, and that constraint is what the old minimal payload existed to
+ * satisfy.
+ *
+ * **Consequence worth knowing:** nobody outside those three can verify a
+ * certificate any more. `readable_id` remains the human-quotable identifier,
+ * but checking one now means signing in. Re-opening verification means a
+ * separate, deliberately minimal public endpoint — not loosening this one.
  */
 export const GET = withRoute(async (_req, ctx: Ctx) => {
+  await requireUser();
   const { certificateId } = await ctx.params;
 
-  const svc = createServiceRoleClient();
+  const supabase = await createClient();
   const isUuid = z.uuid().safeParse(certificateId).success;
 
   const certificate = unwrapMaybe(
-    await svc
+    await supabase
       .from('certificates')
       .select(
-        'readable_id, created_at, courses(name), profiles!certificates_student_id_fkey(full_name)',
+        '*, courses(id, name, slug, thumbnail_path), profiles!certificates_student_id_fkey(id, full_name, email)',
       )
       .eq(isUuid ? 'id' : 'readable_id', certificateId)
       .maybeSingle(),
   );
 
-  // A bad id is simply "not a valid certificate" — no distinction between
-  // malformed and non-existent, so the endpoint reveals nothing by timing or
-  // status code.
   if (!certificate) throw notFound('No certificate found for that identifier');
 
-  return NextResponse.json({
-    data: {
-      readable_id: certificate.readable_id,
-      student_name: certificate.profiles?.full_name ?? null,
-      course_name: certificate.courses?.name ?? null,
-      issued_at: certificate.created_at,
-      valid: true,
-    },
-  });
+  return NextResponse.json({ data: certificate });
 });

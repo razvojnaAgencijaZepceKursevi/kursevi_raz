@@ -1,5 +1,12 @@
 import { NextResponse } from 'next/server';
-import { badRequest, parseBody, unwrapMaybe, unwrapOne, withRoute } from '@/lib/api/errors';
+import {
+  badRequest,
+  forbidden,
+  parseBody,
+  unwrapMaybe,
+  unwrapOne,
+  withRoute,
+} from '@/lib/api/errors';
 import { requireStaff } from '@/lib/auth/guards';
 import { createClient } from '@/lib/supabase/server';
 import { notifyAfterResponse } from '@/lib/services/notifications';
@@ -23,11 +30,21 @@ export const GET = withRoute(async (_req, ctx: Ctx) => {
 
 /** PATCH /api/admin/courses/:id (admin). */
 export const PATCH = withRoute(async (req, ctx: Ctx) => {
-  await requireStaff();
+  const auth = await requireStaff();
   const id = uuidSchema.parse((await ctx.params).id);
   const body = await parseBody(req, updateCourseSchema);
 
   if (Object.keys(body).length === 0) throw badRequest('No fields to update');
+
+  /*
+   * Ownership transfer is an admin act. The database says so too — the column
+   * guard raises 42501 for a teacher — but that would surface as a bare
+   * "permission denied" with no hint of which field caused it. Checking here
+   * turns it into a sentence, and the trigger remains the actual guarantee.
+   */
+  if (body.owner_id !== undefined && auth.profile.role !== 'admin') {
+    throw forbidden('Only an admin may transfer course ownership');
+  }
 
   const supabase = await createClient();
 

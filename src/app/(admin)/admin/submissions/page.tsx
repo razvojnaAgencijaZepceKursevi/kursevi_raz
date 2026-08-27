@@ -1,5 +1,8 @@
 'use client';
 
+import * as React from 'react';
+
+import Chip from '@mui/material/Chip';
 import MenuItem from '@mui/material/MenuItem';
 import Stack from '@mui/material/Stack';
 import TextField from '@mui/material/TextField';
@@ -31,9 +34,20 @@ import type { AdminSubmission } from '@/lib/schemas/task-submissions.schema';
  * No search box — the endpoint's `search` has nothing sensible to match on a
  * submission row, which is three uuids and a status. Filtering is by status.
  */
-export default function AdminSubmissionsPage() {
+export default function AdminSubmissionsPage(props: PageProps<'/admin/submissions'>) {
+  /*
+   * Scoped to one course when arrived at from that course's overview page.
+   * Read from the URL rather than held in state so the link is shareable and
+   * the back button behaves — and so the StatCard that points here is telling
+   * the truth about what it will show.
+   */
+  const { courseId } = React.use(props.searchParams);
+  const scopedCourseId = typeof courseId === 'string' ? courseId : undefined;
   const list = useListParams({ status: 'pending' }, { pageSize: 20 });
-  const submissions = useAdminSubmissions(list.queryParams);
+  const submissions = useAdminSubmissions({
+    ...list.queryParams,
+    ...(scopedCourseId ? { courseId: scopedCourseId } : {}),
+  });
 
   return (
     <PageContainer>
@@ -60,6 +74,22 @@ export default function AdminSubmissionsPage() {
             <MenuItem value="needs_revision">Potrebna izmena</MenuItem>
             <MenuItem value="approved">Prihvaćeno</MenuItem>
           </TextField>
+
+          {/* A filter the bar cannot clear would look like a bug, so the
+              scope announces itself and offers the way out. */}
+          {scopedCourseId ? (
+            <Chip
+              label="Filtrirano po kursu"
+              size="small"
+              variant="outlined"
+              onDelete={undefined}
+              // `component`/`href` is safe on Chip — it is ButtonBase-based, so
+              // the theme swaps in NextLink on its own.
+              component="a"
+              href="/admin/submissions"
+              clickable
+            />
+          ) : null}
 
           <Typography
             variant="body2"

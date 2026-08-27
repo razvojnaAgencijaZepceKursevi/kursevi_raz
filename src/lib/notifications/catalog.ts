@@ -24,7 +24,8 @@ export type NotificationType = Database['public']['Enums']['notification_type'];
  * Adding a type means: a migration for the enum value (`ALTER TYPE … ADD VALUE`
  * must be alone in its file), an entry here, and a call to `notifyUsers`.
  */
-export type NotificationGroup = 'purchases' | 'submissions' | 'certificates' | 'account';
+export type NotificationGroup =
+  'purchases' | 'submissions' | 'certificates' | 'account' | 'support';
 
 export type NotificationDefinition = {
   /** Shown as the row label on the settings screen. */
@@ -55,6 +56,10 @@ export const NOTIFICATION_GROUPS: Record<
   account: {
     title: 'Nalog i kursevi',
     description: 'Promene na vašem nalogu i na kursevima koje vodite.',
+  },
+  support: {
+    title: 'Prijave i podrška',
+    description: 'Prijave problema i pitanja upućena administratorima.',
   },
 };
 
@@ -142,6 +147,28 @@ export const NOTIFICATION_CATALOG: Record<NotificationType, NotificationDefiniti
     description: 'Kada vam administrator promeni ulogu na nalogu.',
     audience: ['admin', 'teacher', 'student'],
     group: 'account',
+  },
+
+  /* ---- support ---- */
+  issue_opened: {
+    label: 'Nova prijava',
+    description: 'Kada korisnik pošalje novu prijavu problema ili pitanje.',
+    // Only admins handle issues — deliberately not teachers, since a prijava
+    // may well be about one.
+    audience: ['admin'],
+    group: 'support',
+  },
+  issue_reply: {
+    label: 'Odgovor na prijavu',
+    description: 'Kada druga strana odgovori u prepisci o prijavi.',
+    audience: ['admin', 'teacher', 'student'],
+    group: 'support',
+  },
+  issue_closed: {
+    label: 'Prijava zatvorena',
+    description: 'Kada administrator zatvori vašu prijavu.',
+    audience: ['admin', 'teacher', 'student'],
+    group: 'support',
   },
 };
 

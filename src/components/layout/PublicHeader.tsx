@@ -26,11 +26,20 @@ export default function PublicHeader() {
   return (
     <AppBar position="sticky" color="inherit" sx={{ bgcolor: 'background.paper' }}>
       <Toolbar sx={{ gap: 2, minHeight: { xs: 64, sm: 64 } }}>
-        {/* The catalogue exists now, so the wordmark links to it. `<Link>` goes
-            through Next's router via the theme — no `component` prop needed. */}
-        <Link href="/courses" variant="h5" underline="none" color="text.primary">
+        {/* The wordmark goes home now that there is a landing page — it used to
+            point at the catalogue because `/` was a redirect to the login. */}
+        <Link href="/" variant="h5" underline="none" color="text.primary">
           Kursevi
         </Link>
+
+        <Stack direction="row" spacing={2.5} sx={{ ml: 2, display: { xs: 'none', sm: 'flex' } }}>
+          <Link href="/courses" variant="body2" underline="hover" color="text.secondary">
+            Kursevi
+          </Link>
+          <Link href="/blog" variant="body2" underline="hover" color="text.secondary">
+            Blog
+          </Link>
+        </Stack>
 
         <Box sx={{ flex: 1 }} />
 

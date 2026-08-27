@@ -1,5 +1,6 @@
 import { notFound, unwrapMaybe, withRoute } from '@/lib/api/errors';
-import { createServiceRoleClient } from '@/lib/supabase/service-role';
+import { requireUser } from '@/lib/auth/guards';
+import { createClient } from '@/lib/supabase/server';
 import { renderCertificatePdf } from '@/lib/pdf/certificate';
 import { formatDate } from '@/lib/format';
 import { z } from '@/lib/openapi/zod';
@@ -31,13 +32,14 @@ type Ctx = { params: Promise<{ certificateId: string }> };
  * serves both and they cannot drift apart.
  */
 export const GET = withRoute(async (req, ctx: Ctx) => {
+  await requireUser();
   const { certificateId } = await ctx.params;
 
-  const svc = createServiceRoleClient();
+  const supabase = await createClient();
   const isUuid = z.uuid().safeParse(certificateId).success;
 
   const certificate = unwrapMaybe(
-    await svc
+    await supabase
       .from('certificates')
       .select(
         'readable_id, created_at, courses(name), profiles!certificates_student_id_fkey(full_name)',
@@ -64,10 +66,9 @@ export const GET = withRoute(async (req, ctx: Ctx) => {
     headers: {
       'Content-Type': 'application/pdf',
       'Content-Disposition': `${download ? 'attachment' : 'inline'}; filename="${certificate.readable_id}.pdf"`,
-      // Public and immutable in content, but short-cached: the student's name
-      // can change, and a stale certificate with an old name is worse than a
-      // cache miss.
-      'Cache-Control': 'public, max-age=60',
+      // Private, and not cached by anything in between: the response now
+      // depends on who asked for it.
+      'Cache-Control': 'private, no-store',
     },
   });
 });

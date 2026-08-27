@@ -3,6 +3,7 @@
 import * as React from 'react';
 import ArrowBackIcon from '@mui/icons-material/ArrowBack';
 import AttachFileIcon from '@mui/icons-material/AttachFile';
+import DownloadOutlinedIcon from '@mui/icons-material/DownloadOutlined';
 import Alert from '@mui/material/Alert';
 import AlertTitle from '@mui/material/AlertTitle';
 import Box from '@mui/material/Box';
@@ -27,6 +28,7 @@ import {
 import MessageComposer from '@/components/submissions/MessageComposer';
 import MessageThread from '@/components/submissions/MessageThread';
 import { errorMessage } from '@/lib/api/errorMessage';
+import { displayFileName } from '@/lib/storage';
 import { SUBMISSION_STATUS } from '@/lib/status';
 import { toast } from '@/store/useToastStore';
 import type { TaskSubmission } from '@/lib/schemas/task-submissions.schema';
@@ -110,15 +112,19 @@ export default function TaskWorkspace({
                     >
                       <AttachFileIcon fontSize="small" sx={{ color: 'text.disabled' }} />
                       <Typography variant="body2" sx={{ flex: 1, minWidth: 0 }}>
-                        {file.file_name ?? file.file_path.split('/').pop()}
+                        {file.file_name ?? displayFileName(file.file_path)}
                       </Typography>
-                      {/* No download link yet — task files live in a private
-                          bucket and there is no route serving them. Unlike module
-                          materials these are *meant* to be downloaded, so this is
-                          a genuine gap rather than a policy. */}
-                      <Typography variant="caption" color="text.disabled">
-                        Preuzimanje uskoro
-                      </Typography>
+                      {/* A real download, unlike module materials: the brief
+                          may say "start from the attached file", so the student
+                          has to be able to open it in whatever edits it. */}
+                      <Button
+                        href={`/api/task-files/${file.id}/content`}
+                        size="small"
+                        startIcon={<DownloadOutlinedIcon />}
+                        sx={{ flexShrink: 0 }}
+                      >
+                        Preuzmi
+                      </Button>
                     </Stack>
                   ))}
                 </Stack>

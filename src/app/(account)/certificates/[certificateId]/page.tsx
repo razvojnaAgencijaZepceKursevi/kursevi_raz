@@ -17,7 +17,8 @@ import QueryState from '@/components/feedback/QueryState';
 import EmptyState from '@/components/feedback/EmptyState';
 import CertificateDelivery from '@/components/certificates/CertificateDelivery';
 import PdfViewer from '@/components/student/PdfViewer';
-import { useOwnedCertificate, useVerifyCertificate } from '@/hooks/useCertificates';
+import { useCertificate } from '@/hooks/useCertificates';
+import { useAuthStore } from '@/store/useAuthStore';
 import { formatDate } from '@/lib/format';
 import { isStatus } from '@/lib/api/errorMessage';
 
@@ -25,41 +26,44 @@ import { isStatus } from '@/lib/api/errorMessage';
  * One certificate — the page a student is sent to when they finish a course,
  * and the page anyone else lands on when they check whether it is genuine.
  *
- * ## Public, deliberately
+ * ## Signed in only
  *
- * A certificate exists to be shown to someone. `GET /api/certificates/:id` was
- * already built unauthenticated for exactly that, returning a fixed minimal
- * projection — name, course, date, `valid: true` — and never the row. This page
- * is the surface for it, so the link in the completion notification, the link
- * on the dashboard, and a link pasted into an email are all the same URL.
+ * This page was briefly public, as a verification surface anyone could check a
+ * number against. That was reversed: a certificate is private to the student it
+ * belongs to, an admin, and the teacher whose course it was earned on. RLS
+ * enforces exactly that trio, so the page does no authorization of its own — a
+ * certificate that is not yours 404s before this renders.
+ *
+ * It lives in `(account)` because all three roles reach it, the same reason
+ * notifications and settings live there.
  *
  * Addressed by `readable_id` (CERT-YYYY-NNNN) for the same reason courses are
- * addressed by slug: it is the form a person reads out and types in. The
- * endpoint accepts the uuid too, so older links keep working.
+ * addressed by slug: it is the form a person reads out. The endpoint accepts
+ * the uuid too, so older links keep working.
  *
- * ## The owner sees more than a stranger
+ * ## The owner sees one thing more
  *
- * The verification payload is the same for everybody, which means it cannot
- * carry the delivery state — that is the owner's business, not a verifier's. So
- * `useOwnedCertificate` separately asks "is this one of mine?" and the printed
- * copy panel appears only if it is. Both halves are independently enforced
- * server-side; hiding the panel is presentation, not the control.
+ * Only the student may ask for a printed copy, so only they get that panel.
+ * Staff looking at the same page see the document and nothing to act on.
+ * `request-delivery` checks ownership itself; hiding the panel is presentation.
  */
 export default function CertificatePage(props: PageProps<'/certificates/[certificateId]'>) {
   const { certificateId } = React.use(props.params);
 
-  const verification = useVerifyCertificate(certificateId);
-  const owned = useOwnedCertificate(certificateId);
+  const certificateQuery = useCertificate(certificateId);
+  const myId = useAuthStore((s) => s.profile?.id);
 
   // A bad or unknown identifier is a 404 by design — "not a valid certificate"
   // rather than a failure worth retrying or apologising for.
-  if (verification.isError && isStatus(verification.error, 404)) {
+  // 404 covers both "no such number" and "not yours" — deliberately
+  // indistinguishable, since telling them apart would confirm the id is real.
+  if (certificateQuery.isError && isStatus(certificateQuery.error, 404)) {
     return (
       <PageContainer maxWidth="form">
         <ContentCard>
           <EmptyState
             title="Sertifikat nije pronađen"
-            description={`Ne postoji sertifikat sa oznakom „${certificateId}”. Proverite da li je broj tačno prepisan.`}
+            description="Ovaj sertifikat ne postoji ili nemate pristup njemu."
             icon={<WorkspacePremiumOutlinedIcon />}
             action={
               <Button href="/courses" variant="contained">
@@ -74,7 +78,7 @@ export default function CertificatePage(props: PageProps<'/certificates/[certifi
 
   return (
     <PageContainer maxWidth="form">
-      <QueryState query={verification} errorTitle="Sertifikat nije moguće učitati">
+      <QueryState query={certificateQuery} errorTitle="Sertifikat nije moguće učitati">
         {(certificate) => (
           <Stack spacing={3}>
             <ContentCard>
@@ -98,7 +102,7 @@ export default function CertificatePage(props: PageProps<'/certificates/[certifi
                     Sertifikat o završenom kursu
                   </Typography>
                   <Typography variant="h4" component="h1">
-                    {certificate.course_name ?? 'Kurs više ne postoji'}
+                    {certificate.courses?.name ?? 'Kurs više ne postoji'}
                   </Typography>
                 </Stack>
 
@@ -110,7 +114,7 @@ export default function CertificatePage(props: PageProps<'/certificates/[certifi
                       Izdat na ime
                     </Typography>
                     <Typography variant="h6" component="p">
-                      {certificate.student_name ?? '—'}
+                      {certificate.profiles?.full_name ?? '—'}
                     </Typography>
                   </Stack>
 
@@ -134,14 +138,14 @@ export default function CertificatePage(props: PageProps<'/certificates/[certifi
                       <Typography variant="caption" color="text.secondary">
                         Datum izdavanja
                       </Typography>
-                      <Typography variant="body1">{formatDate(certificate.issued_at)}</Typography>
+                      <Typography variant="body1">{formatDate(certificate.created_at)}</Typography>
                     </Stack>
                   </Stack>
                 </Stack>
 
                 <Chip
                   icon={<CheckCircleIcon />}
-                  label="Verifikovan sertifikat"
+                  label="Sertifikat je važeći"
                   color="success"
                   variant="outlined"
                 />
@@ -182,25 +186,21 @@ export default function CertificatePage(props: PageProps<'/certificates/[certifi
               />
             </ContentCard>
 
-            {/* Owner-only. Waits for `isResolved` so a signed-in owner never
-                sees the page settle without their panel, and a stranger never
-                sees it appear and vanish. */}
-            {owned.isResolved && owned.certificate ? (
+            {/* Only the student may request a printed copy. */}
+            {certificate.student_id === myId ? (
               <ContentCard title="Štampani primerak">
-                <CertificateDelivery certificate={owned.certificate} />
+                <CertificateDelivery certificate={certificate} />
               </ContentCard>
             ) : null}
 
             <Stack direction="row" spacing={1.5} sx={{ justifyContent: 'center' }}>
-              {owned.certificate ? (
-                <Button href="/dashboard" startIcon={<SchoolOutlinedIcon />} color="inherit">
-                  Moji kursevi
-                </Button>
-              ) : (
-                <Button href="/courses" startIcon={<SchoolOutlinedIcon />} color="inherit">
-                  Pogledaj kurseve
-                </Button>
-              )}
+              <Button
+                href={certificate.student_id === myId ? '/dashboard' : '/admin/certificates'}
+                startIcon={<SchoolOutlinedIcon />}
+                color="inherit"
+              >
+                {certificate.student_id === myId ? 'Moji kursevi' : 'Svi sertifikati'}
+              </Button>
             </Stack>
           </Stack>
         )}
