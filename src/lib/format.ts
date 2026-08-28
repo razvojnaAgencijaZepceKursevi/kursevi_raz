@@ -2,76 +2,69 @@
  * Display formatting. Every price/date rendered anywhere in the app goes
  * through here, so the locale and currency are decided in one place rather
  * than re-chosen (and quietly diverging) at each call site.
+ *
+ * ## Formatted by hand, not by `Intl`
+ *
+ * Prices and dates used to go through `Intl.NumberFormat` / `Intl.DateTimeFormat`
+ * with a `bs-BA` locale. That is correct *when the runtime has Bosnian locale
+ * data* — and silently wrong when it does not. A runtime missing `bs` falls back
+ * to its default locale, and an English fallback puts the currency symbol in
+ * front: `KM 123` instead of `123 KM`. Same class of bug for dates
+ * (`8/6/2026`), and it appears on some machines and not others, which is the
+ * worst way for a formatting bug to behave.
+ *
+ * So the two formats the product actually specifies are built from parts here:
+ *
+ *   - money  → `1.500 KM`   (dot thousands, comma decimals, symbol last)
+ *   - date   → `06.08.2026.`
+ *
+ * No locale data involved, therefore identical on every machine. `Intl` is
+ * still the right tool when a format is genuinely locale-dependent — it just
+ * isn't, when the product has one fixed answer.
  */
+
+const CURRENCY = 'KM';
+
+/** Zero-pads to two digits: `6` → `06`. */
+function pad(value: number): string {
+  return String(value).padStart(2, '0');
+}
 
 /**
- * `bs-BA`. The UI is Bosnian (ijekavian), and this is the locale that agrees
- * with it — see §7 "The UI language is Bosnian".
+ * `1500` → `1.500`, `1234.5` → `1.234,5`, `123` → `123`.
  *
- * This replaced `sr-BA`, which was **not** a cosmetic difference:
- * `Intl.RelativeTimeFormat('sr-BA')` renders in **Cyrillic** (`прије 5 минута`),
- * so every notification timestamp was the only Cyrillic text in an otherwise
- * Latin UI. `sr-Latn-BA` would fix the script but still says `avgust` where
- * Bosnian says `august`.
- *
- * The one thing `bs-BA` changes for the worse is date spacing —
- * `06. 08. 2026.` rather than `06.08.2026.` — which is why an earlier note here
- * called it "not interchangeable". That spacing is the Bosnian convention, so
- * with the copy in Bosnian it is now the correct rendering rather than a
- * regression.
+ * Bosnian convention: `.` groups thousands, `,` separates decimals — the
+ * opposite of English, which is exactly why a locale fallback is so visible.
+ * Trailing zero decimals are dropped, since prices are nearly always whole
+ * marks and `1.500,00 KM` is noise.
  */
-const LOCALE = 'bs-BA';
-const CURRENCY = 'BAM';
-
-const priceFormatter = new Intl.NumberFormat(LOCALE, {
-  style: 'currency',
-  currency: CURRENCY,
-  /**
-   * `narrowSymbol` was load-bearing under `sr-BA`, where the default (`symbol`)
-   * rendered BAM as Cyrillic `КМ` — visually almost identical to Latin `KM`,
-   * but a different pair of characters, which broke search and copy-paste.
-   *
-   * Under `bs-BA` both settings produce Latin `KM`, so this is now belt and
-   * braces rather than a fix. Kept deliberately: it costs nothing and it means
-   * a future locale change cannot quietly reintroduce Cyrillic currency.
-   */
-  currencyDisplay: 'narrowSymbol',
-  // Prices are numeric(10,2) but are nearly always whole marks — show decimals
-  // only when they carry information.
-  minimumFractionDigits: 0,
-  maximumFractionDigits: 2,
-});
-
-const dateFormatter = new Intl.DateTimeFormat(LOCALE, {
-  day: '2-digit',
-  month: '2-digit',
-  year: 'numeric',
-});
-
-const dateTimeFormatter = new Intl.DateTimeFormat(LOCALE, {
-  day: '2-digit',
-  month: '2-digit',
-  year: 'numeric',
-  hour: '2-digit',
-  minute: '2-digit',
-});
+function formatAmount(value: number): string {
+  const [whole, fraction = ''] = Math.abs(value).toFixed(2).split('.');
+  const grouped = whole.replace(/\B(?=(\d{3})+(?!\d))/g, '.');
+  const trimmed = fraction.replace(/0+$/, '');
+  return `${value < 0 ? '-' : ''}${grouped}${trimmed ? `,${trimmed}` : ''}`;
+}
 
 /** `1500` → `1.500 KM`. Free courses read as "Besplatno" rather than "0 KM". */
 export function formatPrice(price: number): string {
   if (price === 0) return 'Besplatno';
-  return priceFormatter.format(price);
+  return `${formatAmount(price)} ${CURRENCY}`;
 }
 
-/** ISO timestamp → `06. 08. 2026.` */
+/** ISO timestamp → `06.08.2026.` — rendered in the viewer's own timezone. */
 export function formatDate(iso: string | null | undefined): string {
   if (!iso) return '—';
-  return dateFormatter.format(new Date(iso));
+  const date = new Date(iso);
+  if (Number.isNaN(date.getTime())) return '—';
+  return `${pad(date.getDate())}.${pad(date.getMonth() + 1)}.${date.getFullYear()}.`;
 }
 
-/** ISO timestamp → `06. 08. 2026. u 14:30` */
+/** ISO timestamp → `06.08.2026. 14:30` */
 export function formatDateTime(iso: string | null | undefined): string {
   if (!iso) return '—';
-  return dateTimeFormatter.format(new Date(iso));
+  const date = new Date(iso);
+  if (Number.isNaN(date.getTime())) return '—';
+  return `${formatDate(iso)} ${pad(date.getHours())}:${pad(date.getMinutes())}`;
 }
 
 /**
@@ -82,22 +75,40 @@ export function formatDateTime(iso: string | null | undefined): string {
  * question they have. Falls back to the absolute date past a week, where
  * "prije 43 dana" stops being easier than reading the date.
  *
- * `Intl.RelativeTimeFormat` handles the plural forms itself — hand-rolling this
- * with `pluralBs` would mean re-deriving rules the platform already knows.
+ * Built from `pluralBs` rather than `Intl.RelativeTimeFormat` for the same
+ * reason as the two above: the relative formatter renders `sr` in **Cyrillic**
+ * and an absent `bs` falls back to English, so the one string a user reads
+ * dozens of times a day was the most locale-fragile thing in the app.
  */
-const relativeFormatter = new Intl.RelativeTimeFormat(LOCALE, { numeric: 'auto' });
-
 export function formatRelativeTime(iso: string | null | undefined): string {
   if (!iso) return '—';
 
   const then = new Date(iso).getTime();
-  const seconds = Math.round((then - Date.now()) / 1000);
-  const absolute = Math.abs(seconds);
+  if (Number.isNaN(then)) return '—';
 
-  if (absolute < 60) return 'upravo sada';
-  if (absolute < 3600) return relativeFormatter.format(Math.round(seconds / 60), 'minute');
-  if (absolute < 86_400) return relativeFormatter.format(Math.round(seconds / 3600), 'hour');
-  if (absolute < 604_800) return relativeFormatter.format(Math.round(seconds / 86_400), 'day');
+  const seconds = Math.round((Date.now() - then) / 1000);
+
+  // A timestamp in the future is either clock skew or a scheduled item; either
+  // way "prije -3 minute" is nonsense, so show the date instead.
+  if (seconds < 0) return formatDate(iso);
+
+  if (seconds < 60) return 'upravo sada';
+
+  if (seconds < 3600) {
+    const minutes = Math.round(seconds / 60);
+    return `prije ${minutes} ${pluralBs(minutes, 'minut', 'minute', 'minuta')}`;
+  }
+
+  if (seconds < 86_400) {
+    const hours = Math.round(seconds / 3600);
+    return `prije ${hours} ${pluralBs(hours, 'sat', 'sata', 'sati')}`;
+  }
+
+  if (seconds < 604_800) {
+    const days = Math.round(seconds / 86_400);
+    if (days === 1) return 'jučer';
+    return `prije ${days} ${pluralBs(days, 'dan', 'dana', 'dana')}`;
+  }
 
   return formatDate(iso);
 }

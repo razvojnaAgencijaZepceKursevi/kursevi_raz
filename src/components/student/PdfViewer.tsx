@@ -3,6 +3,9 @@
 import * as React from 'react';
 import ChevronLeftIcon from '@mui/icons-material/ChevronLeft';
 import ChevronRightIcon from '@mui/icons-material/ChevronRight';
+import FitScreenOutlinedIcon from '@mui/icons-material/FitScreenOutlined';
+import FullscreenIcon from '@mui/icons-material/Fullscreen';
+import FullscreenExitIcon from '@mui/icons-material/FullscreenExit';
 import ZoomInIcon from '@mui/icons-material/ZoomIn';
 import ZoomOutIcon from '@mui/icons-material/ZoomOut';
 import Box from '@mui/material/Box';
@@ -10,6 +13,7 @@ import Divider from '@mui/material/Divider';
 import IconButton from '@mui/material/IconButton';
 import LinearProgress from '@mui/material/LinearProgress';
 import Stack from '@mui/material/Stack';
+import Tooltip from '@mui/material/Tooltip';
 import Typography from '@mui/material/Typography';
 import ErrorState from '@/components/feedback/ErrorState';
 
@@ -33,6 +37,19 @@ import ErrorState from '@/components/feedback/ErrorState';
  * stops nobody, and it breaks normal browser behaviour and accessibility for
  * everyone else.
  *
+ * ## Fit-page by default, not fit-width
+ *
+ * Scaling a portrait A4 to the container's *width* makes it about 1.4x taller
+ * than it is wide, inside a page that already scrolls — so reading one PDF page
+ * meant scrolling the document, losing the toolbar, and never seeing a whole
+ * page at once. The default now fits the **whole page** into a bounded
+ * viewport, so a page is a page; zoom is there for anyone who wants it bigger.
+ *
+ * Fullscreen uses the native Fullscreen API on the wrapper rather than a
+ * dialog. A dialog would remount this component and re-fetch the PDF; keeping
+ * the same element means the canvas and the loaded document survive and only
+ * the scale is recomputed.
+ *
  * ## Loading pdf.js
  *
  * The library is imported dynamically inside an effect, for two reasons: it is
@@ -52,9 +69,19 @@ export default function PdfViewer({ src, title }: { src: string; title?: string 
     getPage: (n: number) => Promise<unknown>;
   } | null>(null);
 
+  const wrapperRef = React.useRef<HTMLDivElement>(null);
+
   const [pageCount, setPageCount] = React.useState(0);
   const [page, setPage] = React.useState(1);
   const [zoom, setZoom] = React.useState(1);
+  const [fitWidth, setFitWidth] = React.useState(false);
+  const [fullscreen, setFullscreen] = React.useState(false);
+  /*
+   * The container's measured box. Kept in state rather than read during render
+   * because entering fullscreen resizes it without any other prop changing —
+   * without this the canvas would keep its old scale until the next page turn.
+   */
+  const [box, setBox] = React.useState({ width: 0, height: 0 });
   const [loading, setLoading] = React.useState(true);
   const [error, setError] = React.useState<unknown>(null);
 
@@ -120,12 +147,24 @@ export default function PdfViewer({ src, title }: { src: string; title?: string 
       };
       if (cancelled) return;
 
-      // Fit the page to the container, then apply the user's zoom on top, so
-      // the default view is "readable" rather than an arbitrary scale.
-      const available = containerRef.current?.clientWidth ?? 800;
+      /*
+       * Fit, then apply the user's zoom on top.
+       *
+       * Page fit takes the smaller of the two ratios so the whole sheet is
+       * visible; width fit is the old behaviour, kept for anyone who would
+       * rather scroll than squint. The padding allowance stops a fitted page
+       * from touching the container edge and raising a scrollbar, which would
+       * narrow the container and re-trigger the fit.
+       */
+      const availableWidth = (box.width || containerRef.current?.clientWidth || 800) - 16;
+      const availableHeight = (box.height || 640) - 16;
       const base = pdfPage.getViewport({ scale: 1 });
-      const scale = ((available - 8) / base.width) * zoom;
-      const viewport = pdfPage.getViewport({ scale });
+
+      const widthRatio = availableWidth / base.width;
+      const heightRatio = availableHeight / base.height;
+      const fit = fitWidth ? widthRatio : Math.min(widthRatio, heightRatio);
+
+      const viewport = pdfPage.getViewport({ scale: fit * zoom });
 
       // Draw at device resolution so text is not blurry on high-DPI screens,
       // while CSS keeps the element at layout size.
@@ -155,14 +194,60 @@ export default function PdfViewer({ src, title }: { src: string; title?: string 
       cancelled = true;
       renderTask?.cancel();
     };
-  }, [page, zoom, pageCount]);
+  }, [page, zoom, pageCount, fitWidth, box.width, box.height]);
+
+  // --- Keep `box` in step with the container -------------------------------
+  React.useEffect(() => {
+    const element = containerRef.current;
+    if (!element) return;
+
+    const observer = new ResizeObserver(([entry]) => {
+      const { width, height } = entry.contentRect;
+      // Ignore sub-pixel jitter; re-rendering a PDF page is not cheap.
+      setBox((current) =>
+        Math.abs(current.width - width) < 2 && Math.abs(current.height - height) < 2
+          ? current
+          : { width, height },
+      );
+    });
+
+    observer.observe(element);
+    return () => observer.disconnect();
+  }, []);
+
+  // --- Track fullscreen, including the user pressing Escape ----------------
+  React.useEffect(() => {
+    function onChange() {
+      setFullscreen(document.fullscreenElement === wrapperRef.current);
+    }
+    document.addEventListener('fullscreenchange', onChange);
+    return () => document.removeEventListener('fullscreenchange', onChange);
+  }, []);
+
+  async function toggleFullscreen() {
+    try {
+      if (document.fullscreenElement) await document.exitFullscreen();
+      else await wrapperRef.current?.requestFullscreen();
+    } catch {
+      // Refused by the browser (permissions policy, an iframe without
+      // `allowfullscreen`). The viewer still works inline, so this is not worth
+      // interrupting the reader over.
+    }
+  }
 
   if (error) {
     return <ErrorState error={error} title="Materijal nije moguće prikazati" />;
   }
 
   return (
-    <Stack>
+    <Stack
+      ref={wrapperRef}
+      sx={{
+        // In fullscreen the wrapper *is* the screen, so it paints its own
+        // background — otherwise the browser shows black behind the toolbar.
+        ...(fullscreen ? { height: '100%', bgcolor: 'background.paper' } : null),
+      }}
+    >
       {loading ? <LinearProgress /> : null}
 
       <Box
@@ -170,8 +255,13 @@ export default function PdfViewer({ src, title }: { src: string; title?: string 
         sx={{
           bgcolor: 'action.hover',
           display: 'flex',
+          alignItems: 'center',
           justifyContent: 'center',
-          p: 0.5,
+          p: 1,
+          // Bounded, so a fitted page has a height to fit *into*. Without a
+          // ceiling here "fit page" has no meaning and the tall-page problem
+          // comes straight back.
+          height: fullscreen ? '100%' : 'min(70vh, 760px)',
           minHeight: 320,
           overflow: 'auto',
         }}
@@ -226,6 +316,33 @@ export default function PdfViewer({ src, title }: { src: string; title?: string 
         >
           <ZoomInIcon />
         </IconButton>
+
+        <Box sx={{ width: 16 }} />
+
+        <Tooltip title={fitWidth ? 'Uklopi cijelu stranu' : 'Uklopi po širini'}>
+          <IconButton
+            size="small"
+            onClick={() => {
+              setFitWidth((v) => !v);
+              // Switching fit mode with a zoom applied lands somewhere
+              // arbitrary; resetting makes the button mean what it says.
+              setZoom(1);
+            }}
+            aria-label={fitWidth ? 'Uklopi cijelu stranu' : 'Uklopi po širini'}
+          >
+            <FitScreenOutlinedIcon />
+          </IconButton>
+        </Tooltip>
+
+        <Tooltip title={fullscreen ? 'Izađi iz punog ekrana' : 'Puni ekran'}>
+          <IconButton
+            size="small"
+            onClick={() => void toggleFullscreen()}
+            aria-label={fullscreen ? 'Izađi iz punog ekrana' : 'Puni ekran'}
+          >
+            {fullscreen ? <FullscreenExitIcon /> : <FullscreenIcon />}
+          </IconButton>
+        </Tooltip>
       </Stack>
     </Stack>
   );

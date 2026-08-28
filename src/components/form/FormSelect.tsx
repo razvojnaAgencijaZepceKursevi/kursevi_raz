@@ -78,6 +78,21 @@ export default function FormSelect<TFieldValues extends FieldValues = FieldValue
               ),
             }
           : undefined,
+        /*
+         * The empty choice is a real, selectable option, so it has to render
+         * like one. MUI gates the display of the selected item on
+         * `isFilled({ value }) || displayEmpty`, and `isFilled` is false for
+         * `''` — without this the field goes blank the moment someone picks
+         * "Bez kategorije", as if their choice had been discarded.
+         *
+         * `shrink` goes with it: once the value is drawn, a full-size label
+         * would sit on top of it. Only when there *is* an empty option — a
+         * required select has nothing to show and should keep the normal
+         * floating-label behaviour.
+         */
+        ...(emptyOptionLabel
+          ? { select: { displayEmpty: true }, inputLabel: { shrink: true } }
+          : null),
         formHelperText: { sx: { minHeight: 20, mx: 0 } },
       }}
     >

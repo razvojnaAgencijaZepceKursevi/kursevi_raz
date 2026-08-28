@@ -68,7 +68,12 @@ export default function CourseActions({ course }: { course: Course }) {
           <ListItemIcon>
             <InsightsOutlinedIcon fontSize="small" />
           </ListItemIcon>
-          <Typography variant="body2">Pregled</Typography>
+          {/*
+            "Pregled" was ambiguous next to "Izmijeni" — every item in this menu
+            opens something, so it said nothing about *what*. This page is the
+            course's numbers: enrolment, completion, pending submissions.
+          */}
+          <Typography variant="body2">Statistika kursa</Typography>
         </MenuItem>
 
         <MenuItem component={NextLink} href={`/admin/courses/${course.id}/edit`} onClick={close}>

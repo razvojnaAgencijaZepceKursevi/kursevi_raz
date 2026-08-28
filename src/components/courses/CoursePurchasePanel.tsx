@@ -12,6 +12,7 @@ import { useCreatePurchase } from '@/hooks/usePurchases';
 import { canRequestPurchase, type PurchaseState } from '@/lib/courseAccess';
 import type { Purchase } from '@/lib/schemas/purchases.schema';
 import PaymentReference from '@/components/purchases/PaymentReference';
+import PaymentInstructions from '@/components/purchases/PaymentInstructions';
 import { errorMessage } from '@/lib/api/errorMessage';
 import { formatPrice } from '@/lib/format';
 import { toast } from '@/store/useToastStore';
@@ -32,12 +33,14 @@ import { toast } from '@/store/useToastStore';
  */
 export default function CoursePurchasePanel({
   courseId,
+  courseName,
   price,
   purchaseState,
   isAuthenticated,
   pendingPurchase,
 }: {
   courseId: string;
+  courseName: string;
   price: number;
   purchaseState: PurchaseState;
   isAuthenticated: boolean;
@@ -99,7 +102,20 @@ export default function CoursePurchasePanel({
             </Alert>
 
             {(newReference ?? pendingPurchase?.readable_id) ? (
-              <PaymentReference readableId={(newReference ?? pendingPurchase?.readable_id)!} />
+              <>
+                <PaymentReference readableId={(newReference ?? pendingPurchase?.readable_id)!} />
+                {/*
+                  The reference alone was only half of a bank transfer — it says
+                  how we will recognise the payment, not who to pay. These are
+                  the account details it goes with.
+                */}
+                <PaymentInstructions
+                  reference={(newReference ?? pendingPurchase?.readable_id)!}
+                  courseName={courseName}
+                  price={price}
+                  showReference={false}
+                />
+              </>
             ) : null}
           </Stack>
         ) : (

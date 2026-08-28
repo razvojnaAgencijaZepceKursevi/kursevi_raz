@@ -1,5 +1,8 @@
 import type { SvgIconComponent } from '@mui/icons-material';
+import AccountBalanceOutlinedIcon from '@mui/icons-material/AccountBalanceOutlined';
 import CategoryOutlinedIcon from '@mui/icons-material/CategoryOutlined';
+import GavelOutlinedIcon from '@mui/icons-material/GavelOutlined';
+import MarkEmailReadOutlinedIcon from '@mui/icons-material/MarkEmailReadOutlined';
 import DashboardOutlinedIcon from '@mui/icons-material/DashboardOutlined';
 import LibraryBooksOutlinedIcon from '@mui/icons-material/LibraryBooksOutlined';
 import PeopleOutlinedIcon from '@mui/icons-material/PeopleOutlined';
@@ -49,7 +52,10 @@ export type AdminNavSection = {
  */
 export const ADMIN_NAV: AdminNavSection[] = [
   {
-    items: [{ label: 'Pregled', href: '/admin', icon: DashboardOutlinedIcon, exact: true }],
+    // "Kontrolna tabla", matching `<AppHeader>`. It read "Pregled" here and
+    // "Kontrolna tabla" in the top bar — one destination with two names, which
+    // is exactly the ambiguity the course menu's "Pregled" was renamed for.
+    items: [{ label: 'Kontrolna tabla', href: '/admin', icon: DashboardOutlinedIcon, exact: true }],
   },
   {
     title: 'Sadržaj',
@@ -76,6 +82,34 @@ export const ADMIN_NAV: AdminNavSection[] = [
         icon: SupportOutlinedIcon,
         // Admins only: an issue may be about a teacher, so teachers do not see
         // the queue. RLS enforces it regardless of what the nav shows.
+        roles: ['admin'],
+      },
+    ],
+  },
+  {
+    // Platform-wide configuration. All admin-only, and not because of the
+    // sidebar — every endpoint behind these calls `requireAdmin()`, and the
+    // matching RLS policies say the same. There is one seller and one set of
+    // legal texts, and they belong to the platform rather than to a course
+    // author.
+    title: 'Postavke',
+    items: [
+      {
+        label: 'Podaci za uplatu',
+        href: '/admin/settings/payment',
+        icon: AccountBalanceOutlinedIcon,
+        roles: ['admin'],
+      },
+      {
+        label: 'Pravni dokumenti',
+        href: '/admin/settings/legal',
+        icon: GavelOutlinedIcon,
+        roles: ['admin'],
+      },
+      {
+        label: 'Newsletter',
+        href: '/admin/settings/newsletter',
+        icon: MarkEmailReadOutlinedIcon,
         roles: ['admin'],
       },
     ],

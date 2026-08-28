@@ -9,7 +9,7 @@ import ContentCard from '@/components/layout/ContentCard';
 /**
  * A public page that exists, routes, and is honest about having no content yet.
  *
- * Distinct from `<PlaceholderPage>`, which was the admin equivalent and listed
+ * Distinct from the old admin `<PlaceholderPage>` (now deleted), which listed
  * *engineering* work still to do. These pages are not waiting on code — the
  * route, the chrome and the footer link are all finished. They are waiting on
  * **copy**, which is somebody else's job, so the notice says that rather than

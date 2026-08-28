@@ -2,10 +2,10 @@ import { notFound } from 'next/navigation';
 import ArrowBackIcon from '@mui/icons-material/ArrowBack';
 import Button from '@mui/material/Button';
 import Stack from '@mui/material/Stack';
-import Typography from '@mui/material/Typography';
 import PageContainer from '@/components/layout/PageContainer';
 import PageHeader from '@/components/layout/PageHeader';
 import ContentCard from '@/components/layout/ContentCard';
+import MarkdownContent from '@/components/markdown/MarkdownContent';
 import { BLOG_POSTS, findBlogPost } from '@/lib/blog';
 import { formatDate } from '@/lib/format';
 
@@ -54,14 +54,11 @@ export default async function BlogPostPage(props: PageProps<'/blog/[slug]'>) {
 
       <ContentCard>
         {/*
-          `content` is Markdown, and nothing parses it yet — it is rendered as
-          preformatted text so the data is visible and the page compiles. The
-          renderer (and the styling that goes with it) is a separate step; when
-          it lands, this block is the only thing that changes.
+          A Server Component, so the whole article is parsed here and arrives in
+          the initial HTML. That is the point of having a blog at all — a
+          crawler must not have to run JavaScript to read it.
         */}
-        <Typography variant="body1" sx={{ lineHeight: 1.75, whiteSpace: 'pre-wrap' }}>
-          {post.content}
-        </Typography>
+        <MarkdownContent content={post.content} />
       </ContentCard>
 
       <Stack direction="row">

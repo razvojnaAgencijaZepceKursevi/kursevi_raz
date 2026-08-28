@@ -12,20 +12,26 @@ import theme from './theme';
  * style tags correctly during streaming SSR, which a hand-rolled registry
  * tends to get subtly wrong.
  *
- * Color scheme: the theme defines both `light` and `dark`, but the app is
- * pinned to light for now. `defaultMode` overrides MUI's `'system'` default
- * (which was picking up the OS dark preference), and `storageManager={null}`
- * disables the localStorage-backed mode so nothing can flip it.
+ * ## Colour scheme
  *
- * When a theme toggle lands: drop `storageManager={null}` to re-enable
- * persistence, add `<InitColorSchemeScript defaultMode="light" attribute="class" />`
- * as the first child of `<body>` to avoid a flash of the wrong scheme on SSR,
- * and drive the switch with `useColorScheme()`.
+ * The theme has always defined both `light` and `dark`; the app was pinned to
+ * light with `defaultMode="light" storageManager={null}`. Both are gone now:
+ *
+ *   - `defaultMode="system"` follows the operating system until the user says
+ *     otherwise, which is the honest default — the browser already knows what
+ *     they prefer.
+ *   - dropping `storageManager={null}` re-enables MUI's localStorage-backed
+ *     mode, so a choice survives a reload *on that device* with no round trip.
+ *
+ * The saved-to-the-database preference sits on top of that, in `<ThemeSync>`:
+ * localStorage makes the choice instant, the database makes it follow the user
+ * to another machine. See `InitColorSchemeScript` in the root layout for why
+ * there is no flash of the wrong scheme on first paint.
  */
 export default function ThemeRegistry({ children }: { children: React.ReactNode }) {
   return (
     <AppRouterCacheProvider options={{ key: 'mui', enableCssLayer: true }}>
-      <ThemeProvider theme={theme} defaultMode="light" storageManager={null}>
+      <ThemeProvider theme={theme} defaultMode="system">
         <CssBaseline />
         {children}
       </ThemeProvider>

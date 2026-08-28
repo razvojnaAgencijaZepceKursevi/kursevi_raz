@@ -205,53 +205,73 @@ export default function CourseViewPage(props: PageProps<'/courses/[slug]'>) {
               <Grid container spacing={3}>
                 <Grid size={{ xs: 12, md: 8 }}>
                   <Stack spacing={3}>
-                    <Box
-                      sx={{
-                        aspectRatio: '16 / 9',
-                        borderRadius: 2,
-                        overflow: 'hidden',
-                        border: 1,
-                        borderColor: 'divider',
-                        bgcolor: 'action.hover',
-                        display: 'grid',
-                        placeItems: 'center',
-                        color: 'text.disabled',
-                      }}
+                    {/*
+                      The thumbnail used to be a full-width 16:9 block above the
+                      title — on a laptop that is most of the fold, so a visitor
+                      landed on a decorative image and had to scroll to find out
+                      what the course actually was.
+
+                      It is now a fixed-size thumbnail beside the heading: the
+                      same information, but the title leads and the description
+                      is visible without scrolling. It stays full-width on
+                      mobile, where a side-by-side split would leave both halves
+                      too narrow to read.
+                    */}
+                    <Stack
+                      direction={{ xs: 'column', sm: 'row' }}
+                      spacing={{ xs: 2, sm: 3 }}
+                      sx={{ alignItems: 'flex-start' }}
                     >
-                      {thumbnail ? (
-                        // eslint-disable-next-line @next/next/no-img-element
-                        <img
-                          src={thumbnail}
-                          alt=""
-                          style={{ width: '100%', height: '100%', objectFit: 'cover' }}
-                        />
-                      ) : (
-                        <ImageOutlinedIcon sx={{ fontSize: 48 }} />
-                      )}
-                    </Box>
+                      <Box
+                        sx={{
+                          flexShrink: 0,
+                          width: { xs: '100%', sm: 220 },
+                          aspectRatio: '16 / 9',
+                          borderRadius: 2,
+                          overflow: 'hidden',
+                          border: 1,
+                          borderColor: 'divider',
+                          bgcolor: 'action.hover',
+                          display: 'grid',
+                          placeItems: 'center',
+                          color: 'text.disabled',
+                        }}
+                      >
+                        {thumbnail ? (
+                          // eslint-disable-next-line @next/next/no-img-element
+                          <img
+                            src={thumbnail}
+                            alt=""
+                            style={{ width: '100%', height: '100%', objectFit: 'cover' }}
+                          />
+                        ) : (
+                          <ImageOutlinedIcon sx={{ fontSize: 40 }} />
+                        )}
+                      </Box>
 
-                    <Stack spacing={1.5}>
-                      {categoryName ? (
-                        <Box>
-                          <Chip label={categoryName} size="small" variant="outlined" />
-                        </Box>
-                      ) : null}
+                      <Stack spacing={1.5} sx={{ flex: 1, minWidth: 0 }}>
+                        {categoryName ? (
+                          <Box>
+                            <Chip label={categoryName} size="small" variant="outlined" />
+                          </Box>
+                        ) : null}
 
-                      <Typography variant="h1" component="h1">
-                        {courseData.name}
-                      </Typography>
-
-                      {courseData.description ? (
-                        <Typography
-                          variant="body1"
-                          color="text.secondary"
-                          // Preserve the paragraph breaks the admin typed into
-                          // the textarea; the column is already width-limited.
-                          sx={{ whiteSpace: 'pre-line' }}
-                        >
-                          {courseData.description}
+                        <Typography variant="h1" component="h1">
+                          {courseData.name}
                         </Typography>
-                      ) : null}
+
+                        {courseData.description ? (
+                          <Typography
+                            variant="body1"
+                            color="text.secondary"
+                            // Preserve the paragraph breaks the admin typed into
+                            // the textarea; the column is already width-limited.
+                            sx={{ whiteSpace: 'pre-line' }}
+                          >
+                            {courseData.description}
+                          </Typography>
+                        ) : null}
+                      </Stack>
                     </Stack>
 
                     <ContentCard
@@ -309,6 +329,7 @@ export default function CourseViewPage(props: PageProps<'/courses/[slug]'>) {
                   ) : (
                     <CoursePurchasePanel
                       courseId={courseData.id}
+                      courseName={courseData.name}
                       price={courseData.price}
                       purchaseState={access.purchaseState}
                       isAuthenticated={access.isAuthenticated}

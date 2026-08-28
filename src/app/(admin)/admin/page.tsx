@@ -6,6 +6,8 @@ import AssignmentTurnedInOutlinedIcon from '@mui/icons-material/AssignmentTurned
 import LibraryBooksOutlinedIcon from '@mui/icons-material/LibraryBooksOutlined';
 import PeopleOutlinedIcon from '@mui/icons-material/PeopleOutlined';
 import ReceiptLongOutlinedIcon from '@mui/icons-material/ReceiptLongOutlined';
+import SupportOutlinedIcon from '@mui/icons-material/SupportOutlined';
+import Box from '@mui/material/Box';
 import Button from '@mui/material/Button';
 import Divider from '@mui/material/Divider';
 import Grid from '@mui/material/Grid';
@@ -21,6 +23,7 @@ import StatusChip from '@/components/data/StatusChip';
 import { useAdminCourses } from '@/hooks/useCourses';
 import { useAdminPurchases } from '@/hooks/usePurchases';
 import { useAdminSubmissions } from '@/hooks/useSubmissions';
+import { useIssues } from '@/hooks/useIssues';
 import { useAdminUsers } from '@/hooks/useUsers';
 import { formatDate, formatPrice } from '@/lib/format';
 import { publishStatus } from '@/lib/status';
@@ -56,8 +59,19 @@ export default function AdminDashboardPage() {
   // teacher must not even ask for it.
   const users = useAdminUsers({ pageSize: 1 }, { enabled: isAdmin });
 
+  /*
+   * Support is admin-only too, and for a reason worth keeping: `/api/issues` is
+   * RLS-scoped, so a teacher asking would get *their own* tickets rather than
+   * the queue — a number that looks like a work queue but is not one. The
+   * dashboard predates support existing, which is why this tile is a late
+   * addition rather than part of the original four.
+   */
+  const openIssues = useIssues({ pageSize: 1, status: 'open' }, { enabled: isAdmin });
+
   // The one list that fetches real rows — the five most recent courses.
   const recentCourses = useAdminCourses({ pageSize: 5 });
+
+  const statSpan = isAdmin ? 2.4 : 4;
 
   return (
     <PageContainer>
@@ -73,8 +87,13 @@ export default function AdminDashboardPage() {
         }
       />
 
+      {/*
+        Five tiles for an admin, three for a teacher. `lg: 2.4` is 12/5 — Grid
+        accepts a fractional span, so the row divides evenly instead of leaving
+        a five-tile set wrapping 4 + 1.
+      */}
       <Grid container spacing={2}>
-        <Grid size={{ xs: 12, sm: 6, lg: 3 }}>
+        <Grid size={{ xs: 12, sm: 6, lg: statSpan }}>
           <StatCard
             label={isAdmin ? 'Ukupno kurseva' : 'Moji kursevi'}
             value={courses.data?.meta.total}
@@ -85,7 +104,7 @@ export default function AdminDashboardPage() {
           />
         </Grid>
 
-        <Grid size={{ xs: 12, sm: 6, lg: 3 }}>
+        <Grid size={{ xs: 12, sm: 6, lg: statSpan }}>
           <StatCard
             label="Zahtjevi na čekanju"
             value={pendingPurchases.data?.meta.total}
@@ -97,7 +116,7 @@ export default function AdminDashboardPage() {
           />
         </Grid>
 
-        <Grid size={{ xs: 12, sm: 6, lg: 3 }}>
+        <Grid size={{ xs: 12, sm: 6, lg: statSpan }}>
           <StatCard
             label="Zadaci za pregled"
             value={pendingSubmissions.data?.meta.total}
@@ -110,7 +129,7 @@ export default function AdminDashboardPage() {
         </Grid>
 
         {isAdmin ? (
-          <Grid size={{ xs: 12, sm: 6, lg: 3 }}>
+          <Grid size={{ xs: 12, sm: 6, lg: statSpan }}>
             <StatCard
               label="Registrovani korisnici"
               value={users.data?.meta.total}
@@ -118,6 +137,20 @@ export default function AdminDashboardPage() {
               href="/admin/users"
               loading={users.isPending}
               error={users.isError}
+            />
+          </Grid>
+        ) : null}
+
+        {isAdmin ? (
+          <Grid size={{ xs: 12, sm: 6, lg: statSpan }}>
+            <StatCard
+              label="Otvoreni zahtjevi za podršku"
+              value={openIssues.data?.meta.total}
+              icon={SupportOutlinedIcon}
+              href="/admin/issues"
+              loading={openIssues.isPending}
+              error={openIssues.isError}
+              highlight
             />
           </Grid>
         ) : null}
@@ -180,11 +213,24 @@ export default function AdminDashboardPage() {
                     </Typography>
                   </Stack>
 
+                  {/*
+                    Fixed widths, not `spacing` alone: prices and status labels
+                    vary in length, so right-aligning each row independently
+                    left the column edges ragged down the list. Reserving the
+                    same width on every row is what makes them read as columns.
+                  */}
                   <Stack direction="row" spacing={2} sx={{ alignItems: 'center', flexShrink: 0 }}>
-                    <Typography variant="body2" color="text.secondary">
+                    <Typography
+                      variant="body2"
+                      color="text.secondary"
+                      sx={{ width: 96, textAlign: 'right' }}
+                      noWrap
+                    >
                       {formatPrice(course.price)}
                     </Typography>
-                    <StatusChip {...publishStatus(course.published)} />
+                    <Box sx={{ width: 104, display: 'flex', justifyContent: 'flex-end' }}>
+                      <StatusChip {...publishStatus(course.published)} />
+                    </Box>
                   </Stack>
                 </Stack>
               ))}

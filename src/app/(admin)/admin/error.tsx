@@ -24,7 +24,7 @@ export default function AdminError({
       retry={unstable_retry}
       scope="admin"
       homeHref="/admin"
-      homeLabel="Pregled"
+      homeLabel="Kontrolna tabla"
     />
   );
 }

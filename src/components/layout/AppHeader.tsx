@@ -212,11 +212,16 @@ export default function AppHeader({
             </MenuItem>
           ))}
 
-          <MenuItem component={NextLink} href="/settings/notifications" onClick={close}>
+          {/*
+            One entry for one screen. There were two — appearance and
+            notifications — which made a single settings page look like two
+            unrelated destinations. `/settings` lands on the first tab.
+          */}
+          <MenuItem component={NextLink} href="/settings" onClick={close}>
             <ListItemIcon>
               <SettingsOutlinedIcon fontSize="small" />
             </ListItemIcon>
-            <Typography variant="body2">Podešavanja obavještenja</Typography>
+            <Typography variant="body2">Podešavanja</Typography>
           </MenuItem>
 
           <MenuItem
