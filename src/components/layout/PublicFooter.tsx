@@ -5,6 +5,9 @@ import Link from '@mui/material/Link';
 import Stack from '@mui/material/Stack';
 import Typography from '@mui/material/Typography';
 
+import { SITE_NAME } from '@/lib/siteConfig';
+import Logo from '@/components/layout/Logo';
+
 /**
  * Footer for the public pages.
  *
@@ -19,25 +22,36 @@ import Typography from '@mui/material/Typography';
  */
 const SECTIONS: { title: string; links: { label: string; href: string }[] }[] = [
   {
+    // TODO: when we define all categories they need to be added here with appropriate paths
     title: 'Kursevi',
     links: [
-      { label: 'Svi kursevi', href: '/courses' },
-      { label: 'Blog', href: '/blog' },
+      { label: 'IT / programiranje', href: '/courses?category=it-programiranje' },
+      { label: 'Poslovanje i menadžment', href: '/courses?category=poslovanje-i-menadzment' },
+      { label: 'Marketing', href: '/courses?category=marketing' },
+      { label: 'Finansije i računovodstvo', href: '/courses?category=finansije-i-racunovodstvo' },
+      { label: 'Zanati i praktične vještine', href: '/courses?category=zanati-i-prakticne-vjestine' },
     ],
   },
   {
-    title: 'Informacije',
+    // TODO: o-nama page doesn't exist yet
+    title: 'Platforma',
     links: [
+      { label: 'O nama', href: '/o-nama' },
+      { label: 'Blog', href: '/blog' },
       { label: 'Kontakt', href: '/kontakt' },
       { label: 'Uvjeti korištenja', href: '/uvjeti-koristenja' },
       { label: 'Politika privatnosti', href: '/politika-privatnosti' },
     ],
   },
   {
-    title: 'Nalog',
+    // TODO: replace with real contact details / social URLs
+    title: 'Kontakt',
     links: [
-      { label: 'Prijava', href: '/login' },
-      { label: 'Registracija', href: '/register' },
+      { label: 'info@katedra.ba', href: 'mailto:info@katedra.ba' },
+      { label: '+387 33 000 000', href: 'tel:+38733000000' },
+      { label: 'Instagram', href: 'https://instagram.com' },
+      { label: 'LinkedIn', href: 'https://linkedin.com' },
+      { label: 'Facebook', href: 'https://facebook.com' },
     ],
   },
 ];
@@ -53,10 +67,10 @@ export default function PublicFooter() {
         >
           <Stack spacing={1} sx={{ maxWidth: 280 }}>
             <Typography variant="h6" component="p">
-              Kursevi
+              <Logo />
             </Typography>
             <Typography variant="body2" color="text.secondary">
-              Online kursevi sa praćenjem napretka, zadacima i certifikatom po završetku.
+              Platforma za online kurseve s pregledom zadataka i certifikatom po završetku.
             </Typography>
           </Stack>
 
@@ -70,6 +84,7 @@ export default function PublicFooter() {
                   variant="body2"
                   underline="hover"
                   color="text.secondary"
+                  {...(link.href.startsWith('http') && { target: '_blank', rel: 'noopener noreferrer' })} // This makes social links open in new tab
                 >
                   {link.label}
                 </Link>
@@ -81,7 +96,7 @@ export default function PublicFooter() {
         <Divider sx={{ my: 3 }} />
 
         <Typography variant="caption" color="text.secondary">
-          © {new Date().getFullYear()} Kursevi. Sva prava zadržana.
+          © {new Date().getFullYear()} {SITE_NAME}. Sva prava zadržana. Placeholder podaci o firmi i registraciji.
         </Typography>
       </Container>
     </Box>

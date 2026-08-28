@@ -1,5 +1,7 @@
 'use client';
 
+import Typography from '@mui/material/Typography';
+import Logo from '@/components/layout/Logo';
 import AppBar from '@mui/material/AppBar';
 import Box from '@mui/material/Box';
 import Button from '@mui/material/Button';
@@ -37,16 +39,25 @@ export default function PublicHeader() {
   return (
     <AppBar position="sticky" color="inherit" sx={{ bgcolor: 'background.paper' }}>
       <Toolbar sx={{ gap: 2, minHeight: { xs: 64, sm: 64 } }}>
-        <Link href="/" variant="h5" underline="none" color="text.primary">
-          Kursevi
-        </Link>
+        <Typography variant="h5" color="text.primary">
+          <Logo />
+        </Typography>
 
         <Stack direction="row" spacing={2.5} sx={{ ml: 2, display: { xs: 'none', sm: 'flex' } }}>
+          <Link href="/" variant="body2" underline="hover" color="text.secondary">
+          Početna
+          </Link>
           <Link href="/courses" variant="body2" underline="hover" color="text.secondary">
-            Kursevi
+          Kursevi
+          </Link>
+          <Link href="/how-it-works" variant="body2" underline="hover" color="text.secondary">
+          Kako funkcioniše
           </Link>
           <Link href="/blog" variant="body2" underline="hover" color="text.secondary">
-            Blog
+          Blog 
+          </Link>
+          <Link href="/kontakt" variant="body2" underline="hover" color="text.secondary">
+          Kontakt
           </Link>
         </Stack>
 
