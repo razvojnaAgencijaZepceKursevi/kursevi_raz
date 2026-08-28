@@ -10,9 +10,9 @@ import Typography from '@mui/material/Typography';
 import ContentCard from '@/components/layout/ContentCard';
 
 export const metadata = {
-  title: 'Kursevi — online kursevi sa sertifikatom',
+  title: 'Kursevi — online kursevi sa certifikatom',
   description:
-    'Online kursevi sa video lekcijama, materijalima, zadacima i sertifikatom po završetku.',
+    'Online kursevi sa video lekcijama, materijalima, zadacima i certifikatom po završetku.',
 };
 
 /**
@@ -49,12 +49,12 @@ const FEATURES = [
   {
     icon: AssignmentTurnedInOutlinedIcon,
     title: 'Kvizovi i zadaci',
-    body: 'Znanje proveravate kvizom, a praktične zadatke predajete predavaču koji ih pregleda i odgovara vam.',
+    body: 'Znanje provjeravate kvizom, a praktične zadatke predajete predavaču koji ih pregleda i odgovara vam.',
   },
   {
     icon: WorkspacePremiumOutlinedIcon,
-    title: 'Sertifikat po završetku',
-    body: 'Kada završite sve module, dobijate sertifikat u PDF-u — a možete zatražiti i štampani primerak.',
+    title: 'Certifikat po završetku',
+    body: 'Kada završite sve module, dobijate certifikat u PDF-u — a možete zatražiti i štampani primjerak.',
   },
 ];
 
@@ -67,7 +67,7 @@ export default function LandingPage() {
             Naučite nešto novo, korak po korak
           </Typography>
           <Typography variant="h6" component="p" color="text.secondary" sx={{ fontWeight: 400 }}>
-            Kursevi sa jasnim redosledom modula, praktičnim zadacima i predavačem koji prati vaš
+            Kursevi sa jasnim redoslijedom modula, praktičnim zadacima i predavačem koji prati vaš
             napredak. Bez žurbe i bez preskakanja.
           </Typography>
 

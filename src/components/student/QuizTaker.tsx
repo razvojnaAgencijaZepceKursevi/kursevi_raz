@@ -102,7 +102,7 @@ export default function QuizTaker({
           { label: 'Kviz' },
         ]}
         title="Kviz"
-        description={`Provera znanja za modul „${moduleTitle}”.`}
+        description={`Provjera znanja za modul „${moduleTitle}”.`}
       />
 
       <QueryState
@@ -149,13 +149,13 @@ export default function QuizTaker({
                 </Alert>
 
                 {result.module_completed ? (
-                  <Alert severity="success">Modul je završen. Sledeći modul je otključan.</Alert>
+                  <Alert severity="success">Modul je završen. Sljedeći modul je otključan.</Alert>
                 ) : null}
 
                 {result.certificate_issued ? (
                   <Alert severity="success" icon={<WorkspacePremiumOutlinedIcon />}>
                     <AlertTitle>Čestitamo — kurs je završen</AlertTitle>
-                    Sertifikat je izdat i čeka vas na kontrolnoj tabli.
+                    Certifikat je izdat i čeka vas na kontrolnoj tabli.
                   </Alert>
                 ) : null}
 

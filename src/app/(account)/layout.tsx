@@ -1,7 +1,7 @@
 import { redirect } from 'next/navigation';
 import Box from '@mui/material/Box';
 import { getAuthContext } from '@/lib/auth/guards';
-import AccountHeader from '@/components/account/AccountHeader';
+import AppHeader from '@/components/layout/AppHeader';
 
 /**
  * Chrome for the pages every signed-in person shares, whatever their role.
@@ -26,7 +26,7 @@ export default async function AccountLayout({ children }: { children: React.Reac
 
   return (
     <Box sx={{ minHeight: '100dvh', bgcolor: 'background.default' }}>
-      <AccountHeader role={auth.profile.role} fullName={auth.profile.full_name} />
+      <AppHeader profile={auth.profile} />
       <Box sx={{ py: 4 }}>{children}</Box>
     </Box>
   );

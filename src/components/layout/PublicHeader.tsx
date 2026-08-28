@@ -7,27 +7,36 @@ import Link from '@mui/material/Link';
 import Skeleton from '@mui/material/Skeleton';
 import Stack from '@mui/material/Stack';
 import Toolbar from '@mui/material/Toolbar';
-import Typography from '@mui/material/Typography';
-import { landingPathForRole } from '@/lib/auth/routes';
+import AppHeader from '@/components/layout/AppHeader';
 import { useAuthStore } from '@/store/useAuthStore';
 
 /**
  * Top bar for the public-facing pages.
  *
- * A client component because the right-hand action depends on who's looking.
- * While the session is still resolving it renders a skeleton rather than the
- * signed-out state — otherwise a signed-in visitor watches the header flip from
+ * ## A signed-in visitor gets the ordinary app bar
+ *
+ * The public pages are reachable while signed in — the catalogue, a course, the
+ * blog — and there is no reason the chrome should change just because the page
+ * underneath happens to be public. So once the session resolves, this hands
+ * over to `<AppHeader />`, the same bar used everywhere else.
+ *
+ * What is left here is the genuinely different case: a **stranger**. They have
+ * no name, no role and nothing to sign out of, and what they need instead is a
+ * way in. That is the only reason this component still exists.
+ *
+ * While the session is resolving it renders a skeleton rather than the
+ * signed-out state, or a signed-in visitor would watch the header flip from
  * "Prijavi se" to their own name on every page load.
  */
 export default function PublicHeader() {
   const profile = useAuthStore((s) => s.profile);
   const loading = useAuthStore((s) => s.loading);
 
+  if (profile) return <AppHeader />;
+
   return (
     <AppBar position="sticky" color="inherit" sx={{ bgcolor: 'background.paper' }}>
       <Toolbar sx={{ gap: 2, minHeight: { xs: 64, sm: 64 } }}>
-        {/* The wordmark goes home now that there is a landing page — it used to
-            point at the catalogue because `/` was a redirect to the login. */}
         <Link href="/" variant="h5" underline="none" color="text.primary">
           Kursevi
         </Link>
@@ -44,20 +53,7 @@ export default function PublicHeader() {
         <Box sx={{ flex: 1 }} />
 
         {loading ? (
-          <Skeleton variant="rounded" width={120} height={36} />
-        ) : profile ? (
-          <Stack direction="row" spacing={1.5} sx={{ alignItems: 'center' }}>
-            <Typography
-              variant="body2"
-              color="text.secondary"
-              sx={{ display: { xs: 'none', sm: 'block' } }}
-            >
-              {profile.full_name}
-            </Typography>
-            <Button href={landingPathForRole(profile.role)} variant="outlined" size="small">
-              {profile.role === 'admin' ? 'Admin panel' : 'Moji kursevi'}
-            </Button>
-          </Stack>
+          <Skeleton variant="rounded" width={160} height={36} />
         ) : (
           <Stack direction="row" spacing={1}>
             <Button href="/login" size="small">

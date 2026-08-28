@@ -103,8 +103,8 @@ export function renderEmail(content: EmailContent): { html: string; text: string
               <td style="padding:0 28px 24px;">
                 <hr style="border:none;border-top:1px solid #e5e7eb;margin:0 0 16px;" />
                 <p style="margin:0;font-size:12px;line-height:1.6;color:#6b7280;">
-                  Ovo obaveštenje ste dobili jer je uključeno u podešavanjima vašeg naloga.
-                  Možete ga isključiti na stranici „Obaveštenja”.
+                  Ovo obavještenje ste dobili jer je uključeno u podešavanjima vašeg naloga.
+                  Možete ga isključiti na stranici „Obavještenja”.
                 </p>
               </td>
             </tr>
@@ -124,8 +124,8 @@ export function renderEmail(content: EmailContent): { html: string; text: string
     ...(action ? ['', `${action.label}: ${action.href}`] : []),
     '',
     '—',
-    'Ovo obaveštenje ste dobili jer je uključeno u podešavanjima vašeg naloga.',
-    'Možete ga isključiti na stranici „Obaveštenja”.',
+    'Ovo obavještenje ste dobili jer je uključeno u podešavanjima vašeg naloga.',
+    'Možete ga isključiti na stranici „Obavještenja”.',
   ].join('\n');
 
   return { html, text };

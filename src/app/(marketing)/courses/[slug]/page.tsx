@@ -185,7 +185,7 @@ export default function CourseViewPage(props: PageProps<'/courses/[slug]'>) {
                         color="inherit"
                         startIcon={<EditOutlinedIcon />}
                       >
-                        Izmeni
+                        Izmijeni
                       </Button>
                       <Button
                         href={`/admin/courses/${courseData.id}/modules`}
@@ -297,7 +297,7 @@ export default function CourseViewPage(props: PageProps<'/courses/[slug]'>) {
                   {/* Until access is known, neither panel is safe to show. */}
                   {!access.isResolved ? (
                     <ContentCard>
-                      <LoadingState minHeight={160} label="Provera pristupa…" />
+                      <LoadingState minHeight={160} label="Provjera pristupa…" />
                     </ContentCard>
                   ) : access.canOpenModules ? (
                     <CourseProgressSummary
@@ -312,6 +312,7 @@ export default function CourseViewPage(props: PageProps<'/courses/[slug]'>) {
                       price={courseData.price}
                       purchaseState={access.purchaseState}
                       isAuthenticated={access.isAuthenticated}
+                      pendingPurchase={access.pendingPurchase}
                     />
                   )}
                 </Grid>

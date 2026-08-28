@@ -43,7 +43,7 @@ export const moduleFormSchema = z.object({
    */
   order: z
     .number({ error: 'Redni broj je obavezan.' })
-    .int('Redni broj mora biti ceo broj.')
+    .int('Redni broj mora biti cio broj.')
     .min(0, 'Redni broj ne može biti negativan.'),
 });
 

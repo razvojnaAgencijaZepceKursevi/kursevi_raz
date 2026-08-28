@@ -49,7 +49,7 @@ export default function PurchaseActions({
       toast.success(
         pendingAction === 'approved'
           ? `Pristup je odobren — ${studentName} sada može da otvori kurs.`
-          : 'Zahtev je odbijen.',
+          : 'Zahtjev je odbijen.',
       );
       setPendingAction(null);
     } catch (error) {
@@ -83,12 +83,12 @@ export default function PurchaseActions({
 
       <ConfirmDialog
         open={pendingAction !== null}
-        title={pendingAction === 'denied' ? 'Odbiti zahtev?' : 'Odobriti pristup?'}
+        title={pendingAction === 'denied' ? 'Odbiti zahtjev?' : 'Odobriti pristup?'}
         description={
           pendingAction === 'denied' ? (
             <Typography variant="body2" component="span">
-              Zahtev korisnika <strong>{studentName}</strong> za kurs <strong>{courseName}</strong>{' '}
-              biće odbijen. Korisnik može kasnije poslati novi zahtev.
+              Zahtjev korisnika <strong>{studentName}</strong> za kurs <strong>{courseName}</strong>{' '}
+              bit će odbijen. Korisnik može kasnije poslati novi zahtjev.
             </Typography>
           ) : (
             <Typography variant="body2" component="span">
@@ -98,7 +98,7 @@ export default function PurchaseActions({
             </Typography>
           )
         }
-        confirmLabel={pendingAction === 'denied' ? 'Odbij zahtev' : 'Odobri pristup'}
+        confirmLabel={pendingAction === 'denied' ? 'Odbij zahtjev' : 'Odobri pristup'}
         severity={pendingAction === 'denied' ? 'error' : 'primary'}
         pending={updatePurchase.isPending}
         onCancel={() => setPendingAction(null)}

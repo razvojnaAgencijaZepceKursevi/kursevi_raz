@@ -84,7 +84,7 @@ export default async function ModuleViewPage(
           <ContentCard>
             <EmptyState
               title="Nemate pristup ovom modulu"
-              description="Sadržaj je dostupan tek nakon što administrator odobri vaš zahtev za pristup kursu."
+              description="Sadržaj je dostupan tek nakon što administrator odobri vaš zahtjev za pristup kursu."
               action={
                 <Button href={`/courses/${course.slug}`} variant="contained">
                   Nazad na kurs

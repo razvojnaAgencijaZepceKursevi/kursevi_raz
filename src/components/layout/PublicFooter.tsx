@@ -29,7 +29,7 @@ const SECTIONS: { title: string; links: { label: string; href: string }[] }[] = 
     title: 'Informacije',
     links: [
       { label: 'Kontakt', href: '/kontakt' },
-      { label: 'Uslovi korišćenja', href: '/uslovi-koriscenja' },
+      { label: 'Uvjeti korištenja', href: '/uvjeti-koristenja' },
       { label: 'Politika privatnosti', href: '/politika-privatnosti' },
     ],
   },
@@ -56,7 +56,7 @@ export default function PublicFooter() {
               Kursevi
             </Typography>
             <Typography variant="body2" color="text.secondary">
-              Online kursevi sa praćenjem napretka, zadacima i sertifikatom po završetku.
+              Online kursevi sa praćenjem napretka, zadacima i certifikatom po završetku.
             </Typography>
           </Stack>
 

@@ -88,7 +88,7 @@ async function main() {
   {
     const { error } = await ana
       .from('courses')
-      .update({ description: 'Izmenjeno u proveri.' })
+      .update({ description: 'Izmijenjeno u provjeri.' })
       .eq('id', anaCourse.id);
     check('teacher can edit their own course', !error, error?.message);
   }
@@ -126,7 +126,7 @@ async function main() {
   {
     const { data, error } = await ana
       .from('courses')
-      .insert({ name: 'Provera: novi kurs', price: 0 })
+      .insert({ name: 'Provjera: novi kurs', price: 0 })
       .select()
       .single();
     check('teacher can create a course', !error, error?.message);
@@ -149,9 +149,9 @@ async function main() {
   {
     const { error } = await ana
       .from('modules')
-      .insert({ course_id: anaCourse.id, title: 'Provera modul', order: 98 });
+      .insert({ course_id: anaCourse.id, title: 'Provjera modul', order: 98 });
     check('teacher can add a module to their own course', !error, error?.message);
-    if (!error) await service.from('modules').delete().eq('title', 'Provera modul');
+    if (!error) await service.from('modules').delete().eq('title', 'Provjera modul');
   }
   {
     const { error } = await student.from('courses').insert({ name: 'Student pokušava', price: 0 });
@@ -282,7 +282,7 @@ async function main() {
     {
       const { data, error } = await ana
         .from('courses')
-        .update({ description: 'Ne bi smelo da prođe.' })
+        .update({ description: 'Ne bi smjelo da prođe.' })
         .eq('id', anaCourse.id)
         .select();
       check(
@@ -294,7 +294,7 @@ async function main() {
     {
       const { error } = await ana
         .from('modules')
-        .insert({ course_id: anaCourse.id, title: 'Ne bi smelo', order: 99 });
+        .insert({ course_id: anaCourse.id, title: 'Ne bi smjelo', order: 99 });
       check('demoted teacher cannot add a module to their own course', Boolean(error));
     }
     {
@@ -323,7 +323,7 @@ async function main() {
     {
       const { data, error } = await ana
         .from('courses')
-        .update({ description: 'Ni ovo ne bi smelo.' })
+        .update({ description: 'Ni ovo ne bi smjelo.' })
         .eq('id', anaCourse.id)
         .select();
       check(

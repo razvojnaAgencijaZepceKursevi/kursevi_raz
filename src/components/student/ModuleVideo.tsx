@@ -21,7 +21,7 @@ export default function ModuleVideo({ url }: { url: string }) {
   if (!embedUrl) {
     return (
       <Alert severity="warning">
-        Video link nije prepoznat kao Vimeo adresa, pa se ne može prikazati. Proverite link u
+        Video link nije prepoznat kao Vimeo adresa, pa se ne može prikazati. Provjerite link u
         podešavanjima modula.
       </Alert>
     );

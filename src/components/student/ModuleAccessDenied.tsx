@@ -35,7 +35,7 @@ export default function ModuleAccessDenied({
         ) : (
           <EmptyState
             title="Nemate pristup ovom sadržaju"
-            description="Dostupan je tek nakon što administrator odobri vaš zahtev za pristup kursu."
+            description="Dostupan je tek nakon što administrator odobri vaš zahtjev za pristup kursu."
             action={
               <Button href={`/courses/${slug}`} variant="contained">
                 Nazad na kurs

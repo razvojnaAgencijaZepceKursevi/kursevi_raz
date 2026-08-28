@@ -119,17 +119,17 @@ export const PATCH = withRoute(async (req, ctx: Ctx) => {
     notifyAfterResponse({
       userIds: [userId],
       type: 'account_role_changed',
-      title: 'Uloga naloga je promenjena',
+      title: 'Uloga naloga je promijenjena',
       body: `Vaša uloga je sada: ${USER_ROLE[updated.role].label}.`,
       link: landingPathForRole(updated.role),
       email: {
-        subject: 'Promenjena je uloga vašeg naloga',
-        heading: 'Uloga naloga je promenjena',
+        subject: 'Promijenjena je uloga vašeg naloga',
+        heading: 'Uloga naloga je promijenjena',
         lines: [
-          `Administrator je promenio ulogu vašeg naloga na: ${USER_ROLE[updated.role].label}.`,
+          `Administrator je promijenio ulogu vašeg naloga na: ${USER_ROLE[updated.role].label}.`,
           updated.role === 'teacher'
-            ? 'Sada možete da kreirate i uređujete sopstvene kurseve, module, kvizove i zadatke, i da pregledate predata rešenja.'
-            : 'Promena važi odmah, bez ponovne prijave.',
+            ? 'Sada možete da kreirate i uređujete vlastite kurseve, module, kvizove i zadatke, i da pregledate predata rješenja.'
+            : 'Promjena važi odmah, bez ponovne prijave.',
         ],
         action: { label: 'Otvori nalog', href: landingPathForRole(updated.role) },
       },

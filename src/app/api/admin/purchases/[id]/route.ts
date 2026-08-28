@@ -65,10 +65,10 @@ export const PATCH = withRoute(async (req, ctx: Ctx) => {
   notifyAfterResponse({
     userIds: [updated.student_id],
     type: approved ? 'purchase_approved' : 'purchase_denied',
-    title: approved ? 'Pristup kursu je odobren' : 'Zahtev za pristup je odbijen',
+    title: approved ? 'Pristup kursu je odobren' : 'Zahtjev za pristup je odbijen',
     body: approved
       ? `Sada možete da pratite kurs „${courseName}”.`
-      : `Vaš zahtev za pristup kursu „${courseName}” je odbijen.`,
+      : `Vaš zahtjev za pristup kursu „${courseName}” je odbijen.`,
     link: approved ? courseHref : '/courses',
     email: approved
       ? {
@@ -76,18 +76,18 @@ export const PATCH = withRoute(async (req, ctx: Ctx) => {
           heading: 'Pristup kursu je odobren',
           lines: [
             `Odobren vam je pristup kursu „${courseName}”.`,
-            'Moduli se otključavaju redom — završite jedan da biste otvorili sledeći.',
+            'Moduli se otključavaju redom — završite jedan da biste otvorili sljedeći.',
           ],
           action: { label: 'Otvori kurs', href: courseHref },
         }
       : {
-          subject: `Zahtev odbijen — ${courseName}`,
-          heading: 'Zahtev za pristup je odbijen',
+          subject: `Zahtjev odbijen — ${courseName}`,
+          heading: 'Zahtjev za pristup je odbijen',
           lines: [
-            `Vaš zahtev za pristup kursu „${courseName}” je odbijen.`,
+            `Vaš zahtjev za pristup kursu „${courseName}” je odbijen.`,
             // True, and worth saying: the unique index excludes `denied`, so a
             // denial is not a permanent block.
-            'Možete poslati novi zahtev za isti kurs.',
+            'Možete poslati novi zahtjev za isti kurs.',
           ],
           action: { label: 'Pogledaj kurs', href: courseHref },
         },

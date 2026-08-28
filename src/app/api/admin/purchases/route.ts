@@ -24,6 +24,10 @@ export const GET = withRoute(async (req) => {
       },
     );
 
+  // The reference is what an admin has in front of them when reconciling a
+  // payment, so it is what search matches. Nothing else on a purchase row is
+  // free text.
+  if (query.search) q = q.ilike('readable_id', `%${query.search}%`);
   if (query.status) q = q.eq('status', query.status);
   if (query.courseId) q = q.eq('course_id', query.courseId);
   if (query.studentId) q = q.eq('student_id', query.studentId);

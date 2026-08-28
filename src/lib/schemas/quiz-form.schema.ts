@@ -56,7 +56,7 @@ export const quizQuestionFormSchema = z
 export const quizFormSchema = z.object({
   passing_score: z
     .number({ error: 'Unesite prag prolaznosti.' })
-    .int('Prag mora biti ceo broj.')
+    .int('Prag mora biti cio broj.')
     .min(0, 'Prag ne može biti manji od 0.')
     .max(100, 'Prag ne može biti veći od 100.'),
 

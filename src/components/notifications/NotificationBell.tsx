@@ -78,10 +78,10 @@ export default function NotificationBell() {
 
   return (
     <>
-      <Tooltip title="Obaveštenja">
+      <Tooltip title="Obavještenja">
         <IconButton
           onClick={(event) => setAnchorEl(event.currentTarget)}
-          aria-label={count > 0 ? `Obaveštenja (${count} nepročitanih)` : 'Obaveštenja'}
+          aria-label={count > 0 ? `Obavještenja (${count} nepročitanih)` : 'Obavještenja'}
         >
           <Badge badgeContent={count} color="error" max={99}>
             <NotificationsNoneOutlinedIcon />
@@ -101,7 +101,7 @@ export default function NotificationBell() {
           direction="row"
           sx={{ px: 2, py: 1.25, alignItems: 'center', justifyContent: 'space-between' }}
         >
-          <Typography variant="subtitle2">Obaveštenja</Typography>
+          <Typography variant="subtitle2">Obavještenja</Typography>
           {count > 0 ? (
             <Button
               size="small"
@@ -122,7 +122,7 @@ export default function NotificationBell() {
         ) : rows.length === 0 ? (
           <Box sx={{ px: 2, py: 4 }}>
             <Typography variant="body2" color="text.secondary" align="center">
-              Nemate obaveštenja.
+              Nemate obavještenja.
             </Typography>
           </Box>
         ) : (
@@ -167,7 +167,7 @@ export default function NotificationBell() {
           sx={{ justifyContent: 'center', py: 1.25 }}
         >
           <Typography variant="body2" color="primary">
-            Sva obaveštenja
+            Sva obavještenja
           </Typography>
         </MenuItem>
       </Menu>

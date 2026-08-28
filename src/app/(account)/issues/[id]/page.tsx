@@ -53,11 +53,11 @@ export default function IssueDetailPage(props: PageProps<'/issues/[id]'>) {
       <PageContainer maxWidth="form">
         <ContentCard>
           <EmptyState
-            title="Prijava nije pronađena"
-            description="Ova prijava ne postoji ili nemate pristup njoj."
+            title="Zahtjev nije pronađen"
+            description="Ovaj zahtjev ne postoji ili nemate pristup njemu."
             action={
               <Button href="/issues" variant="contained">
-                Moje prijave
+                Podrška
               </Button>
             }
           />
@@ -68,11 +68,11 @@ export default function IssueDetailPage(props: PageProps<'/issues/[id]'>) {
 
   return (
     <PageContainer maxWidth="form">
-      <QueryState query={issue} errorTitle="Prijavu nije moguće učitati">
+      <QueryState query={issue} errorTitle="Zahtjev nije moguće učitati">
         {(row) => (
           <>
             <PageHeader
-              breadcrumbs={[{ label: 'Moje prijave', href: '/issues' }, { label: row.subject }]}
+              breadcrumbs={[{ label: 'Podrška', href: '/issues' }, { label: row.subject }]}
               title={row.subject}
               description={`Poslato ${formatDateTime(row.created_at)}`}
               actions={<StatusChip {...ISSUE_STATUS[row.status]} size="medium" />}
@@ -80,7 +80,7 @@ export default function IssueDetailPage(props: PageProps<'/issues/[id]'>) {
 
             {row.status === 'closed' ? (
               <Alert severity="info">
-                Ova prijava je zatvorena. Ako problem i dalje postoji, odgovorite ispod i prijava se
+                Ovaj zahtjev je zatvoren. Ako problem i dalje postoji, odgovorite ispod i zahtjev se
                 ponovo otvara.
               </Alert>
             ) : null}
@@ -93,7 +93,7 @@ export default function IssueDetailPage(props: PageProps<'/issues/[id]'>) {
               <Stack spacing={1.5} sx={{ p: 2.5 }}>
                 <TextField
                   label="Odgovor"
-                  placeholder="Dopunite prijavu ili odgovorite administratoru…"
+                  placeholder="Dopunite zahtjev ili odgovorite administratoru…"
                   value={body}
                   onChange={(event) => setBody(event.target.value)}
                   multiline
@@ -115,7 +115,7 @@ export default function IssueDetailPage(props: PageProps<'/issues/[id]'>) {
 
             <Stack direction="row">
               <Button href="/issues" color="inherit" startIcon={<ArrowBackIcon />}>
-                Sve prijave
+                Svi zahtjevi
               </Button>
             </Stack>
           </>

@@ -40,6 +40,16 @@ const supabase = createClient(env.NEXT_PUBLIC_SUPABASE_URL, env.SUPABASE_SERVICE
   auth: { autoRefreshToken: false, persistSession: false },
 });
 
+/**
+ * Support issues the seed owns, keyed by subject so a re-run can clear exactly
+ * the ones it made and nothing a human wrote while testing.
+ */
+const ISSUE_SUBJECTS = [
+  'Ne mogu da otvorim drugi modul',
+  'Pogrešno ime na certifikatu',
+  'Da li postoji popust za studente?',
+];
+
 /** Every seeded account shares this password. Development only. */
 const PASSWORD = 'Test1234!';
 
@@ -120,6 +130,11 @@ const COURSE_NAMES = [
 ];
 
 async function resetContent() {
+  // Issues hang off profiles, not courses, so deleting the seeded accounts
+  // already removes them — but the project owner's own account survives a
+  // re-seed, and its seeded issues would otherwise accumulate.
+  unwrap(await supabase.from('issues').delete().in('subject', ISSUE_SUBJECTS), 'delete issues');
+
   unwrap(await supabase.from('courses').delete().in('name', COURSE_NAMES), 'delete courses');
   unwrap(
     await supabase.from('categories').delete().in('name', CATEGORY_NAMES),
@@ -162,7 +177,7 @@ async function seedContent(users) {
         },
         {
           name: COURSE_NAMES[2],
-          description: 'Teorija boja, tipografija i kompozicija kroz praktične primere.',
+          description: 'Teorija boja, tipografija i kompozicija kroz praktične primjere.',
           price: 75,
           published: true,
           category_id: categoryId['Dizajn'],
@@ -191,6 +206,10 @@ async function seedContent(users) {
         { course_id: courseId[COURSE_NAMES[0]], title: 'Prvi koraci u JavaScriptu', order: 2 },
         { course_id: courseId[COURSE_NAMES[2]], title: 'Teorija boja', order: 0 },
         { course_id: courseId[COURSE_NAMES[2]], title: 'Tipografija', order: 1 },
+        // No quiz and no task, and nobody has completed it — the case that used
+        // to strand a student. It is here so the "Završi modul" button on the
+        // module viewer has somewhere to be exercised.
+        { course_id: courseId[COURSE_NAMES[2]], title: 'Kompozicija i raspored', order: 2 },
         // Single module, no quiz and no task — so a progress row makes it
         // complete, which is what lets the certificate below exist.
         { course_id: courseId[COURSE_NAMES[3]], title: 'Osnovne Git komande', order: 0 },
@@ -244,7 +263,7 @@ async function seedQuiz({ moduleByTitle }) {
       ],
     },
     {
-      text: 'Koji port se podrazumevano koristi za HTTPS?',
+      text: 'Koji port se podrazumijevano koristi za HTTPS?',
       answers: [
         { text: '443', correct: true },
         { text: '80', correct: false },
@@ -394,8 +413,8 @@ async function seedFiles({ courseId, moduleByTitle }, task) {
   await uploadAndRecord({
     bucket: 'task-files',
     folders: [courseId[COURSE_NAMES[0]], htmlModule.id],
-    fileName: 'zadatak-primer.txt',
-    body: 'Primer strukture koju treba da napravite:\nindex.html\nstyle.css\n',
+    fileName: 'zadatak-primjer.txt',
+    body: 'Primjer strukture koju treba da napravite:\nindex.html\nstyle.css\n',
     // Task files are not restricted to PDF — only module materials are, because
     // only those are rendered in-page for students.
     contentType: 'text/plain',
@@ -555,6 +574,130 @@ async function seedActivity(users, { courseId, moduleByTitle }) {
 }
 
 /* -------------------------------------------------------------------------- */
+/* Support issues and notifications                                            */
+/* -------------------------------------------------------------------------- */
+
+/**
+ * One issue in each state, plus a thread on the answered one.
+ *
+ * Statuses are written directly rather than driven through the API, so this
+ * seeds `closed_at`/`closed_by` by hand — the route would normally set them.
+ * That is the usual seed trade-off: it bypasses RLS and the application rules
+ * to produce a state that would otherwise take a dozen requests to reach.
+ */
+async function seedIssues(users) {
+  const rows = unwrap(
+    await supabase
+      .from('issues')
+      .insert([
+        // Waiting on an admin — this is what the queue opens on.
+        { reporter_id: users.jovana, subject: ISSUE_SUBJECTS[0], status: 'open' },
+        // Answered but not closed: the middle state, easy to forget exists.
+        { reporter_id: users.nikola, subject: ISSUE_SUBJECTS[1], status: 'answered' },
+        // Closed, so the "reply re-opens it" behaviour has something to act on.
+        {
+          reporter_id: users.jovana,
+          subject: ISSUE_SUBJECTS[2],
+          status: 'closed',
+          closed_at: new Date().toISOString(),
+          closed_by: users.admin,
+        },
+      ])
+      .select(),
+    'insert issues',
+  );
+
+  const bySubject = Object.fromEntries(rows.map((r) => [r.subject, r]));
+
+  unwrap(
+    await supabase.from('issue_messages').insert([
+      {
+        issue_id: bySubject[ISSUE_SUBJECTS[0]].id,
+        sender_id: users.jovana,
+        body: 'Zavrsio sam prvi modul ali drugi je i dalje zakljucan. Da li nesto propustam?',
+      },
+      {
+        issue_id: bySubject[ISSUE_SUBJECTS[1]].id,
+        sender_id: users.nikola,
+        body: 'Na certifikatu mi pise pogresno prezime. Moze li da se ispravi?',
+      },
+      {
+        issue_id: bySubject[ISSUE_SUBJECTS[1]].id,
+        sender_id: users.admin,
+        body: 'Ispravili smo podatke na nalogu. Certifikat ce od sada nositi tacno ime.',
+      },
+      {
+        issue_id: bySubject[ISSUE_SUBJECTS[2]].id,
+        sender_id: users.jovana,
+        body: 'Da li imate popust za studente?',
+      },
+      {
+        issue_id: bySubject[ISSUE_SUBJECTS[2]].id,
+        sender_id: users.admin,
+        body: 'Trenutno nemamo studentski popust, ali planiramo ga za sljedecu sezonu.',
+      },
+    ]),
+    'insert issue messages',
+  );
+
+  return rows;
+}
+
+/**
+ * A few notifications, so the bell is not empty on first sign-in.
+ *
+ * Inserted directly, which is the one thing the application never does — every
+ * real notification goes through `notifyAfterResponse` after the request that
+ * caused it. Here there is no such request, so the rows are written as the
+ * finished article. Two are left unread on purpose, so the badge shows a count.
+ */
+async function seedNotifications(users, { certificate, courseId }) {
+  unwrap(
+    await supabase.from('notifications').insert([
+      {
+        user_id: users.jovana,
+        type: 'certificate_issued',
+        title: 'Čestitamo — završili ste kurs!',
+        body: `Certifikat za kurs „${COURSE_NAMES[3]}” je izdat na vaše ime. Broj: ${certificate.readable_id}.`,
+        link: `/certificates/${certificate.readable_id}`,
+      },
+      {
+        user_id: users.jovana,
+        type: 'purchase_approved',
+        title: 'Pristup kursu je odobren',
+        body: `Sada možete da pratite kurs „${COURSE_NAMES[0]}”.`,
+        link: '/dashboard',
+        // Read, so the list shows both states.
+        read_at: new Date().toISOString(),
+      },
+      {
+        user_id: users.admin,
+        type: 'purchase_requested',
+        title: 'Novi zahtjev za kupovinu',
+        body: `Nikola Nikolić je zatražio/la pristup kursu „${COURSE_NAMES[0]}”.`,
+        link: '/admin/purchases',
+      },
+      {
+        user_id: users.ana,
+        type: 'submission_received',
+        title: 'Novo predato rješenje',
+        body: `Jovana Jovanović je predala rješenje za „HTML i CSS osnove” (${COURSE_NAMES[0]}).`,
+        link: '/admin/submissions',
+      },
+      {
+        user_id: users.marko,
+        type: 'course_published',
+        title: 'Vaš kurs je objavljen',
+        body: `Kurs „${COURSE_NAMES[2]}” je objavljen i vidljiv je u katalogu.`,
+        link: `/admin/courses/${courseId[COURSE_NAMES[2]]}`,
+        read_at: new Date().toISOString(),
+      },
+    ]),
+    'insert notifications',
+  );
+}
+
+/* -------------------------------------------------------------------------- */
 
 async function main() {
   log('\nResetting seed accounts…');
@@ -574,6 +717,13 @@ async function main() {
   const activity = await seedActivity(users, content);
   await seedFiles(content, activity.task);
 
+  log('\nCreating support issues and notifications…');
+  await seedIssues(users);
+  await seedNotifications(users, {
+    certificate: activity.certificate,
+    courseId: content.courseId,
+  });
+
   log('\nDone.\n');
   log('  Sign in with any of these — password for all: ' + PASSWORD);
   for (const account of ACCOUNTS) {
@@ -583,6 +733,8 @@ async function main() {
   log(`  Ana owns:   ${COURSE_NAMES[0]} (published), ${COURSE_NAMES[1]} (draft)`);
   log(`  Marko owns: ${COURSE_NAMES[2]}, ${COURSE_NAMES[3]}`);
   log(`  Certificate: ${activity.certificate.readable_id} (delivery requested)`);
+  log('  Podrška:    3 zahtjeva (otvoren / odgovoren / zatvoren)');
+  log('  Bell:       3 unread notifications across admin, Ana and Jovana');
   log('');
 }
 

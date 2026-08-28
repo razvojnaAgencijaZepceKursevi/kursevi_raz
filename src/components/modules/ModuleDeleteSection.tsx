@@ -54,7 +54,7 @@ export default function ModuleDeleteSection({
       >
         <Typography variant="body2" color="text.secondary">
           Briše modul i sve što mu pripada — kviz, zadatak, materijale i napredak studenata na
-          njemu. Ostali moduli zadržavaju svoj redosled.
+          njemu. Ostali moduli zadržavaju svoj redoslijed.
         </Typography>
 
         <Button
@@ -73,7 +73,7 @@ export default function ModuleDeleteSection({
         title="Obrisati modul?"
         description={
           <>
-            Modul <strong>{currentModule.title}</strong> biće trajno obrisan, zajedno sa svojim
+            Modul <strong>{currentModule.title}</strong> bit će trajno obrisan, zajedno sa svojim
             kvizom, zadatkom i materijalima. Ova akcija se ne može poništiti.
           </>
         }

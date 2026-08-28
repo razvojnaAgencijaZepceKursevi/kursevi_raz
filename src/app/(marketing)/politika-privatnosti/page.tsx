@@ -19,9 +19,9 @@ export default function PrivacyPage() {
       title="Politika privatnosti"
       description="Koje podatke prikupljamo, zašto ih prikupljamo i kako ih koristimo."
       sections={[
-        'Koje podatke prikupljamo (ime, email, napredak kroz kurseve, predata rešenja)',
+        'Koje podatke prikupljamo (ime, email, napredak kroz kurseve, predata rješenja)',
         'Zašto ih prikupljamo i pravni osnov',
-        'Obaveštenja putem email-a i kako ih isključiti',
+        'Obavještenja putem email-a i kako ih isključiti',
         'Ko ima pristup podacima (administratori, predavači na svom kursu)',
         'Koliko dugo čuvamo podatke',
         'Kolačići i tehnologije praćenja',

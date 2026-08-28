@@ -84,14 +84,14 @@ export const POST = withRoute(async (req) => {
   notifyAfterResponse({
     userIds: await adminIds(createServiceRoleClient()),
     type: 'issue_opened',
-    title: 'Nova prijava',
+    title: 'Novi zahtjev za podršku',
     body: `${profile.full_name}: ${body.subject}`,
     link: href,
     email: {
-      subject: `Nova prijava — ${body.subject}`,
-      heading: 'Nova prijava korisnika',
-      lines: [`${profile.full_name} (${profile.email}) je poslao/la prijavu:`, excerpt],
-      action: { label: 'Otvori prijavu', href },
+      subject: `Novi zahtjev za podršku — ${body.subject}`,
+      heading: 'Novi zahtjev korisnika',
+      lines: [`${profile.full_name} (${profile.email}) je poslao/la zahtjev:`, excerpt],
+      action: { label: 'Otvori zahtjev', href },
     },
   });
 

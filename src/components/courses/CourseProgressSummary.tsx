@@ -76,7 +76,7 @@ export default function CourseProgressSummary({
               ) : undefined
             }
           >
-            Završili ste sve module. Sertifikat je izdat na vaše ime.
+            Završili ste sve module. Certifikat je izdat na vaše ime.
           </Alert>
         ) : null}
       </Stack>

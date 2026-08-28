@@ -3,9 +3,7 @@
 import * as React from 'react';
 
 import Chip from '@mui/material/Chip';
-import MenuItem from '@mui/material/MenuItem';
 import Stack from '@mui/material/Stack';
-import TextField from '@mui/material/TextField';
 import Typography from '@mui/material/Typography';
 import PageContainer from '@/components/layout/PageContainer';
 import PageHeader from '@/components/layout/PageHeader';
@@ -14,10 +12,11 @@ import QueryState from '@/components/feedback/QueryState';
 import EmptyState from '@/components/feedback/EmptyState';
 import PaginationBar from '@/components/data/PaginationBar';
 import DataTable from '@/components/data/DataTable';
+import FilterSelect from '@/components/data/FilterSelect';
 import StatusChip from '@/components/data/StatusChip';
 import { useAdminSubmissions } from '@/hooks/useSubmissions';
 import { useListParams } from '@/hooks/useListParams';
-import { formatDateTime, pluralSr } from '@/lib/format';
+import { formatDateTime, pluralBs } from '@/lib/format';
 import { SUBMISSION_STATUS } from '@/lib/status';
 import type { AdminSubmission } from '@/lib/schemas/task-submissions.schema';
 
@@ -53,7 +52,7 @@ export default function AdminSubmissionsPage(props: PageProps<'/admin/submission
     <PageContainer>
       <PageHeader
         title="Predati zadaci"
-        description="Pregled rešenja koja su studenti predali i prepiska o njima."
+        description="Pregled rješenja koja su studenti predali i prepiska o njima."
       />
 
       <ContentCard disablePadding>
@@ -62,18 +61,17 @@ export default function AdminSubmissionsPage(props: PageProps<'/admin/submission
           spacing={2}
           sx={{ p: 2.5, alignItems: { md: 'center' } }}
         >
-          <TextField
-            select
+          <FilterSelect
             label="Status"
             value={list.filters.status}
-            onChange={(event) => list.setFilter('status', event.target.value)}
-            sx={{ maxWidth: { md: 220 } }}
-          >
-            <MenuItem value="">Svi statusi</MenuItem>
-            <MenuItem value="pending">Čeka pregled</MenuItem>
-            <MenuItem value="needs_revision">Potrebna izmena</MenuItem>
-            <MenuItem value="approved">Prihvaćeno</MenuItem>
-          </TextField>
+            onChange={(value) => list.setFilter('status', value)}
+            allLabel="Svi statusi"
+            options={[
+              { value: 'pending', label: 'Čeka pregled' },
+              { value: 'needs_revision', label: 'Potrebna izmjena' },
+              { value: 'approved', label: 'Prihvaćeno' },
+            ]}
+          />
 
           {/* A filter the bar cannot clear would look like a bug, so the
               scope announces itself and offers the way out. */}
@@ -108,7 +106,7 @@ export default function AdminSubmissionsPage(props: PageProps<'/admin/submission
             list.filters.status === 'pending' ? (
               <EmptyState
                 title="Nema zadataka na čekanju"
-                description="Sve predaje su pregledane. Promenite filter da vidite ranije odluke."
+                description="Sve predaje su pregledane. Promijenite filter da vidite ranije odluke."
               />
             ) : (
               <EmptyState
@@ -165,7 +163,7 @@ export default function AdminSubmissionsPage(props: PageProps<'/admin/submission
                     cell: (row) => (
                       <Typography variant="body2" color="text.secondary">
                         {row.message_count}{' '}
-                        {pluralSr(row.message_count, 'poruka', 'poruke', 'poruka')}
+                        {pluralBs(row.message_count, 'poruka', 'poruke', 'poruka')}
                       </Typography>
                     ),
                   },

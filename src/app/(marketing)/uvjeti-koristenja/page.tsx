@@ -1,8 +1,8 @@
 import DraftPage from '@/components/layout/DraftPage';
 
 export const metadata = {
-  title: 'Uslovi korišćenja — Kursevi',
-  description: 'Uslovi korišćenja platforme Kursevi.',
+  title: 'Uvjeti korištenja — Kursevi',
+  description: 'Uvjeti korištenja platforme Kursevi.',
 };
 
 /**
@@ -15,18 +15,18 @@ export const metadata = {
 export default function TermsPage() {
   return (
     <DraftPage
-      title="Uslovi korišćenja"
-      description="Pravila korišćenja platforme, prava i obaveze korisnika."
+      title="Uvjeti korištenja"
+      description="Pravila korištenja platforme, prava i obaveze korisnika."
       sections={[
-        'Ko smo mi i na šta se ovi uslovi odnose',
-        'Otvaranje naloga i uslovi korišćenja',
-        'Kupovina kursa, odobravanje pristupa i cene',
+        'Ko smo mi i na šta se ovi uvjeti odnose',
+        'Otvaranje naloga i uvjeti korištenja',
+        'Kupovina kursa, odobravanje pristupa i cijene',
         'Pravila povraćaja sredstava i otkazivanja',
         'Autorska prava nad materijalima kursa',
         'Pravila ponašanja i uklanjanje naloga',
-        'Izdavanje sertifikata i njihova važnost',
+        'Izdavanje certifikata i njihova važnost',
         'Odgovornost i ograničenja',
-        'Izmene uslova i kontakt',
+        'Izmjene uvjeta i kontakt',
       ]}
     />
   );

@@ -186,23 +186,23 @@ function NewSubmission({ taskId }: { taskId: string }) {
           body: { attachment_path: path },
         });
       } catch (error) {
-        toast.warning(`Rešenje je predato, ali prilog nije dodat: ${errorMessage(error)}`);
+        toast.warning(`Rješenje je predato, ali prilog nije dodat: ${errorMessage(error)}`);
         return;
       }
     }
 
-    toast.success('Rešenje je predato. Predavač će ga pregledati.');
+    toast.success('Rješenje je predato. Predavač će ga pregledati.');
   }
 
   return (
     <ContentCard
-      title="Predaj rešenje"
+      title="Predaj rješenje"
       description="Opišite šta ste uradili i po potrebi priložite fajl. Predavač odgovara u istoj prepisci."
     >
       <MessageComposer
-        label="Vaše rešenje"
-        placeholder="Opišite rešenje, dodajte link ka radu…"
-        submitLabel="Predaj rešenje"
+        label="Vaše rješenje"
+        placeholder="Opišite rješenje, dodajte link ka radu…"
+        submitLabel="Predaj rješenje"
         rows={6}
         pending={createSubmission.isPending || uploadFile.isPending || setAttachment.isPending}
         onSend={async (body, file) => {
@@ -252,22 +252,22 @@ function SubmissionThread({
   return (
     <ContentCard
       title="Vaša predaja"
-      description="Prepiska sa predavačem o vašem rešenju."
+      description="Prepiska sa predavačem o vašem rješenju."
       disablePadding
       actions={<StatusChip {...SUBMISSION_STATUS[submission.status]} />}
     >
       {submission.status === 'needs_revision' ? (
         <Box sx={{ px: 3, pt: 2.5 }}>
           <Alert severity="info">
-            <AlertTitle>Potrebna je izmena</AlertTitle>
-            Pročitajte komentar predavača, ispravite rešenje i odgovorite u ovoj prepisci.
+            <AlertTitle>Potrebna je izmjena</AlertTitle>
+            Pročitajte komentar predavača, ispravite rješenje i odgovorite u ovoj prepisci.
           </Alert>
         </Box>
       ) : null}
 
       {submission.status === 'approved' ? (
         <Box sx={{ px: 3, pt: 2.5 }}>
-          <Alert severity="success">Rešenje je prihvaćeno — zadatak je završen.</Alert>
+          <Alert severity="success">Rješenje je prihvaćeno — zadatak je završen.</Alert>
         </Box>
       ) : null}
 
@@ -293,7 +293,7 @@ function SubmissionThread({
           />
         ) : (
           <Typography variant="body2" color="text.secondary">
-            Prepiska je zatvorena jer je rešenje prihvaćeno.
+            Prepiska je zatvorena jer je rješenje prihvaćeno.
           </Typography>
         )}
       </Stack>

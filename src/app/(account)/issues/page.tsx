@@ -34,11 +34,11 @@ export default function MyIssuesPage() {
   return (
     <PageContainer>
       <PageHeader
-        title="Moje prijave"
+        title="Podrška"
         description="Pitanja i problemi koje ste poslali administratorima."
         actions={
           <Button href="/issues/new" variant="contained" startIcon={<AddIcon />}>
-            Nova prijava
+            Novi zahtjev
           </Button>
         }
       />
@@ -46,16 +46,16 @@ export default function MyIssuesPage() {
       <ContentCard disablePadding>
         <QueryState
           query={issues}
-          errorTitle="Prijave nije moguće učitati"
+          errorTitle="Zahtjeve nije moguće učitati"
           isEmpty={(page) => page.data.length === 0}
           empty={
             <EmptyState
               icon={<SupportOutlinedIcon />}
-              title="Nemate nijednu prijavu"
+              title="Nemate nijedan zahtjev"
               description="Ako naiđete na problem ili imate pitanje, javite nam se — odgovaramo u istoj prepisci."
               action={
                 <Button href="/issues/new" variant="contained" startIcon={<AddIcon />}>
-                  Nova prijava
+                  Novi zahtjev
                 </Button>
               }
             />

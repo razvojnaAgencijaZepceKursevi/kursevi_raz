@@ -61,7 +61,7 @@ export default function NewCoursePage() {
         await updateCourse.mutateAsync({ id: course.id, body: { thumbnail_path: path } });
       } catch {
         toast.warning(
-          'Kurs je kreiran, ali sliku nije bilo moguće otpremiti. Dodajte je kroz izmenu kursa.',
+          'Kurs je kreiran, ali sliku nije bilo moguće otpremiti. Dodajte je kroz izmjenu kursa.',
         );
       }
     }

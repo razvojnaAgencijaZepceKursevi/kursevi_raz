@@ -125,15 +125,15 @@ export const POST = withRoute(async (req, ctx: Ctx) => {
     notifyAfterResponse({
       userIds: await courseReviewerIds(createServiceRoleClient(), courseId),
       type: 'submission_received',
-      title: 'Novo predato rešenje',
-      body: `${profile.full_name} je predao/la rešenje za „${moduleTitle}” (${courseName}).`,
+      title: 'Novo predato rješenje',
+      body: `${profile.full_name} je predao/la rješenje za „${moduleTitle}” (${courseName}).`,
       link: href,
       email: {
-        subject: `Novo rešenje za pregled — ${courseName}`,
-        heading: 'Novo predato rešenje',
+        subject: `Novo rješenje za pregled — ${courseName}`,
+        heading: 'Novo predato rješenje',
         lines: [
-          `${profile.full_name} je predao/la rešenje zadatka za modul „${moduleTitle}” na kursu „${courseName}”.`,
-          'Otvorite predaju da pročitate rešenje i odgovorite.',
+          `${profile.full_name} je predao/la rješenje zadatka za modul „${moduleTitle}” na kursu „${courseName}”.`,
+          'Otvorite predaju da pročitate rješenje i odgovorite.',
         ],
         action: { label: 'Otvori predaju', href },
       },

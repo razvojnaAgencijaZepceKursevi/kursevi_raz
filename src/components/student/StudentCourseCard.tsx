@@ -10,7 +10,7 @@ import Skeleton from '@mui/material/Skeleton';
 import Stack from '@mui/material/Stack';
 import Typography from '@mui/material/Typography';
 import { useCourseProgress } from '@/hooks/useProgress';
-import { pluralSr } from '@/lib/format';
+import { pluralBs } from '@/lib/format';
 import { courseThumbnailUrl } from '@/lib/storage';
 
 /**
@@ -94,7 +94,7 @@ export default function StudentCourseCard({
           <Stack spacing={0.75}>
             <Stack direction="row" sx={{ justifyContent: 'space-between' }}>
               <Typography variant="caption" color="text.secondary">
-                {completed} / {total} {pluralSr(total, 'modul', 'modula', 'modula')}
+                {completed} / {total} {pluralBs(total, 'modul', 'modula', 'modula')}
               </Typography>
               <Typography variant="caption" color="text.secondary">
                 {percent}%

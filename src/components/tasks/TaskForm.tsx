@@ -42,7 +42,7 @@ export default function TaskForm({
     <Form form={form} onSubmit={onSubmit} pendingLabel={pendingLabel}>
       <ContentCard
         title="Tekst zadatka"
-        description="Šta student treba da uradi i šta predaje kao rešenje."
+        description="Šta student treba da uradi i šta predaje kao rješenje."
       >
         <FormTextField
           name="text"

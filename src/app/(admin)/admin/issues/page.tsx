@@ -1,21 +1,20 @@
 'use client';
 
-import MenuItem from '@mui/material/MenuItem';
 import Stack from '@mui/material/Stack';
-import TextField from '@mui/material/TextField';
 import Typography from '@mui/material/Typography';
 import PageContainer from '@/components/layout/PageContainer';
 import PageHeader from '@/components/layout/PageHeader';
 import ContentCard from '@/components/layout/ContentCard';
 import QueryState from '@/components/feedback/QueryState';
 import EmptyState from '@/components/feedback/EmptyState';
+import FilterSelect from '@/components/data/FilterSelect';
 import PaginationBar from '@/components/data/PaginationBar';
 import DataTable from '@/components/data/DataTable';
 import SearchField from '@/components/data/SearchField';
 import StatusChip from '@/components/data/StatusChip';
 import { useIssues } from '@/hooks/useIssues';
 import { useListParams } from '@/hooks/useListParams';
-import { formatRelativeTime, pluralSr } from '@/lib/format';
+import { formatRelativeTime, pluralBs } from '@/lib/format';
 import { ISSUE_STATUS } from '@/lib/status';
 import type { Issue } from '@/lib/schemas/issues.schema';
 
@@ -39,7 +38,7 @@ export default function AdminIssuesPage() {
 
   return (
     <PageContainer>
-      <PageHeader title="Prijave" description="Pitanja i problemi koje su korisnici poslali." />
+      <PageHeader title="Podrška" description="Pitanja i problemi koje su korisnici poslali." />
 
       <ContentCard disablePadding>
         <Stack
@@ -55,18 +54,17 @@ export default function AdminIssuesPage() {
             />
           </Stack>
 
-          <TextField
-            select
+          <FilterSelect
             label="Status"
             value={list.filters.status}
-            onChange={(event) => list.setFilter('status', event.target.value)}
-            sx={{ maxWidth: { md: 220 } }}
-          >
-            <MenuItem value="">Sve prijave</MenuItem>
-            <MenuItem value="open">Otvorene</MenuItem>
-            <MenuItem value="answered">Odgovorene</MenuItem>
-            <MenuItem value="closed">Zatvorene</MenuItem>
-          </TextField>
+            onChange={(value) => list.setFilter('status', value)}
+            allLabel="Svi zahtjevi"
+            options={[
+              { value: 'open', label: 'Otvoreni' },
+              { value: 'answered', label: 'Odgovoreni' },
+              { value: 'closed', label: 'Zatvoreni' },
+            ]}
+          />
 
           <Typography
             variant="body2"
@@ -79,18 +77,18 @@ export default function AdminIssuesPage() {
 
         <QueryState
           query={issues}
-          errorTitle="Prijave nije moguće učitati"
+          errorTitle="Zahtjeve nije moguće učitati"
           isEmpty={(page) => page.data.length === 0}
           empty={
             list.filters.status === 'open' ? (
               <EmptyState
-                title="Nema otvorenih prijava"
-                description="Sve je obrađeno. Promenite filter da vidite ranije prijave."
+                title="Nema otvorenih zahtjeva"
+                description="Sve je obrađeno. Promijenite filter da vidite ranije zahtjeve."
               />
             ) : (
               <EmptyState
-                title="Nema prijava"
-                description="Nijedna prijava ne odgovara zadatoj pretrazi i filteru."
+                title="Nema zahtjeva"
+                description="Nijedan zahtjev ne odgovara zadatoj pretrazi i filteru."
               />
             )
           }
@@ -137,7 +135,7 @@ export default function AdminIssuesPage() {
                     cell: (row) => (
                       <Typography variant="body2" color="text.secondary">
                         {row.message_count ?? 0}{' '}
-                        {pluralSr(row.message_count ?? 0, 'poruka', 'poruke', 'poruka')}
+                        {pluralBs(row.message_count ?? 0, 'poruka', 'poruke', 'poruka')}
                       </Typography>
                     ),
                   },

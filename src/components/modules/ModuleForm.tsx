@@ -104,7 +104,7 @@ export default function ModuleForm({
               label="Redni broj"
               min={0}
               step={1}
-              helperText="Određuje redosled otključavanja."
+              helperText="Određuje redoslijed otključavanja."
               required
             />
           </Grid>

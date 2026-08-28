@@ -67,7 +67,7 @@ export default function AdminSubmissionDetailPage(props: PageProps<'/admin/submi
                   { label: studentName },
                 ]}
                 title={currentModule?.title ?? 'Predati zadatak'}
-                description={`Rešenje koje je predao/la ${studentName}${
+                description={`Rješenje koje je predao/la ${studentName}${
                   course ? ` — kurs „${course.name}”` : ''
                 }.`}
                 actions={<StatusChip {...SUBMISSION_STATUS[row.status]} size="medium" />}
@@ -75,14 +75,14 @@ export default function AdminSubmissionDetailPage(props: PageProps<'/admin/submi
 
               {row.status === 'approved' ? (
                 <Alert severity="success">
-                  <AlertTitle>Rešenje je prihvaćeno</AlertTitle>
+                  <AlertTitle>Rješenje je prihvaćeno</AlertTitle>
                   Zadatak je završen za ovog studenta i prepiska je zatvorena.
                 </Alert>
               ) : null}
 
               {row.status === 'needs_revision' ? (
                 <Alert severity="info">
-                  Zatražena je izmena. Student može da odgovori u istoj prepisci.
+                  Zatražena je izmjena. Student može da odgovori u istoj prepisci.
                 </Alert>
               ) : null}
 
@@ -103,7 +103,7 @@ export default function AdminSubmissionDetailPage(props: PageProps<'/admin/submi
                         },
                         { label: 'Email', value: row.profiles?.email ?? '—' },
                         { label: 'Predato', value: formatDateTime(row.created_at) },
-                        { label: 'Poslednja izmena', value: formatDateTime(row.updated_at) },
+                        { label: 'Posljednja izmjena', value: formatDateTime(row.updated_at) },
                       ]}
                     />
                   </ContentCard>
@@ -145,7 +145,7 @@ export default function AdminSubmissionDetailPage(props: PageProps<'/admin/submi
                                 href={`/admin/courses/${course.id}/modules/${currentModule.id}/task`}
                                 underline="hover"
                               >
-                                Izmeni zadatak
+                                Izmijeni zadatak
                               </Link>
                             ) : (
                               '—'
@@ -159,7 +159,7 @@ export default function AdminSubmissionDetailPage(props: PageProps<'/admin/submi
 
               <ContentCard
                 title="Šta je traženo"
-                description="Tekst zadatka, onakav kakav je student video."
+                description="Tekst zadatka, onakav kakav je student vidio."
               >
                 <Typography variant="body1" sx={{ whiteSpace: 'pre-line' }}>
                   {row.tasks?.text ?? '—'}
@@ -168,7 +168,7 @@ export default function AdminSubmissionDetailPage(props: PageProps<'/admin/submi
 
               <ContentCard
                 title="Prepiska"
-                description="Poruke i prilozi obe strane."
+                description="Poruke i prilozi obje strane."
                 disablePadding
               >
                 <MessageThread

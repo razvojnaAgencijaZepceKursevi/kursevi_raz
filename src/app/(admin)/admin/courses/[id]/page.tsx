@@ -88,7 +88,7 @@ export default function AdminCourseOverviewPage(props: PageProps<'/admin/courses
                     variant="contained"
                     startIcon={<EditOutlinedIcon />}
                   >
-                    Izmeni
+                    Izmijeni
                   </Button>
                 </Stack>
               }
@@ -114,7 +114,7 @@ export default function AdminCourseOverviewPage(props: PageProps<'/admin/courses
                     </Grid>
                     <Grid size={{ xs: 6, md: 3 }}>
                       <StatCard
-                        label="Zahteva na čekanju"
+                        label="Zahtjeva na čekanju"
                         value={data.requested_count}
                         icon={ReceiptLongOutlinedIcon}
                         href={`/admin/purchases?courseId=${id}`}
@@ -122,7 +122,7 @@ export default function AdminCourseOverviewPage(props: PageProps<'/admin/courses
                     </Grid>
                     <Grid size={{ xs: 6, md: 3 }}>
                       <StatCard
-                        label="Rešenja za pregled"
+                        label="Rješenja za pregled"
                         value={data.pending_submissions}
                         icon={AssignmentTurnedInOutlinedIcon}
                         href={`/admin/submissions?courseId=${id}`}
@@ -139,7 +139,7 @@ export default function AdminCourseOverviewPage(props: PageProps<'/admin/courses
                       >
                         <AssignmentTurnedInOutlinedIcon color="action" />
                         <Typography variant="body2" sx={{ flex: 1 }}>
-                          {data.pending_submissions} predatih rešenja čeka vaš pregled na ovom
+                          {data.pending_submissions} predatih rješenja čeka vaš pregled na ovom
                           kursu.
                         </Typography>
                         <Button
@@ -163,8 +163,8 @@ export default function AdminCourseOverviewPage(props: PageProps<'/admin/courses
                         title="Još nema upisanih studenata"
                         description={
                           data.requested_count > 0
-                            ? 'Postoje zahtevi koji čekaju odobrenje.'
-                            : 'Kada student dobije pristup, pojaviće se ovde.'
+                            ? 'Postoje zahtjevi koji čekaju odobrenje.'
+                            : 'Kada student dobije pristup, pojavit će se ovdje.'
                         }
                       />
                     ) : (
@@ -210,7 +210,7 @@ export default function AdminCourseOverviewPage(props: PageProps<'/admin/courses
                           },
                           {
                             id: 'certificate',
-                            header: 'Sertifikat',
+                            header: 'Certifikat',
                             cell: (s) =>
                               s.certificate ? (
                                 // Staff may open it — RLS admits the admin and

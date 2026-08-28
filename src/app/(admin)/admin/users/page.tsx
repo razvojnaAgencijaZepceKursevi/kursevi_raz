@@ -1,8 +1,6 @@
 'use client';
 
-import MenuItem from '@mui/material/MenuItem';
 import Stack from '@mui/material/Stack';
-import TextField from '@mui/material/TextField';
 import Typography from '@mui/material/Typography';
 import PageContainer from '@/components/layout/PageContainer';
 import PageHeader from '@/components/layout/PageHeader';
@@ -10,6 +8,7 @@ import ContentCard from '@/components/layout/ContentCard';
 import QueryState from '@/components/feedback/QueryState';
 import EmptyState from '@/components/feedback/EmptyState';
 import SearchField from '@/components/data/SearchField';
+import FilterSelect from '@/components/data/FilterSelect';
 import PaginationBar from '@/components/data/PaginationBar';
 import DataTable from '@/components/data/DataTable';
 import StatusChip from '@/components/data/StatusChip';
@@ -47,30 +46,30 @@ export default function AdminUsersPage() {
             />
           </Stack>
 
-          <TextField
-            select
+          <FilterSelect
             label="Uloga"
             value={list.filters.role}
-            onChange={(event) => list.setFilter('role', event.target.value)}
-            sx={{ maxWidth: { md: 200 } }}
-          >
-            <MenuItem value="">Sve uloge</MenuItem>
-            <MenuItem value="student">Studenti</MenuItem>
-            <MenuItem value="teacher">Predavači</MenuItem>
-            <MenuItem value="admin">Administratori</MenuItem>
-          </TextField>
+            onChange={(value) => list.setFilter('role', value)}
+            allLabel="Sve uloge"
+            width={200}
+            options={[
+              { value: 'student', label: 'Studenti' },
+              { value: 'teacher', label: 'Predavači' },
+              { value: 'admin', label: 'Administratori' },
+            ]}
+          />
 
-          <TextField
-            select
+          <FilterSelect
             label="Status"
             value={list.filters.deactivated}
-            onChange={(event) => list.setFilter('deactivated', event.target.value)}
-            sx={{ maxWidth: { md: 200 } }}
-          >
-            <MenuItem value="">Svi nalozi</MenuItem>
-            <MenuItem value="false">Aktivni</MenuItem>
-            <MenuItem value="true">Deaktivirani</MenuItem>
-          </TextField>
+            onChange={(value) => list.setFilter('deactivated', value)}
+            allLabel="Svi nalozi"
+            width={200}
+            options={[
+              { value: 'false', label: 'Aktivni' },
+              { value: 'true', label: 'Deaktivirani' },
+            ]}
+          />
         </Stack>
 
         <QueryState
@@ -86,7 +85,7 @@ export default function AdminUsersPage() {
             ) : (
               <EmptyState
                 title="Još nema registrovanih korisnika"
-                description="Korisnici se pojavljuju ovde nakon registracije."
+                description="Korisnici se pojavljuju ovdje nakon registracije."
               />
             )
           }

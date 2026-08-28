@@ -62,8 +62,8 @@ export default function CertificatePage(props: PageProps<'/certificates/[certifi
       <PageContainer maxWidth="form">
         <ContentCard>
           <EmptyState
-            title="Sertifikat nije pronađen"
-            description="Ovaj sertifikat ne postoji ili nemate pristup njemu."
+            title="Certifikat nije pronađen"
+            description="Ovaj certifikat ne postoji ili nemate pristup njemu."
             icon={<WorkspacePremiumOutlinedIcon />}
             action={
               <Button href="/courses" variant="contained">
@@ -78,7 +78,7 @@ export default function CertificatePage(props: PageProps<'/certificates/[certifi
 
   return (
     <PageContainer maxWidth="form">
-      <QueryState query={certificateQuery} errorTitle="Sertifikat nije moguće učitati">
+      <QueryState query={certificateQuery} errorTitle="Certifikat nije moguće učitati">
         {(certificate) => (
           <Stack spacing={3}>
             <ContentCard>
@@ -99,7 +99,7 @@ export default function CertificatePage(props: PageProps<'/certificates/[certifi
 
                 <Stack spacing={0.5}>
                   <Typography variant="overline" color="text.secondary">
-                    Sertifikat o završenom kursu
+                    Certifikat o završenom kursu
                   </Typography>
                   <Typography variant="h4" component="h1">
                     {certificate.courses?.name ?? 'Kurs više ne postoji'}
@@ -125,7 +125,7 @@ export default function CertificatePage(props: PageProps<'/certificates/[certifi
                   >
                     <Stack spacing={0.25}>
                       <Typography variant="caption" color="text.secondary">
-                        Broj sertifikata
+                        Broj certifikata
                       </Typography>
                       {/* Monospace because this is the string somebody reads
                           out or types into the verification box. */}
@@ -145,7 +145,7 @@ export default function CertificatePage(props: PageProps<'/certificates/[certifi
 
                 <Chip
                   icon={<CheckCircleIcon />}
-                  label="Sertifikat je važeći"
+                  label="Certifikat je važeći"
                   color="success"
                   variant="outlined"
                 />
@@ -182,24 +182,28 @@ export default function CertificatePage(props: PageProps<'/certificates/[certifi
             >
               <PdfViewer
                 src={`/api/certificates/${certificate.readable_id}/pdf`}
-                title={`Sertifikat ${certificate.readable_id}`}
+                title={`Certifikat ${certificate.readable_id}`}
               />
             </ContentCard>
 
             {/* Only the student may request a printed copy. */}
             {certificate.student_id === myId ? (
-              <ContentCard title="Štampani primerak">
+              <ContentCard title="Štampani primjerak">
                 <CertificateDelivery certificate={certificate} />
               </ContentCard>
             ) : null}
 
             <Stack direction="row" spacing={1.5} sx={{ justifyContent: 'center' }}>
               <Button
-                href={certificate.student_id === myId ? '/dashboard' : '/admin/certificates'}
+                href={
+                  certificate.student_id === myId
+                    ? '/dashboard/certificates'
+                    : '/admin/certificates'
+                }
                 startIcon={<SchoolOutlinedIcon />}
                 color="inherit"
               >
-                {certificate.student_id === myId ? 'Moji kursevi' : 'Svi sertifikati'}
+                {certificate.student_id === myId ? 'Moji certifikati' : 'Svi certifikati'}
               </Button>
             </Stack>
           </Stack>

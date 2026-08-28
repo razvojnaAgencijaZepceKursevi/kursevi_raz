@@ -225,20 +225,21 @@ but must still handle a 403 on an individual resource.
 
 ## 5. The reusable kit — check here before building anything
 
-| Need                         | Use                                                                                                                                 |
-| ---------------------------- | ----------------------------------------------------------------------------------------------------------------------------------- |
-| Page skeleton                | `PageContainer` (`maxWidth="form"` for forms) → `PageHeader` → `ContentCard`                                                        |
-| Load/error/empty for a query | `<QueryState query={…}>{(data) => …}</QueryState>` — children is a **function**, so `data` is typed and non-null                    |
-| Table                        | `<DataTable columns={…} rows={…} />` — column-config driven                                                                         |
-| Label/value detail pairs     | `<DetailList items={…} />`                                                                                                          |
-| List page state              | `useListParams({ filter: '' })` — owns page/search/filters, **resets to page 1 on filter change**, debounces search                 |
-| Pagination                   | `<PaginationBar meta={page.meta} onChange={list.setPage} />`                                                                        |
-| Destructive action           | `<ConfirmDialog>` (controlled; caller owns the mutation so it can show pending)                                                     |
-| Feedback                     | `toast.success(…)` / `toast.error(errorMessage(e))` from `@/store/useToastStore` — no hook needed                                   |
-| Error wording                | `errorMessage(error)` — **never render a raw error**                                                                                |
-| Status label + colour        | `@/lib/status.ts` (`PURCHASE_STATUS`, `SUBMISSION_STATUS`, `USER_ROLE`, `publishStatus`, `deliveryStatus`) → `<StatusChip {...} />` |
-| Money/dates                  | `@/lib/format.ts` — never format inline. Currency is **BAM**, rendered `1.500 KM`                                                   |
-| Counted nouns in Serbian     | `pluralSr(n, 'kurs', 'kursa', 'kurseva')` in `format.ts` — three forms, and 11–14 take the `many` one                               |
+| Need                         | Use                                                                                                                                                       |
+| ---------------------------- | --------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| Page skeleton                | `PageContainer` (`maxWidth="form"` for forms) → `PageHeader` → `ContentCard`                                                                              |
+| Load/error/empty for a query | `<QueryState query={…}>{(data) => …}</QueryState>` — children is a **function**, so `data` is typed and non-null                                          |
+| Table                        | `<DataTable columns={…} rows={…} />` — column-config driven                                                                                               |
+| Label/value detail pairs     | `<DetailList items={…} />`                                                                                                                                |
+| Filter dropdown              | `<FilterSelect label=… value=… onChange=… allLabel=… options=… />` — forces the label to shrink; a bare MUI select with `value=""` overlaps its own label |
+| List page state              | `useListParams({ filter: '' })` — owns page/search/filters, **resets to page 1 on filter change**, debounces search                                       |
+| Pagination                   | `<PaginationBar meta={page.meta} onChange={list.setPage} />`                                                                                              |
+| Destructive action           | `<ConfirmDialog>` (controlled; caller owns the mutation so it can show pending)                                                                           |
+| Feedback                     | `toast.success(…)` / `toast.error(errorMessage(e))` from `@/store/useToastStore` — no hook needed                                                         |
+| Error wording                | `errorMessage(error)` — **never render a raw error**                                                                                                      |
+| Status label + colour        | `@/lib/status.ts` (`PURCHASE_STATUS`, `SUBMISSION_STATUS`, `USER_ROLE`, `publishStatus`, `deliveryStatus`) → `<StatusChip {...} />`                       |
+| Money/dates                  | `@/lib/format.ts` — never format inline. Currency is **BAM**, rendered `1.500 KM`                                                                         |
+| Counted nouns in Bosnian     | `pluralBs(n, 'kurs', 'kursa', 'kurseva')` in `format.ts` — three forms, and 11–14 take the `many` one                                                     |
 
 ### Forms
 
@@ -249,7 +250,7 @@ but must still handle a 403 on an individual resource.
   handler with no try/catch** — throwing is how you report failure.
 - Form schemas are **separate** from API schemas: they live in `*-form.schema.ts`, use
   plain `zod` (importing `@/lib/openapi/zod` drags zod-to-openapi into the browser
-  bundle), carry Serbian messages, and may hold fields the API lacks (a `File` vs a path).
+  bundle), carry Bosnian messages, and may hold fields the API lacks (a `File` vs a path).
   A mapper annotated `(values): CreateXRequest` keeps the two in sync at compile time.
 - `FormNumberField`, never `<FormTextField type="number">` — number inputs report strings.
 - `defaultValues` is read once at mount, so an edit form must render **inside** its
@@ -330,8 +331,9 @@ but must still handle a 403 on an individual resource.
 
 ## 7. Decisions made (overriding or extending `pages-to-build.md`)
 
-- **Language: Serbian** for all UI copy. Code identifiers stay English. (Some early
-  strings in `(student)/dashboard` and `LogoutButton` are still English — cleanup pending.)
+- **Language: Bosnian (ijekavian)** for all UI copy. Code identifiers stay English.
+  **Write every new user-facing string in ijekavian** — see "The UI language is Bosnian"
+  below for the reflexes that catch people out.
 - **One adaptive course page** at `/courses/[id]` instead of separate public-marketing and
   student-player pages. It shows: locked module titles + price for visitors and
   non-purchasers; sequential unlock + progress for purchasers; everything unlocked for
@@ -372,12 +374,12 @@ but must still handle a 403 on an individual resource.
   change — there is no such column, and `request-delivery` is student-scoped
   (`requireUser` + ownership). Don't fake it client-side.
 
-- **Prices are in convertible marks (BAM), shown as `KM`.** `formatPrice` passes
-  `currencyDisplay: 'narrowSymbol'`, and that is load-bearing: the default renders
-  BAM in a Serbian locale as **Cyrillic** `КМ` — visually near-identical to Latin
-  `KM` but a different pair of characters, and the only Cyrillic in an otherwise
-  Latin UI. The locale is `sr-BA`, not `bs-BA`, because `bs-BA` also changes date
-  formatting to `06. 08. 2026.` (with spaces). `price` is a plain
+- **Prices are in convertible marks (BAM), shown as `KM`.** The locale is `bs-BA`
+  (see "The UI language is Bosnian"); under it `currencyDisplay: 'narrowSymbol'`
+  is belt-and-braces rather than a fix, but it is kept, because under the former
+  `sr-BA` the default rendered BAM as **Cyrillic** `КМ` — near-identical to Latin
+  `KM`, a different pair of characters, and the only Cyrillic in an otherwise
+  Latin UI. `price` is a plain
   `numeric(10,2)` — no currency is stored, so the column means whatever
   `format.ts` says it means. Changing currency again would silently reinterpret
   every existing row.
@@ -847,7 +849,7 @@ but must still handle a 403 on an individual resource.
   carrying the same four facts.
 
 - **The font is vendored and embedded, and that is forced.** pdf-lib's built-in faces are
-  WinAnsi, which has no `č ć ž š đ`. Every Serbian name hits it. EB Garamond (SIL OFL)
+  WinAnsi, which has no `č ć ž š đ`. Every Bosnian name hits it. EB Garamond (SIL OFL)
   lives in `src/lib/pdf/fonts/` with its licence, and `next.config.ts` names that
   directory in `outputFileTracingIncludes` — nothing imports the `.ttf` files, so Next's
   tracing cannot see them and a production build would ship without them, working in
@@ -902,7 +904,7 @@ but must still handle a 403 on an individual resource.
 - **The notification catalogue is the single source of truth**
   (`src/lib/notifications/catalog.ts`). Its keys are typed as the generated
   `notification_type`, so a missing or invented entry fails to compile. It carries the
-  Serbian label, the description, the settings-screen group, and `audience` — which is a
+  Bosnian label, the description, the settings-screen group, and `audience` — which is a
   **UI filter, not a guard**: it stops a student being shown a switch for
   `purchase_requested`, which no student is ever sent. Recipients are decided at the call
   site; the database is what guarantees a row only ever reaches its own `user_id`.
@@ -1015,9 +1017,9 @@ but must still handle a 403 on an individual resource.
   against the seeded test accounts only, or a live run will actually email someone.
 
 - **`displayFileName` / `formatRelativeTime` live in the shared libs, not in a component.**
-  `formatRelativeTime` uses `Intl.RelativeTimeFormat`, which knows the Serbian plural
-  forms — hand-rolling it with `pluralSr` would re-derive rules the platform already has.
-  It falls back to an absolute date past a week, where "pre 43 dana" stops being easier
+  `formatRelativeTime` uses `Intl.RelativeTimeFormat`, which knows the plural
+  forms — hand-rolling it with `pluralBs` would re-derive rules the platform already has.
+  It falls back to an absolute date past a week, where "prije 43 dana" stops being easier
   than reading the date.
 
 ### Certificates are private (reversal of the public-verification design)
@@ -1088,7 +1090,7 @@ but must still handle a 403 on an individual resource.
   plain `<a href="/">` carries an eslint-disable on purpose: a `<Link>` would attempt a
   client navigation through the tree that just failed.
 
-- `<html lang="sr">` — the UI has been Serbian throughout; the document said `en`.
+- `<html lang="bs">` — the document said `en`, then `sr`; the UI is Bosnian.
 
 ### Per-course view for staff (`/admin/courses/[id]`)
 
@@ -1109,6 +1111,44 @@ but must still handle a 403 on an individual resource.
 - The stat cards link into the submissions and purchases queues **scoped by `?courseId`**,
   which meant teaching those two lists to read it from the URL. A link that promised
   filtering and delivered everything would have been worse than no link.
+
+### Purchases carry a payment reference (migration 0028)
+
+- **Payment happens outside the system, and nothing joined the two halves.** A student
+  requests access, transfers the money by some other means, and an admin approves once it
+  arrives — but an admin looking at a bank statement beside a list of pending requests had
+  only a name and an amount to match on, which collides the moment two people buy the same
+  course.
+
+- `purchases.readable_id` (`UPL-YYYY-NNNN`) is what the student quotes on the transfer and
+  what the admin searches for. Same scheme and same reasoning as
+  `certificates.readable_id`: a string a person reads off a screen and types into a bank
+  form has to survive being written down.
+
+- **It is unique across denied rows too.** The partial index from 0009 lets a denied
+  request be re-submitted, and the replacement gets its own reference rather than reusing
+  a number that may already sit on a statement. Verified: re-requesting after a denial
+  produces a new one.
+
+- Added in three steps (nullable → backfill → not null + default + unique) rather than one.
+  A column with a _volatile_ default does get a distinct value per existing row, because
+  Postgres skips its usual constant-default shortcut and rewrites the table — but relying
+  on that is a subtlety nobody should need to know when reading the migration later.
+
+- **`search` on `/api/admin/purchases` now means the reference.** It is the only free-text
+  handle a purchase row has, and reconciling a payment is the job that page exists for.
+  The list also gained a search box, which it did not have before.
+
+- Surfaced in four places, all of which are the moment somebody needs it: the course
+  purchase panel right after requesting (taken from the create response, so it is on
+  screen before the list refetches), the student dashboard's pending requests, the admin
+  list and detail, and the `purchase_requested` notification body — so an admin can
+  reconcile from the email without opening the app.
+
+  **Note on bank compatibility:** the reference contains letters. Some banking forms
+  accept only digits in a "poziv na broj" field. If that turns out to matter, the fix is
+  one line in `next_purchase_readable_id()` — drop the prefix and keep the sequence — plus
+  a decision about references already issued.
 
 ### Support issues (migration 0026/0027)
 
@@ -1157,11 +1197,226 @@ but must still handle a 403 on an individual resource.
   a couple of dozen posts the next step is MDX on disk, **not** a database — both keep
   "publishing is a deploy".
 
+- **`BlogPost` is deliberately six fields**: `slug`, `title`, `excerpt`, `publishedAt`,
+  `image?` (`{ src, alt }`) and `content`. An earlier draft also carried author, tags,
+  updatedAt, category, readingMinutes, draft and an seo override block; the project owner
+  cut them, and the reasoning is worth keeping — **those are workflow features, and there
+  is no workflow.** The posts are written once, for SEO, and pasted in. A draft flag with
+  no drafts and a byline with one author are structure that has to be maintained and never
+  earns anything.
+
+  There is deliberately no numeric `id` either — a second identifier would need keeping in
+  sync and nothing would read it; the URL is what links, analytics and search results are
+  keyed by. As with `courses.slug`, **a published slug must never change.**
+
+  `excerpt` is the one field to resist trimming: it is the meta description as well as the
+  card summary, and it is the most SEO-relevant text after the title and the body.
+
+- **Nothing renders the Markdown yet.** `/blog/[slug]` prints `content` as preformatted
+  text; the parser and its styling are a deliberate later step, so that one block is the
+  only thing that changes when it lands. The renderer should be a **Server** Component —
+  the blog exists to be crawled, so the article has to be in the initial HTML rather than
+  assembled after hydration.
+
+- **A ``` fence inside `content` would terminate the TypeScript template literal.**
+  Markdown accepts `~~~` as an equivalent fence — use that. Inline code needs an escaped
+  backtick. If posts ever get code-heavy enough that this stops being tolerable, that is
+  the trigger for the move to `.md` files on disk (which would also need
+  `outputFileTracingIncludes`, the same trap the certificate fonts hit).
+
+- **Array order is display order.** There is no sort and no draft flag — newest goes at the
+  top of `BLOG_POSTS` by hand. `publishedAt` is kept for the article metadata and the date
+  shown on a post, not for ordering; whether to _display_ it is a separate call, since a
+  visible old date can make a post read as abandoned.
+
+- **`image` is an object, not a URL string, because `alt` is not optional** — it is both
+  the accessible name and how the image itself gets indexed. It carries no `width`/`height`:
+  those existed to prevent layout shift, and the page fixes the aspect ratio in CSS
+  instead.
+
 ### Deliberately not built
 
 - **Self-service account editing.** No changing your own name, email or password while
   signed in — the project owner's call. Password recovery remains the signed-out
   forgot-password flow; an admin can rename or re-role someone from `/admin/users/[id]`.
+
+### One top bar for every signed-in page (`<AppHeader />`)
+
+- **There were four.** The admin shell had its own, the student layout defined one inline,
+  the account pages had `<AccountHeader>`, and `<PublicHeader>` had a signed-in variant.
+  They carried different links in a different order and showed the identity three different
+  ways, so moving between sections read as moving between applications.
+
+- `<AppHeader />` replaces all of them. **What it contains never varies by page** — only
+  where the links point varies, and that is decided by role. `AccountHeader`,
+  `AdminUserMenu` and `LogoutButton` were deleted, not left behind.
+
+- **The two roles are not identical, deliberately.** A student gets two links — their hub
+  and their courses — because everything else they own (purchases, certificates, issues) is
+  reached _from_ the hub, and repeating those in the bar would be the same destinations
+  twice. Staff get three: control panel, the courses they manage, and the issue queue,
+  which has no other entry point in their shell.
+
+- **The bell is the notifications entry**, rather than a link beside it. It carries the
+  unread badge and opens the recent list with a way through to the full page; a separate
+  link would be a second route to the same place carrying less information.
+
+- **`<PublicHeader>` now only handles strangers.** A signed-in visitor on a public page
+  gets `<AppHeader />` like anywhere else — the chrome should not change because the page
+  underneath happens to be public. What is left is the sign-in/register bar, which is the
+  genuinely different case: no name, no role, nothing to sign out of.
+
+  It still renders a skeleton while the session resolves. That is not indecision — the
+  session is read on the client, so painting "Prijavi se" first would make a signed-in
+  visitor watch the header flip to their own name on every public page load.
+
+- The admin bar duplicates two of the sidebar's links. That is the price of the bar being
+  identical everywhere, and it is worth paying: the sidebar is the section's own deep
+  navigation, the bar is the application's.
+
+### The student dashboard is a hub, not a wall
+
+- `/dashboard` used to stack enrolments, pending requests and certificates on one page.
+  Each of those grows independently, so a student with a dozen courses had a screen they
+  scrolled in order to _navigate_ — and none of the three sections had a URL, so nothing
+  could be linked or bookmarked.
+
+- Each is now its own page — `/dashboard/courses`, `/dashboard/purchases`,
+  `/dashboard/certificates` — with `/issues` as the fourth destination. They nest under
+  `/dashboard`, so `proxy.ts` already protects them and no prefix was added.
+
+- **The hub's counts are the point.** Four identical cards tell you nothing; "2 zahteva
+  čeka" versus "nema zahteva na čekanju" is what decides whether you click. Each tile runs
+  its own `pageSize: 1` query and reads `meta.total` — the standing answer to needing a
+  count rather than rows.
+
+- **"Pregledaj kurseve" appears exactly once**, as a filled tile above the grid. It used to
+  sit in the header of every student page, where it was noise on the four screens you did
+  not open to go shopping. It is styled against the other cards on purpose: it is the only
+  one leading _out_ of the student's own material rather than into it.
+
+- **Denied purchases appear on the purchases page but never did on the dashboard.** On a
+  home screen a rejected row is a standing reminder with no action attached; on the page
+  that exists to _be_ the history, omitting them would be the wrong answer to "what
+  happened to that one". The payment reference shows only while a request is still
+  `requested` — after approval it has done its job, and on a denied row it would invite a
+  transfer nobody will honour.
+
+- **Notifications deep-link past the hub.** A submission reply now points at
+  `/courses/{slug}/modules/{id}/task` rather than `/dashboard`: being told your work was
+  reviewed and then landing on a menu is a step for no reason. It falls back to
+  `/dashboard/courses` if the course has since been deleted.
+
+### Filter selects: `<FilterSelect>`, and the empty-value label trap
+
+- These filters use `''` as the sentinel for "no filter" — `useListParams` drops empty
+  values so the param is never sent. That is right on the data side and **wrong for the
+  label**: MUI decides whether a floating label shrinks with `isFilled()`, which is
+
+  ```js
+  hasValue(obj.value) && obj.value !== '';
+  ```
+
+  so `''` counts as empty. The label stayed full-size and un-notched, sitting directly on
+  top of the "Svi statusi" the Select was rendering underneath — which reads as a blank or
+  broken field.
+
+- `<FilterSelect>` forces `slotProps={{ inputLabel: { shrink: true } }}` and owns the "all"
+  option. Nine list pages use it; no page hand-rolls `<MenuItem value="">` any more.
+
+- **The sentinel was not changed to `'all'`**, which would also dodge the shrink rule.
+  Every list page would then have to translate `'all'` back into "omit this param", and
+  `useListParams` would have to learn a magic string. The empty value is the honest
+  representation of "no filter" — the label just needed telling.
+
+### The UI language is Bosnian (ijekavian)
+
+- **Every user-facing string is Bosnian, ijekavian, Latin script.** It had been Serbian
+  ekavian throughout, with one accidental ijekavian line on the login page. That single
+  inconsistency is what surfaced the question; the project owner's answer was to move the
+  whole UI to Bosnian rather than to fix the one line.
+
+- **The jat reflex is not a find-and-replace, and the trap is that it is _two_ reflexes.**
+  The same historical vowel comes out long (`ije`) or short (`je`) depending on the word,
+  and noun/verb pairs from one root routinely split:
+
+  |              | noun (short)         | verb (long)                 |
+  | ------------ | -------------------- | --------------------------- |
+  | izmjena      | **izmjena**, izmjene | **izmijeniti**, izmijenjen  |
+  | promjena     | **promjena**         | **promijeniti**, promijenio |
+  | obavještenje | **obavještenje**     | **obaviješten**             |
+  | dodjela      | **dodjeljuje**       | **dodijeliti**, dodijeljen  |
+
+  So a blanket `izmen` → `izmjen` produces the plausible-looking but wrong
+  _izmjeniti_. The conversion ran longest-match-first for exactly this reason
+  (`izmeniti` before `izmenjen` before `izmeni` before `izmen`), and the same ordering
+  is what any future sweep needs.
+
+- **Oblique cases can keep the short vowel where the nominative is long:**
+  `vrijeme` but `vremena`, `vremenski`. Don't "fix" those to `vrijemena`.
+
+- **Not every `pre-` is jat.** `pregled`, `prepiska`, `preuzimanje`, `predaja`, `prethodni`,
+  `pretraga` are unchanged; only the standalone preposition `pre` → `prije`. A regex on
+  `pre` rewrites half the admin UI into nonsense.
+
+- **Future tense is written analytically.** Bosnian splits what Serbian fuses:
+  `biće` → `bit će`, `javićemo` → `javit ćemo`, `poslaćemo` → `poslat ćemo`,
+  `obavestićemo` → `obavijestit ćemo`. The negative stays fused — `neće` is correct.
+
+- **Three changes are lexical rather than phonetic**, and are the ones most likely to be
+  reintroduced by someone typing naturally: `sertifikat` → **certifikat**,
+  `korišćenje` → **korištenje**, `takođe` → **također**. `uslov` → **uvjet** was also
+  applied (both circulate in Bosnia; `uvjet` is the ijekavian-consistent form).
+
+- **`LOCALE` is `bs-BA`, and the switch fixed a live bug rather than being cosmetic.**
+  `Intl.RelativeTimeFormat('sr-BA')` renders in **Cyrillic** — every notification
+  timestamp read `прије 5 минута`, the only Cyrillic in a Latin UI, and nobody had
+  looked at that string since it was written. `sr-Latn-BA` fixes the script but still
+  says `avgust` where Bosnian says `august`.
+
+  The cost is date spacing: `06. 08. 2026.` rather than `06.08.2026.`. An earlier note in
+  `format.ts` rejected `bs-BA` for precisely that. With the copy now Bosnian, the spaced
+  form is the correct convention rather than a regression — so that note was reversed, not
+  overlooked.
+
+- **`pluralSr` → `pluralBs`.** The rule is identical for both, so this is a rename for
+  honesty, not a behaviour change.
+
+- **The T&C route moved with its copy**: `/uslovi-koriscenja` → `/uvjeti-koristenja`. A
+  URL is an address and normally must not follow a rename (see the course-slug rule), but
+  this page is an unpublished draft with no inbound links and one internal reference, and
+  leaving a Serbian URL under a Bosnian UI would have baked the drift in. `/kontakt` and
+  `/blog` are spelled identically in both and did not move.
+
+- **Bosnian text did not introduce any character the certificate PDF could not already
+  draw** — the vendored EB Garamond faces cover `č ć ž š đ`, which is why they were
+  vendored. No new PDF risk, but re-verify by rasterising if the copy ever gains a
+  character outside that set.
+
+- **What is _not_ converted: the database.** Seeded course names, module titles and
+  message bodies live in `scripts/seed.mjs`, which was converted — but rows already in
+  the database still hold the old ekavian text. `npm run db:seed` refreshes them.
+  Denormalised `notifications` rows are deliberately never rewritten (they record what
+  someone was told at the time), so old notifications keep their ekavian wording forever.
+  That is correct, and it is why a stray `zahtev` in an old notification body is not a bug.
+
+### "Prijava" was the wrong word for a support request
+
+- _Prijava_ means both **a report** and **signing in**. The login page is
+  literally titled "Prijava" and its button says "Prijavi se", so the support section and
+  the auth flow were using the same word for unrelated things.
+
+- The section is **"Podrška"**; one item in it is a **"zahtev"** (in full, "zahtev za
+  podršku"). `ISSUE_STATUS` labels became masculine to agree — Otvoren / Odgovoren /
+  Zatvoren.
+
+- Renamed by explicit pairs, never a blanket replace: a global substitution would have
+  rewritten the login copy, which is the collision being fixed. Everything still matching
+  `prijav` is an inflection of _prijaviti se_, the login title, or the footer link to it.
+
+- **Only the UI copy changed.** The table is still `issues`, the enum values are still
+  `issue_opened` / `issue_reply` / `issue_closed`, and the routes are still `/issues` and
+  `/admin/issues` — code identifiers stay English, per §7.
 
 ### Not every built page is reachable from the nav
 

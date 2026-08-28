@@ -22,7 +22,7 @@ import type { TaskSubmissionStatus } from '@/lib/schemas/task-submissions.schema
  *
  * `POST /api/submissions/:id/messages` takes an optional `status` alongside the
  * body, and a status change with no message would leave a student staring at
- * "Potrebna izmena" with nothing saying what to fix. Making the decision a
+ * "Potrebna izmjena" with nothing saying what to fix. Making the decision a
  * property of the message means every outcome comes with its explanation, and
  * it is one request rather than two that can half-fail.
  */
@@ -30,8 +30,8 @@ type Decision = 'reply' | 'needs_revision' | 'approved';
 
 const SUBMIT_LABEL: Record<Decision, string> = {
   reply: 'Pošalji poruku',
-  needs_revision: 'Traži izmenu',
-  approved: 'Prihvati rešenje',
+  needs_revision: 'Traži izmjenu',
+  approved: 'Prihvati rješenje',
 };
 
 /**
@@ -106,18 +106,18 @@ export default function SubmissionReview({
     });
 
     if (result.submission_status !== 'approved') {
-      toast.success(decision === 'needs_revision' ? 'Zatražena je izmena.' : 'Poruka je poslata.');
+      toast.success(decision === 'needs_revision' ? 'Zatražena je izmjena.' : 'Poruka je poslata.');
       return;
     }
 
     // The response says what the approval set off, so the reviewer learns it
     // here instead of having to go and check the student's progress.
     if (result.certificate_issued) {
-      toast.success('Rešenje je prihvaćeno. Student je završio kurs i dobio sertifikat.');
+      toast.success('Rješenje je prihvaćeno. Student je završio kurs i dobio certifikat.');
     } else if (result.module_completed) {
-      toast.success('Rešenje je prihvaćeno. Modul je završen.');
+      toast.success('Rješenje je prihvaćeno. Modul je završen.');
     } else {
-      toast.success('Rešenje je prihvaćeno.');
+      toast.success('Rješenje je prihvaćeno.');
     }
 
     setDecision('reply');
@@ -127,8 +127,8 @@ export default function SubmissionReview({
     return (
       <Stack spacing={1.5} sx={{ p: 2.5 }}>
         <Typography variant="body2" color="text.secondary">
-          Prepiska je zatvorena jer je rešenje prihvaćeno. Nove poruke nisu moguće — ni za studenta,
-          ni za predavača.
+          Prepiska je zatvorena jer je rješenje prihvaćeno. Nove poruke nisu moguće — ni za
+          studenta, ni za predavača.
         </Typography>
       </Stack>
     );
@@ -148,7 +148,7 @@ export default function SubmissionReview({
           sx={{ flexWrap: 'wrap' }}
         >
           <ToggleButton value="reply">Samo odgovor</ToggleButton>
-          <ToggleButton value="needs_revision">Traži izmenu</ToggleButton>
+          <ToggleButton value="needs_revision">Traži izmjenu</ToggleButton>
           <ToggleButton value="approved">Prihvati</ToggleButton>
         </ToggleButtonGroup>
       </Stack>
@@ -157,7 +157,7 @@ export default function SubmissionReview({
         <Alert severity="warning">
           <AlertTitle>Prihvatanje je konačno</AlertTitle>
           Zadatak se označava kao završen, a prepiska se zatvara — nijedna strana više ne može
-          poslati poruku. Ako je studentu potrebna ispravka, izaberite „Traži izmenu”.
+          poslati poruku. Ako je studentu potrebna ispravka, izaberite „Traži izmjenu”.
         </Alert>
       ) : null}
 
@@ -185,9 +185,9 @@ export default function SubmissionReview({
 
       <ConfirmDialog
         open={confirming}
-        title="Prihvatiti rešenje?"
+        title="Prihvatiti rješenje?"
         description="Zadatak će biti označen kao završen za ovog studenta, a prepiska se zatvara. Ova radnja se ne može poništiti kroz aplikaciju."
-        confirmLabel="Prihvati rešenje"
+        confirmLabel="Prihvati rješenje"
         severity="primary"
         onCancel={() => settleConfirmation(false)}
         onConfirm={() => settleConfirmation(true)}

@@ -49,23 +49,19 @@ export default async function BlogPostPage(props: PageProps<'/blog/[slug]'>) {
       <PageHeader
         breadcrumbs={[{ label: 'Blog', href: '/blog' }, { label: post.title }]}
         title={post.title}
-        description={`${post.category} · ${formatDate(post.publishedAt)}`}
+        description={formatDate(post.publishedAt)}
       />
 
       <ContentCard>
-        <Stack spacing={2}>
-          {post.body.map((paragraph, index) => (
-            <Typography
-              // Paragraphs have no ids and are static; the index is stable
-              // because the array never reorders at runtime.
-              key={index}
-              variant="body1"
-              sx={{ lineHeight: 1.75 }}
-            >
-              {paragraph}
-            </Typography>
-          ))}
-        </Stack>
+        {/*
+          `content` is Markdown, and nothing parses it yet — it is rendered as
+          preformatted text so the data is visible and the page compiles. The
+          renderer (and the styling that goes with it) is a separate step; when
+          it lands, this block is the only thing that changes.
+        */}
+        <Typography variant="body1" sx={{ lineHeight: 1.75, whiteSpace: 'pre-wrap' }}>
+          {post.content}
+        </Typography>
       </ContentCard>
 
       <Stack direction="row">

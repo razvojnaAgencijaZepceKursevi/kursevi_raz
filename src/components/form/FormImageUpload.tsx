@@ -120,7 +120,7 @@ export default function FormImageUpload<TFieldValues extends FieldValues = Field
               startIcon={<UploadFileIcon />}
               disabled={disabled || field.disabled}
             >
-              {file || currentImageUrl ? 'Promeni sliku' : 'Izaberi sliku'}
+              {file || currentImageUrl ? 'Promijeni sliku' : 'Izaberi sliku'}
               <input
                 ref={inputRef}
                 type="file"

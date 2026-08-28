@@ -24,10 +24,10 @@ export default function ContactPage() {
       title="Kontakt"
       description="Pitanja, problemi ili saradnja — javite nam se."
       sections={[
-        'Email adresa i vreme odgovora',
+        'Email adresa i vrijeme odgovora',
         'Adresa i podaci o firmi',
         'Telefon, ako postoji',
-        'Kontakt forma za posetioce koji nisu prijavljeni',
+        'Kontakt forma za posjetioce koji nisu prijavljeni',
       ]}
     >
       <ContentCard
@@ -36,12 +36,12 @@ export default function ContactPage() {
       >
         <Stack spacing={2}>
           <Typography variant="body2" color="text.secondary">
-            Pošaljite prijavu i odgovaramo vam u istoj prepisci — vidite i status i sve odgovore na
-            jednom mestu.
+            Pošaljite zahtjev i odgovaramo vam u istoj prepisci — vidite i status i sve odgovore na
+            jednom mjestu.
           </Typography>
           <Stack direction="row">
             <Button href="/issues/new" variant="contained" startIcon={<SupportOutlinedIcon />}>
-              Pošalji prijavu
+              Pošalji zahtjev
             </Button>
           </Stack>
         </Stack>

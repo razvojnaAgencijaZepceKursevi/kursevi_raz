@@ -56,11 +56,11 @@ export default function CategoryActions({ category }: { category: CategoryWithCo
   return (
     <>
       <Stack direction="row" spacing={0.5} sx={{ justifyContent: 'flex-end' }}>
-        <Tooltip title="Izmeni">
+        <Tooltip title="Izmijeni">
           <IconButton
             size="small"
             onClick={() => setEditing(true)}
-            aria-label={`Izmeni kategoriju ${category.name}`}
+            aria-label={`Izmijeni kategoriju ${category.name}`}
           >
             <EditOutlinedIcon fontSize="small" />
           </IconButton>

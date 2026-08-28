@@ -90,11 +90,11 @@ export default function ModuleActions({
           </span>
         </Tooltip>
 
-        <Tooltip title="Izmeni">
+        <Tooltip title="Izmijeni">
           <IconButton
             size="small"
             href={`/admin/courses/${courseId}/modules/${currentModule.id}/edit`}
-            aria-label={`Izmeni modul ${currentModule.title}`}
+            aria-label={`Izmijeni modul ${currentModule.title}`}
           >
             <EditOutlinedIcon fontSize="small" />
           </IconButton>
@@ -116,8 +116,8 @@ export default function ModuleActions({
         title="Obrisati modul?"
         description={
           <>
-            Modul <strong>{currentModule.title}</strong> biće trajno obrisan, zajedno sa svojim
-            kvizom, zadatkom i materijalima. Napredak studenata na ovom modulu se takođe briše. Ova
+            Modul <strong>{currentModule.title}</strong> bit će trajno obrisan, zajedno sa svojim
+            kvizom, zadatkom i materijalima. Napredak studenata na ovom modulu se također briše. Ova
             akcija se ne može poništiti.
           </>
         }

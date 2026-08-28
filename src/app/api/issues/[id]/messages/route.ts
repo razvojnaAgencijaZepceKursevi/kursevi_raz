@@ -136,23 +136,23 @@ export const POST = withRoute(async (req, ctx: Ctx) => {
     notifyAfterResponse({
       userIds: [issue.reporter_id].filter((id) => id !== userId),
       type: nextStatus === 'closed' ? 'issue_closed' : 'issue_reply',
-      title: nextStatus === 'closed' ? 'Prijava je zatvorena' : 'Odgovor na vašu prijavu',
+      title: nextStatus === 'closed' ? 'Zahtjev je zatvoren' : 'Odgovor podrške',
       body: `${issue.subject}: ${excerpt}`,
       link: href,
       email: {
         subject:
           nextStatus === 'closed'
-            ? `Prijava zatvorena — ${issue.subject}`
-            : `Odgovor na prijavu — ${issue.subject}`,
-        heading: nextStatus === 'closed' ? 'Prijava je zatvorena' : 'Stigao je odgovor',
+            ? `Zahtjev zatvoren — ${issue.subject}`
+            : `Odgovor na zahtjev — ${issue.subject}`,
+        heading: nextStatus === 'closed' ? 'Zahtjev je zatvoren' : 'Stigao je odgovor',
         lines: [
-          `Administrator je odgovorio na vašu prijavu „${issue.subject}”:`,
+          `Administrator je odgovorio na vaš zahtjev „${issue.subject}”:`,
           excerpt,
           ...(nextStatus === 'closed'
-            ? ['Ako problem i dalje postoji, odgovorite na prijavu i ponovo ćemo je otvoriti.']
+            ? ['Ako problem i dalje postoji, odgovorite na zahtjev i ponovo ćemo ga otvoriti.']
             : []),
         ],
-        action: { label: 'Otvori prijavu', href },
+        action: { label: 'Otvori zahtjev', href },
       },
     });
   } else {
@@ -160,14 +160,14 @@ export const POST = withRoute(async (req, ctx: Ctx) => {
     notifyAfterResponse({
       userIds: await adminIds(createServiceRoleClient()),
       type: 'issue_reply',
-      title: 'Novi odgovor na prijavu',
+      title: 'Novi odgovor na zahtjev',
       body: `${profile.full_name} — ${issue.subject}: ${excerpt}`,
       link: href,
       email: {
-        subject: `Novi odgovor na prijavu — ${issue.subject}`,
-        heading: 'Novi odgovor na prijavu',
-        lines: [`${profile.full_name} je odgovorio/la na prijavu „${issue.subject}”:`, excerpt],
-        action: { label: 'Otvori prijavu', href },
+        subject: `Novi odgovor na zahtjev — ${issue.subject}`,
+        heading: 'Novi odgovor na zahtjev',
+        lines: [`${profile.full_name} je odgovorio/la na zahtjev „${issue.subject}”:`, excerpt],
+        action: { label: 'Otvori zahtjev', href },
       },
     });
   }

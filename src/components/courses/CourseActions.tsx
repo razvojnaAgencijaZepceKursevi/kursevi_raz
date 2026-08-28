@@ -75,7 +75,7 @@ export default function CourseActions({ course }: { course: Course }) {
           <ListItemIcon>
             <EditOutlinedIcon fontSize="small" />
           </ListItemIcon>
-          <Typography variant="body2">Izmeni</Typography>
+          <Typography variant="body2">Izmijeni</Typography>
         </MenuItem>
 
         <MenuItem component={NextLink} href={`/admin/courses/${course.id}/modules`} onClick={close}>
@@ -105,7 +105,7 @@ export default function CourseActions({ course }: { course: Course }) {
         description={
           <>
             Kurs <strong>{course.name}</strong> i sav njegov sadržaj — moduli, kvizovi, zadaci i
-            fajlovi — biće trajno obrisani. Ova akcija se ne može poništiti.
+            fajlovi — bit će trajno obrisani. Ova akcija se ne može poništiti.
           </>
         }
         confirmLabel="Obriši kurs"

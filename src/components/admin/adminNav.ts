@@ -66,12 +66,12 @@ export const ADMIN_NAV: AdminNavSection[] = [
   {
     title: 'Studenti',
     items: [
-      { label: 'Zahtevi za kupovinu', href: '/admin/purchases', icon: ReceiptLongOutlinedIcon },
+      { label: 'Zahtjevi za kupovinu', href: '/admin/purchases', icon: ReceiptLongOutlinedIcon },
       { label: 'Predati zadaci', href: '/admin/submissions', icon: AssignmentTurnedInOutlinedIcon },
-      { label: 'Sertifikati', href: '/admin/certificates', icon: WorkspacePremiumOutlinedIcon },
+      { label: 'Certifikati', href: '/admin/certificates', icon: WorkspacePremiumOutlinedIcon },
       { label: 'Korisnici', href: '/admin/users', icon: PeopleOutlinedIcon, roles: ['admin'] },
       {
-        label: 'Prijave',
+        label: 'Podrška',
         href: '/admin/issues',
         icon: SupportOutlinedIcon,
         // Admins only: an issue may be about a teacher, so teachers do not see

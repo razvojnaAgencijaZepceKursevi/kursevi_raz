@@ -130,8 +130,8 @@ function EditCourseContent({ course }: { course: Course }) {
     <Stack spacing={3}>
       <PageHeader
         breadcrumbs={[{ label: 'Kursevi', href: '/admin/courses' }, { label: course.name }]}
-        title="Izmena kursa"
-        description="Promene su odmah vidljive na javnoj stranici kursa."
+        title="Izmjena kursa"
+        description="Promjene su odmah vidljive na javnoj stranici kursa."
         actions={
           <Stack direction="row" spacing={1.5}>
             <Button href={`/admin/courses/${course.id}/modules`} variant="outlined">
@@ -151,8 +151,8 @@ function EditCourseContent({ course }: { course: Course }) {
       <CourseForm
         defaultValues={courseToFormValues(course)}
         onSubmit={handleSubmit}
-        submitLabel="Sačuvaj izmene"
-        pendingLabel="Čuvanje izmena…"
+        submitLabel="Sačuvaj izmjene"
+        pendingLabel="Čuvanje izmjena…"
         currentThumbnailUrl={courseThumbnailUrl(course.thumbnail_path)}
         canPublish={isAdmin}
         showSlugField

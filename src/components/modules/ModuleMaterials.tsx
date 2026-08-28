@@ -207,7 +207,7 @@ export default function ModuleMaterials({
         title="Obrisati materijal?"
         description={
           <>
-            Fajl <strong>{deleting?.file_name ?? ''}</strong> biće trajno obrisan i studenti više
+            Fajl <strong>{deleting?.file_name ?? ''}</strong> bit će trajno obrisan i studenti više
             neće moći da ga preuzmu.
           </>
         }

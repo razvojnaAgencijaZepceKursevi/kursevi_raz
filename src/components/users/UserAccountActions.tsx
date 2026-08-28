@@ -66,7 +66,7 @@ export default function UserAccountActions({ profile }: { profile: Profile }) {
           startIcon={<EditOutlinedIcon />}
           onClick={() => setEditing(true)}
         >
-          Izmeni
+          Izmijeni
         </Button>
 
         {/* An admin cannot disable their own account — the API refuses it, and
@@ -91,13 +91,13 @@ export default function UserAccountActions({ profile }: { profile: Profile }) {
         description={
           isDeactivated ? (
             <>
-              <strong>{profile.full_name}</strong> će ponovo moći da se prijavi i nastaviće tamo gde
-              je stao/la.
+              <strong>{profile.full_name}</strong> će ponovo moći da se prijavi i nastaviće tamo
+              gdje je stao/la.
             </>
           ) : (
             <>
               <strong>{profile.full_name}</strong> više neće moći da se prijavi. Ništa se ne briše —
-              kupovine, sertifikati i kursevi ostaju sačuvani, a nalog možete ponovo aktivirati u
+              kupovine, certifikati i kursevi ostaju sačuvani, a nalog možete ponovo aktivirati u
               bilo kom trenutku.
             </>
           )

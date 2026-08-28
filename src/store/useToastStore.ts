@@ -56,7 +56,7 @@ const show = (severity: ToastSeverity) => (message: string, durationMs?: number)
 /**
  * The API you actually call:
  *
- *   toast.success('Kurs je uspešno kreiran.');
+ *   toast.success('Kurs je uspješno kreiran.');
  *   toast.error(errorMessage(error));
  */
 export const toast = {

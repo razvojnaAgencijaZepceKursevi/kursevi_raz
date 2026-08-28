@@ -48,9 +48,9 @@ export const courseFormSchema = z.object({
   category_id: z.uuid('Izaberite ispravnu kategoriju.').nullable().default(null),
 
   price: z
-    .number({ error: 'Unesite cenu. Za besplatan kurs unesite 0.' })
-    .nonnegative('Cena ne može biti negativna.')
-    .max(10_000_000, 'Cena je nerealno visoka.'),
+    .number({ error: 'Unesite cijenu. Za besplatan kurs unesite 0.' })
+    .nonnegative('Cijena ne može biti negativna.')
+    .max(10_000_000, 'Cijena je nerealno visoka.'),
 
   published: z.boolean().default(false),
 

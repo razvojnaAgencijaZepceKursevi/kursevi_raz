@@ -12,7 +12,7 @@ import TextField from '@mui/material/TextField';
  * validation on a perfectly valid entry. The conversion below is the whole
  * reason not to reach for `<FormTextField type="number">`.
  *
- *   <FormNumberField name="price" label="Cena" suffix="KM" min={0} step={100} />
+ *   <FormNumberField name="price" label="Cijena" suffix="KM" min={0} step={100} />
  */
 export default function FormNumberField<TFieldValues extends FieldValues = FieldValues>({
   name,

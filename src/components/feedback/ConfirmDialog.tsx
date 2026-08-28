@@ -20,7 +20,7 @@ import DialogTitle from '@mui/material/DialogTitle';
  *   <ConfirmDialog
  *     open={confirming}
  *     title="Obrisati kurs?"
- *     description="Svi moduli, kvizovi i zadaci biće trajno obrisani."
+ *     description="Svi moduli, kvizovi i zadaci bit će trajno obrisani."
  *     confirmLabel="Obriši"
  *     pending={remove.isPending}
  *     onCancel={() => setConfirming(false)}

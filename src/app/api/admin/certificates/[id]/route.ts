@@ -98,18 +98,18 @@ export const PATCH = withRoute(async (req, ctx: Ctx) => {
     notifyAfterResponse({
       userIds: [existing.student_id],
       type: 'certificate_delivered',
-      title: 'Sertifikat je poslat poštom',
-      body: `Štampani sertifikat za kurs „${courseName}” je poslat na vašu adresu.`,
+      title: 'Certifikat je poslat poštom',
+      body: `Štampani certifikat za kurs „${courseName}” je poslat na vašu adresu.`,
       link: `/certificates/${existing.readable_id}`,
       email: {
-        subject: `Vaš sertifikat je poslat — ${courseName}`,
-        heading: 'Sertifikat je na putu',
+        subject: `Vaš certifikat je poslat — ${courseName}`,
+        heading: 'Certifikat je na putu',
         lines: [
-          `Štampani primerak vašeg sertifikata za kurs „${courseName}” je poslat poštom.`,
-          `Broj sertifikata: ${existing.readable_id}.`,
+          `Štampani primjerak vašeg certifikata za kurs „${courseName}” je poslat poštom.`,
+          `Broj certifikata: ${existing.readable_id}.`,
           'Ako ne stigne u razumnom roku, javite nam se odgovorom na ovaj email.',
         ],
-        action: { label: 'Pogledaj sertifikat', href: `/certificates/${existing.readable_id}` },
+        action: { label: 'Pogledaj certifikat', href: `/certificates/${existing.readable_id}` },
       },
     });
   }

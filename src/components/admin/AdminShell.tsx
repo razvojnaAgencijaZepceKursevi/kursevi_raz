@@ -3,17 +3,14 @@
 import * as React from 'react';
 import NextLink from 'next/link';
 import MenuIcon from '@mui/icons-material/Menu';
-import AppBar from '@mui/material/AppBar';
 import Box from '@mui/material/Box';
 import Drawer from '@mui/material/Drawer';
 import IconButton from '@mui/material/IconButton';
 import Stack from '@mui/material/Stack';
-import Toolbar from '@mui/material/Toolbar';
 import Typography from '@mui/material/Typography';
 import AdminNavList from './AdminNavList';
 import type { StaffRole } from './adminNav';
-import AdminUserMenu from './AdminUserMenu';
-import NotificationBell from '@/components/notifications/NotificationBell';
+import AppHeader from '@/components/layout/AppHeader';
 
 const SIDEBAR_WIDTH = 264;
 
@@ -115,28 +112,31 @@ export default function AdminShell({
       </Drawer>
 
       <Box sx={{ flex: 1, minWidth: 0, display: 'flex', flexDirection: 'column' }}>
-        <AppBar
-          position="sticky"
-          color="inherit"
-          sx={{ bgcolor: 'background.paper', zIndex: (theme) => theme.zIndex.drawer - 1 }}
-        >
-          <Toolbar sx={{ gap: 1, justifyContent: 'space-between', minHeight: { xs: 64, sm: 64 } }}>
-            <IconButton
-              onClick={() => setMobileOpen(true)}
-              edge="start"
-              aria-label="Otvori navigaciju"
-              sx={{ display: { md: 'none' } }}
-            >
-              <MenuIcon />
-            </IconButton>
+        {/*
+          The same bar every signed-in page gets. It duplicates two of the
+          sidebar's links, which is the price of the bar being identical
+          everywhere — and that consistency is worth more than the saved pixels,
+          because it is what stops each section feeling like its own app.
 
-            {/* Pushes the user menu right on desktop, where there's no button. */}
-            <Box sx={{ flex: 1 }} />
-
-            <NotificationBell />
-            <AdminUserMenu fullName={profile.full_name} email={profile.email} role={profile.role} />
-          </Toolbar>
-        </AppBar>
+          The drawer toggle rides on top of it rather than inside, since only
+          this shell has a sidebar to open.
+        */}
+        <Box sx={{ position: 'relative' }}>
+          <AppHeader profile={profile} />
+          <IconButton
+            onClick={() => setMobileOpen(true)}
+            aria-label="Otvori navigaciju"
+            sx={{
+              display: { md: 'none' },
+              position: 'absolute',
+              top: 8,
+              left: 4,
+              zIndex: (theme) => theme.zIndex.appBar + 1,
+            }}
+          >
+            <MenuIcon />
+          </IconButton>
+        </Box>
 
         <Box component="main" sx={{ flex: 1, p: { xs: 2, sm: 3, lg: 4 } }}>
           {children}

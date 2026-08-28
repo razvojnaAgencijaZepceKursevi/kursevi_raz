@@ -15,6 +15,12 @@ export const purchaseStatusSchema = z
 export const purchaseSchema = z
   .object({
     id: uuidSchema,
+    /**
+     * The payment reference (UPL-YYYY-NNNN) the student quotes when they
+     * transfer the money, and what an admin matches against a bank statement
+     * before approving. Generated in the database; unique and never reused.
+     */
+    readable_id: z.string().openapi({ example: 'UPL-2026-0001' }),
     student_id: uuidSchema,
     course_id: uuidSchema,
     price: z.coerce.number().openapi({ description: 'Price snapshot at request time' }),
@@ -58,6 +64,9 @@ export const listPurchasesQuerySchema = paginationQuerySchema
     studentId: uuidSchema.optional().openapi({ description: 'Admin-only filter' }),
   })
   .openapi('ListPurchasesQuery');
+
+// `search` comes from `paginationQuerySchema`; on purchases it matches the
+// payment reference, which is the only free-text handle a purchase has.
 
 export const purchaseListResponseSchema =
   paginatedResponse(purchaseSchema).openapi('PurchaseListResponse');

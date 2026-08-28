@@ -71,7 +71,7 @@ export default function CourseDeleteSection({ course }: { course: Course }) {
         description={
           <>
             Kurs <strong>{course.name}</strong> i sav njegov sadržaj — moduli, kvizovi, zadaci i
-            fajlovi — biće trajno obrisani. Ova akcija se ne može poništiti.
+            fajlovi — bit će trajno obrisani. Ova akcija se ne može poništiti.
           </>
         }
         confirmLabel="Obriši kurs"

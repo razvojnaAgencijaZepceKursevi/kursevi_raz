@@ -15,7 +15,7 @@ import ContentCard from '@/components/layout/ContentCard';
  * **copy**, which is somebody else's job, so the notice says that rather than
  * pretending a developer is coming back.
  *
- * The distinction matters for the legal pages especially: "Uslovi korišćenja"
+ * The distinction matters for the legal pages especially: "Uvjeti korištenja"
  * with invented text would be worse than one that says plainly it is not
  * written yet.
  *

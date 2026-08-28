@@ -12,6 +12,7 @@ import QueryState from '@/components/feedback/QueryState';
 import EmptyState from '@/components/feedback/EmptyState';
 import DetailList from '@/components/data/DetailList';
 import StatusChip from '@/components/data/StatusChip';
+import PaymentReference from '@/components/purchases/PaymentReference';
 import PurchaseActions from '@/components/purchases/PurchaseActions';
 import { useAdminPurchase } from '@/hooks/usePurchases';
 import { formatDateTime, formatPrice } from '@/lib/format';
@@ -33,7 +34,7 @@ export default function AdminPurchaseDetailPage(props: PageProps<'/admin/purchas
     return (
       <PageContainer>
         <ContentCard>
-          <EmptyState title="Zahtev nije pronađen" description="Ovaj zahtev ne postoji." />
+          <EmptyState title="Zahtjev nije pronađen" description="Ovaj zahtjev ne postoji." />
         </ContentCard>
       </PageContainer>
     );
@@ -41,7 +42,7 @@ export default function AdminPurchaseDetailPage(props: PageProps<'/admin/purchas
 
   return (
     <PageContainer>
-      <QueryState query={purchase} errorTitle="Zahtev nije moguće učitati">
+      <QueryState query={purchase} errorTitle="Zahtjev nije moguće učitati">
         {(row) => {
           const studentName = row.profiles?.full_name ?? 'Nepoznat korisnik';
 
@@ -49,11 +50,11 @@ export default function AdminPurchaseDetailPage(props: PageProps<'/admin/purchas
             <>
               <PageHeader
                 breadcrumbs={[
-                  { label: 'Zahtevi za kupovinu', href: '/admin/purchases' },
+                  { label: 'Zahtjevi za kupovinu', href: '/admin/purchases' },
                   { label: studentName },
                 ]}
-                title={row.courses?.name ?? 'Zahtev za kupovinu'}
-                description={`Zahtev korisnika ${studentName}`}
+                title={row.courses?.name ?? 'Zahtjev za kupovinu'}
+                description={`Zahtjev korisnika ${studentName}`}
                 actions={<StatusChip {...PURCHASE_STATUS[row.status]} size="medium" />}
               />
 
@@ -68,7 +69,7 @@ export default function AdminPurchaseDetailPage(props: PageProps<'/admin/purchas
                 <Alert severity={row.status === 'approved' ? 'success' : 'info'}>
                   {row.status === 'approved'
                     ? 'Pristup je odobren. Student može da otvara module ovog kursa.'
-                    : 'Zahtev je odbijen. Student može poslati novi zahtev za isti kurs.'}
+                    : 'Zahtjev je odbijen. Student može poslati novi zahtjev za isti kurs.'}
                 </Alert>
               )}
 
@@ -108,7 +109,7 @@ export default function AdminPurchaseDetailPage(props: PageProps<'/admin/purchas
                           ),
                         },
                         {
-                          label: 'Cena u trenutku zahteva',
+                          label: 'Cijena u trenutku zahtjeva',
                           value: formatPrice(row.price),
                         },
                       ]}
@@ -117,14 +118,18 @@ export default function AdminPurchaseDetailPage(props: PageProps<'/admin/purchas
                 </Grid>
               </Grid>
 
-              <ContentCard title="Detalji zahteva">
+              <ContentCard title="Detalji zahtjeva">
                 <DetailList
                   items={[
-                    { label: 'Status', value: <StatusChip {...PURCHASE_STATUS[row.status]} /> },
-                    { label: 'Zahtev poslat', value: formatDateTime(row.created_at) },
-                    { label: 'Poslednja izmena', value: formatDateTime(row.updated_at) },
                     {
-                      label: 'ID zahteva',
+                      label: 'Poziv na broj',
+                      value: <PaymentReference readableId={row.readable_id} variant="inline" />,
+                    },
+                    { label: 'Status', value: <StatusChip {...PURCHASE_STATUS[row.status]} /> },
+                    { label: 'Zahtjev poslat', value: formatDateTime(row.created_at) },
+                    { label: 'Posljednja izmjena', value: formatDateTime(row.updated_at) },
+                    {
+                      label: 'ID zahtjeva',
                       value: <Typography variant="caption">{row.id}</Typography>,
                     },
                   ]}

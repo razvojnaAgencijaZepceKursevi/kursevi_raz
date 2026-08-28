@@ -20,7 +20,7 @@ import ModuleActions from '@/components/modules/ModuleActions';
 import { useAdminCourse } from '@/hooks/useCourses';
 import { useCourseModules, useUpdateModule } from '@/hooks/useModules';
 import { errorMessage } from '@/lib/api/errorMessage';
-import { pluralSr } from '@/lib/format';
+import { pluralBs } from '@/lib/format';
 import { toast } from '@/store/useToastStore';
 import type { ModuleWithFiles } from '@/lib/schemas/modules.schema';
 
@@ -91,7 +91,7 @@ export default function AdminCourseModulesPage(props: PageProps<'/admin/courses/
           { label: 'Moduli' },
         ]}
         title="Moduli"
-        description="Redosled modula određuje kojim redom ih studenti otključavaju."
+        description="Redoslijed modula određuje kojim redom ih studenti otključavaju."
         actions={
           <Button
             href={`/admin/courses/${courseId}/modules/new`}
@@ -114,7 +114,7 @@ export default function AdminCourseModulesPage(props: PageProps<'/admin/courses/
           empty={
             <EmptyState
               title="Kurs još nema module"
-              description="Dodajte prvi modul — redosled možete menjati kasnije."
+              description="Dodajte prvi modul — redoslijed možete mijenjati kasnije."
               action={
                 <Button
                   href={`/admin/courses/${courseId}/modules/new`}
@@ -193,7 +193,7 @@ export default function AdminCourseModulesPage(props: PageProps<'/admin/courses/
                             <AttachFileIcon sx={{ fontSize: 16, color: 'text.disabled' }} />
                             <Typography variant="caption" color="text.secondary">
                               {fileCount}{' '}
-                              {pluralSr(fileCount, 'materijal', 'materijala', 'materijala')}
+                              {pluralBs(fileCount, 'materijal', 'materijala', 'materijala')}
                             </Typography>
                           </Stack>
                         ) : null}

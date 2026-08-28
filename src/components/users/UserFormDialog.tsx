@@ -61,13 +61,13 @@ export default function UserFormDialog({
 
   return (
     <Dialog open onClose={isSubmitting ? undefined : onClose} maxWidth="xs" fullWidth>
-      <DialogTitle>Izmeni korisnika</DialogTitle>
+      <DialogTitle>Izmijeni korisnika</DialogTitle>
 
       <DialogContent sx={{ pb: 3 }}>
         <Form form={form} onSubmit={handleSubmit}>
           {isSelf ? (
             <Alert severity="info">
-              Ovo je vaš nalog. Svoju ulogu ne možete promeniti — ako biste sebi oduzeli
+              Ovo je vaš nalog. Svoju ulogu ne možete promijeniti — ako biste sebi oduzeli
               administratorska prava, niko ih kroz aplikaciju ne bi mogao vratiti.
             </Alert>
           ) : null}
@@ -83,7 +83,7 @@ export default function UserFormDialog({
             helperText={
               isSelf
                 ? undefined
-                : 'Predavač može da uređuje samo kurseve koje sam kreira ili koje poseduje.'
+                : 'Predavač može da uređuje samo kurseve koje sam kreira ili koje posjeduje.'
             }
           />
 

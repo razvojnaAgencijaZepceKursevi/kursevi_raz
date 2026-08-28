@@ -144,9 +144,9 @@ export async function renderCertificatePdf(input: CertificateDocument): Promise<
   const body = await doc.embedFont(regular, { subset: false, features });
   const display = await doc.embedFont(semibold, { subset: false, features });
 
-  doc.setTitle(`Sertifikat ${input.readableId} — ${input.courseName}`);
+  doc.setTitle(`Certifikat ${input.readableId} — ${input.courseName}`);
   doc.setAuthor('Kursevi');
-  doc.setSubject(`Sertifikat o završenom kursu za ${input.studentName}`);
+  doc.setSubject(`Certifikat o završenom kursu za ${input.studentName}`);
   doc.setCreator('Kursevi');
   doc.setProducer('Kursevi');
 
@@ -186,7 +186,7 @@ export async function renderCertificatePdf(input: CertificateDocument): Promise<
    */
   drawCentred(page, 'KURSEVI', { y: PAGE_HEIGHT - 90, size: 13, font: display, color: MUTED });
 
-  drawCentred(page, 'SERTIFIKAT', { y: PAGE_HEIGHT - 150, size: 40, font: display, color: INK });
+  drawCentred(page, 'CERTIFIKAT', { y: PAGE_HEIGHT - 150, size: 40, font: display, color: INK });
   drawCentred(page, 'o završenom kursu', {
     y: PAGE_HEIGHT - 173,
     size: 14,
@@ -228,7 +228,7 @@ export async function renderCertificatePdf(input: CertificateDocument): Promise<
     color: rgb(0.8, 0.78, 0.74),
   });
 
-  drawCentred(page, 'uspešno završio/la sve module kursa', {
+  drawCentred(page, 'uspješno završio/la sve module kursa', {
     y: PAGE_HEIGHT - 318,
     size: 12,
     font: body,
@@ -256,7 +256,7 @@ export async function renderCertificatePdf(input: CertificateDocument): Promise<
     color: rgb(0.8, 0.78, 0.74),
   });
   drawCentred(page, 'Kursevi', { y: 176, size: 14, font: display, color: INK });
-  drawCentred(page, 'Izdavalac sertifikata', { y: 161, size: 9, font: body, color: MUTED });
+  drawCentred(page, 'Izdavalac certifikata', { y: 161, size: 9, font: body, color: MUTED });
 
   /*
    * The footer: three columns on one baseline — date, number, verification.
@@ -268,8 +268,8 @@ export async function renderCertificatePdf(input: CertificateDocument): Promise<
 
   const footer: { label: string; value: string }[] = [
     { label: 'DATUM IZDAVANJA', value: input.issuedAt },
-    { label: 'BROJ SERTIFIKATA', value: input.readableId },
-    { label: 'PROVERA', value: input.verifyUrl.replace(/^https?:\/\//, '') },
+    { label: 'BROJ CERTIFIKATA', value: input.readableId },
+    { label: 'PROVJERA', value: input.verifyUrl.replace(/^https?:\/\//, '') },
   ];
 
   footer.forEach((entry, index) => {

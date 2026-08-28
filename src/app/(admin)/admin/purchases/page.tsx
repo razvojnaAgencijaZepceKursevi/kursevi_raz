@@ -3,9 +3,8 @@
 import * as React from 'react';
 
 import Chip from '@mui/material/Chip';
-import MenuItem from '@mui/material/MenuItem';
+import Box from '@mui/material/Box';
 import Stack from '@mui/material/Stack';
-import TextField from '@mui/material/TextField';
 import Typography from '@mui/material/Typography';
 import PageContainer from '@/components/layout/PageContainer';
 import PageHeader from '@/components/layout/PageHeader';
@@ -14,7 +13,10 @@ import QueryState from '@/components/feedback/QueryState';
 import EmptyState from '@/components/feedback/EmptyState';
 import PaginationBar from '@/components/data/PaginationBar';
 import DataTable from '@/components/data/DataTable';
+import SearchField from '@/components/data/SearchField';
+import FilterSelect from '@/components/data/FilterSelect';
 import StatusChip from '@/components/data/StatusChip';
+import PaymentReference from '@/components/purchases/PaymentReference';
 import PurchaseActions from '@/components/purchases/PurchaseActions';
 import { useAdminPurchases } from '@/hooks/usePurchases';
 import { useListParams } from '@/hooks/useListParams';
@@ -50,7 +52,7 @@ export default function AdminPurchasesPage(props: PageProps<'/admin/purchases'>)
   return (
     <PageContainer>
       <PageHeader
-        title="Zahtevi za kupovinu"
+        title="Zahtjevi za kupovinu"
         description="Odobravanje pristupa kursevima. Odobrite tek nakon što je uplata potvrđena."
       />
 
@@ -60,18 +62,25 @@ export default function AdminPurchasesPage(props: PageProps<'/admin/purchases'>)
           spacing={2}
           sx={{ p: 2.5, alignItems: { md: 'center' } }}
         >
-          <TextField
-            select
+          <Stack sx={{ flex: 1, minWidth: 0, maxWidth: { md: 280 } }}>
+            <SearchField
+              value={list.search}
+              onChange={list.setSearch}
+              placeholder="Pretraži po pozivu na broj"
+            />
+          </Stack>
+
+          <FilterSelect
             label="Status"
             value={list.filters.status}
-            onChange={(event) => list.setFilter('status', event.target.value)}
-            sx={{ maxWidth: { md: 220 } }}
-          >
-            <MenuItem value="">Svi statusi</MenuItem>
-            <MenuItem value="requested">Na čekanju</MenuItem>
-            <MenuItem value="approved">Odobreni</MenuItem>
-            <MenuItem value="denied">Odbijeni</MenuItem>
-          </TextField>
+            onChange={(value) => list.setFilter('status', value)}
+            allLabel="Svi statusi"
+            options={[
+              { value: 'requested', label: 'Na čekanju' },
+              { value: 'approved', label: 'Odobreni' },
+              { value: 'denied', label: 'Odbijeni' },
+            ]}
+          />
 
           {/* A filter the bar cannot clear would look like a bug, so the
               scope announces itself and offers the way out. */}
@@ -100,18 +109,18 @@ export default function AdminPurchasesPage(props: PageProps<'/admin/purchases'>)
 
         <QueryState
           query={purchases}
-          errorTitle="Zahteve nije moguće učitati"
+          errorTitle="Zahtjeve nije moguće učitati"
           isEmpty={(page) => page.data.length === 0}
           empty={
             list.filters.status === 'requested' ? (
               <EmptyState
-                title="Nema zahteva na čekanju"
-                description="Svi zahtevi su obrađeni. Promenite filter da vidite ranije odluke."
+                title="Nema zahtjeva na čekanju"
+                description="Svi zahtjevi su obrađeni. Promijenite filter da vidite ranije odluke."
               />
             ) : (
               <EmptyState
-                title="Nema zahteva"
-                description="Nijedan zahtev ne odgovara izabranom filteru."
+                title="Nema zahtjeva"
+                description="Nijedan zahtjev ne odgovara izabranom filteru."
               />
             )
           }
@@ -123,6 +132,17 @@ export default function AdminPurchasesPage(props: PageProps<'/admin/purchases'>)
                 getRowId={(row) => row.id}
                 onRowClick={(row) => `/admin/purchases/${row.id}`}
                 columns={[
+                  {
+                    id: 'reference',
+                    header: 'Poziv na broj',
+                    // Stops the copy button from also triggering the row's
+                    // navigation to the detail page.
+                    cell: (row) => (
+                      <Box onClick={(event) => event.stopPropagation()}>
+                        <PaymentReference readableId={row.readable_id} variant="inline" />
+                      </Box>
+                    ),
+                  },
                   {
                     id: 'student',
                     header: 'Student',
@@ -146,7 +166,7 @@ export default function AdminPurchasesPage(props: PageProps<'/admin/purchases'>)
                   },
                   {
                     id: 'price',
-                    header: 'Cena',
+                    header: 'Cijena',
                     align: 'right',
                     cell: (row) => (
                       <Typography variant="body2">{formatPrice(row.price)}</Typography>

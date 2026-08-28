@@ -61,7 +61,7 @@ export default function QuizDeleteSection({ quizId }: { quizId: string }) {
       <ConfirmDialog
         open={confirming}
         title="Obrisati kviz?"
-        description="Kviz, sva pitanja i odgovori biće trajno obrisani. Ova akcija se ne može poništiti."
+        description="Kviz, sva pitanja i odgovori bit će trajno obrisani. Ova akcija se ne može poništiti."
         confirmLabel="Obriši kviz"
         pending={deleteQuiz.isPending}
         onCancel={() => setConfirming(false)}

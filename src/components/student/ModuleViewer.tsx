@@ -203,7 +203,7 @@ export default function ModuleViewer({
               {materials.length > 0 ? (
                 <ContentCard
                   title="Materijali"
-                  description="Materijali se čitaju ovde, u aplikaciji."
+                  description="Materijali se čitaju ovdje, u aplikaciji."
                   disablePadding
                 >
                   {/* Tabs only when there is a choice to make. */}
@@ -239,7 +239,7 @@ export default function ModuleViewer({
               ) : null}
 
               {hasQuiz || hasTask ? (
-                <ContentCard title="Provera znanja" disablePadding>
+                <ContentCard title="Provjera znanja" disablePadding>
                   <Stack divider={<Divider />}>
                     {hasQuiz ? (
                       <Stack
@@ -295,7 +295,7 @@ export default function ModuleViewer({
                           <Typography variant="caption" color="text.secondary">
                             {moduleProgress?.task_done
                               ? 'Prihvaćen.'
-                              : 'Predajte rešenje na pregled.'}
+                              : 'Predajte rješenje na pregled.'}
                           </Typography>
                         </Stack>
                         <Button
@@ -339,7 +339,7 @@ export default function ModuleViewer({
                         Čestitamo — završili ste kurs!
                       </Typography>
                       <Typography variant="body2" color="text.secondary">
-                        Prošli ste sve module kursa „{courseName}”. Sertifikat je izdat na vaše ime.
+                        Prošli ste sve module kursa „{courseName}”. Certifikat je izdat na vaše ime.
                       </Typography>
                     </Stack>
 
@@ -353,11 +353,11 @@ export default function ModuleViewer({
                         variant="contained"
                         startIcon={<WorkspacePremiumOutlinedIcon />}
                       >
-                        Pogledaj sertifikat
+                        Pogledaj certifikat
                       </Button>
                     ) : (
                       <Button variant="contained" disabled>
-                        Sertifikat se izdaje…
+                        Certifikat se izdaje…
                       </Button>
                     )}
                   </Stack>
@@ -400,7 +400,7 @@ export default function ModuleViewer({
                           onSuccess: (result) => {
                             toast.success(
                               result.data.certificate_issued
-                                ? 'Modul je završen. Završili ste kurs — sertifikat je izdat.'
+                                ? 'Modul je završen. Završili ste kurs — certifikat je izdat.'
                                 : 'Modul je završen.',
                             );
                           },
@@ -436,7 +436,7 @@ export default function ModuleViewer({
                     disabled={!isCompleted && !access.bypassSequence}
                     variant="contained"
                   >
-                    Sledeći modul
+                    Sljedeći modul
                   </Button>
                 ) : null}
               </Stack>

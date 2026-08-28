@@ -33,7 +33,7 @@ export function errorMessage(error: unknown, fallback = 'Došlo je do neočekiva
 
   // A failed fetch (offline, DNS, connection reset) never reaches ApiRequestError.
   if (error instanceof TypeError) {
-    return 'Neuspešno povezivanje sa serverom. Proverite internet konekciju.';
+    return 'Neuspješno povezivanje sa serverom. Provjerite internet konekciju.';
   }
 
   if (error instanceof Error && error.message) return error.message;

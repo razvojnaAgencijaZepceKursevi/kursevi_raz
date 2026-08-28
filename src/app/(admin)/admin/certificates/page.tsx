@@ -1,8 +1,6 @@
 'use client';
 
-import MenuItem from '@mui/material/MenuItem';
 import Stack from '@mui/material/Stack';
-import TextField from '@mui/material/TextField';
 import Typography from '@mui/material/Typography';
 import PageContainer from '@/components/layout/PageContainer';
 import PageHeader from '@/components/layout/PageHeader';
@@ -10,6 +8,7 @@ import ContentCard from '@/components/layout/ContentCard';
 import QueryState from '@/components/feedback/QueryState';
 import EmptyState from '@/components/feedback/EmptyState';
 import SearchField from '@/components/data/SearchField';
+import FilterSelect from '@/components/data/FilterSelect';
 import PaginationBar from '@/components/data/PaginationBar';
 import DataTable from '@/components/data/DataTable';
 import StatusChip from '@/components/data/StatusChip';
@@ -44,8 +43,8 @@ export default function AdminCertificatesPage() {
   return (
     <PageContainer>
       <PageHeader
-        title="Sertifikati"
-        description="Sertifikati izdati po završetku kursa i zahtevi za štampanu verziju."
+        title="Certifikati"
+        description="Certifikati izdati po završetku kursa i zahtjevi za štampanu verziju."
       />
 
       <ContentCard disablePadding>
@@ -67,23 +66,27 @@ export default function AdminCertificatesPage() {
             hasn't got it" is a single question to the person doing the work,
             and making them combine two dropdowns to ask it would be busywork.
           */}
-          <TextField
-            select
+          <FilterSelect
             label="Dostava"
+            // Two columns behind one control: "asked for it but hasn't got it"
+            // is a single question to whoever is doing the posting, and making
+            // them combine two dropdowns to ask it would be busywork. Every
+            // option is explicit, so there is no "all" entry.
             value={`${list.filters.requestedDelivery}:${list.filters.delivered}`}
-            onChange={(event) => {
-              const [requested, delivered] = event.target.value.split(':');
+            onChange={(value) => {
+              const [requested, delivered] = value.split(':');
               list.setFilter('requestedDelivery', requested);
               list.setFilter('delivered', delivered);
             }}
-            sx={{ maxWidth: { md: 260 } }}
-          >
-            <MenuItem value="true:false">Čeka slanje</MenuItem>
-            <MenuItem value="true:true">Poslato</MenuItem>
-            <MenuItem value="true:">Svi sa zahtevom</MenuItem>
-            <MenuItem value="false:">Bez zahteva</MenuItem>
-            <MenuItem value=":">Svi sertifikati</MenuItem>
-          </TextField>
+            width={260}
+            options={[
+              { value: 'true:false', label: 'Čeka slanje' },
+              { value: 'true:true', label: 'Poslato' },
+              { value: 'true:', label: 'Svi sa zahtjevom' },
+              { value: 'false:', label: 'Bez zahtjeva' },
+              { value: ':', label: 'Svi certifikati' },
+            ]}
+          />
 
           <Typography
             variant="body2"
@@ -96,23 +99,23 @@ export default function AdminCertificatesPage() {
 
         <QueryState
           query={certificates}
-          errorTitle="Sertifikate nije moguće učitati"
+          errorTitle="Certifikate nije moguće učitati"
           isEmpty={(page) => page.data.length === 0}
           empty={
             list.filters.requestedDelivery === 'true' && list.filters.delivered === 'false' ? (
               <EmptyState
-                title="Nema sertifikata koji čekaju slanje"
-                description="Svi zahtevi za štampani primerak su obrađeni. Promenite filter da vidite ostale."
+                title="Nema certifikata koji čekaju slanje"
+                description="Svi zahtjevi za štampani primjerak su obrađeni. Promijenite filter da vidite ostale."
               />
             ) : list.hasActiveFilters ? (
               <EmptyState
                 title="Nema rezultata"
-                description="Nijedan sertifikat ne odgovara zadatoj pretrazi i filteru."
+                description="Nijedan certifikat ne odgovara zadatoj pretrazi i filteru."
               />
             ) : (
               <EmptyState
-                title="Još nema izdatih sertifikata"
-                description="Sertifikat se izdaje automatski kada student završi sve module kursa."
+                title="Još nema izdatih certifikata"
+                description="Certifikat se izdaje automatski kada student završi sve module kursa."
               />
             )
           }
@@ -126,7 +129,7 @@ export default function AdminCertificatesPage() {
                 columns={[
                   {
                     id: 'readable',
-                    header: 'Broj sertifikata',
+                    header: 'Broj certifikata',
                     cell: (row) => (
                       <Typography variant="body2" sx={{ fontWeight: 600 }}>
                         {row.readable_id}

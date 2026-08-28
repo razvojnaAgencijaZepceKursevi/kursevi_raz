@@ -141,17 +141,17 @@ export async function maybeIssueCertificate(
     userIds: [studentId],
     type: 'certificate_issued',
     title: 'Čestitamo — završili ste kurs!',
-    body: `Sertifikat za kurs „${courseName}” je izdat na vaše ime. Broj: ${inserted.readable_id}.`,
+    body: `Certifikat za kurs „${courseName}” je izdat na vaše ime. Broj: ${inserted.readable_id}.`,
     link: certificateHref,
     email: {
-      subject: `Sertifikat za kurs ${courseName}`,
+      subject: `Certifikat za kurs ${courseName}`,
       heading: 'Završili ste kurs',
       lines: [
         `Završili ste sve module kursa „${courseName}”. Čestitamo!`,
-        `Broj vašeg sertifikata je ${inserted.readable_id}.`,
-        'Na stranici sertifikata možete zatražiti i štampani primerak koji vam šaljemo poštom.',
+        `Broj vašeg certifikata je ${inserted.readable_id}.`,
+        'Na stranici certifikata možete zatražiti i štampani primjerak koji vam šaljemo poštom.',
       ],
-      action: { label: 'Pogledaj sertifikat', href: certificateHref },
+      action: { label: 'Pogledaj certifikat', href: certificateHref },
     },
   });
 

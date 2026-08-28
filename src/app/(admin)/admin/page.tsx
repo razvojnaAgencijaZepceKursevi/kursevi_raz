@@ -64,7 +64,7 @@ export default function AdminDashboardPage() {
       <PageHeader
         title="Pregled"
         description={
-          profile ? `Dobrodošli nazad, ${profile.full_name}.` : 'Stanje platforme na jednom mestu.'
+          profile ? `Dobrodošli nazad, ${profile.full_name}.` : 'Stanje platforme na jednom mjestu.'
         }
         actions={
           <Button href="/admin/courses/new" variant="contained" startIcon={<AddIcon />}>
@@ -87,7 +87,7 @@ export default function AdminDashboardPage() {
 
         <Grid size={{ xs: 12, sm: 6, lg: 3 }}>
           <StatCard
-            label="Zahtevi na čekanju"
+            label="Zahtjevi na čekanju"
             value={pendingPurchases.data?.meta.total}
             icon={ReceiptLongOutlinedIcon}
             href="/admin/purchases"

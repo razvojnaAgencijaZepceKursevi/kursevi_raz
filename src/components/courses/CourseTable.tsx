@@ -37,7 +37,7 @@ export default function CourseTable({
           <TableRow>
             <TableCell>Naziv</TableCell>
             <TableCell>Kategorija</TableCell>
-            <TableCell align="right">Cena</TableCell>
+            <TableCell align="right">Cijena</TableCell>
             <TableCell>Status</TableCell>
             <TableCell>Kreiran</TableCell>
             {/* Actions column: no header text, but it still needs a cell. */}

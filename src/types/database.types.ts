@@ -623,6 +623,7 @@ export type Database = {
           created_by: string | null
           id: string
           price: number
+          readable_id: string
           status: Database["public"]["Enums"]["purchase_status"]
           student_id: string
           updated_at: string
@@ -634,6 +635,7 @@ export type Database = {
           created_by?: string | null
           id?: string
           price: number
+          readable_id?: string
           status?: Database["public"]["Enums"]["purchase_status"]
           student_id: string
           updated_at?: string
@@ -645,6 +647,7 @@ export type Database = {
           created_by?: string | null
           id?: string
           price?: number
+          readable_id?: string
           status?: Database["public"]["Enums"]["purchase_status"]
           student_id?: string
           updated_at?: string
@@ -944,6 +947,7 @@ export type Database = {
       is_staff: { Args: never; Returns: boolean }
       is_teacher: { Args: never; Returns: boolean }
       next_certificate_readable_id: { Args: never; Returns: string }
+      next_purchase_readable_id: { Args: never; Returns: string }
       owns_course: { Args: { p_course_id: string }; Returns: boolean }
       owns_issue: { Args: { p_issue_id: string }; Returns: boolean }
       owns_submission: { Args: { p_submission_id: string }; Returns: boolean }

@@ -35,7 +35,7 @@ export default function AdminCertificateDetailPage(props: PageProps<'/admin/cert
     return (
       <PageContainer>
         <ContentCard>
-          <EmptyState title="Sertifikat nije pronađen" description="Ovaj sertifikat ne postoji." />
+          <EmptyState title="Certifikat nije pronađen" description="Ovaj certifikat ne postoji." />
         </ContentCard>
       </PageContainer>
     );
@@ -43,12 +43,12 @@ export default function AdminCertificateDetailPage(props: PageProps<'/admin/cert
 
   return (
     <PageContainer>
-      <QueryState query={certificate} errorTitle="Sertifikat nije moguće učitati">
+      <QueryState query={certificate} errorTitle="Certifikat nije moguće učitati">
         {(row) => (
           <>
             <PageHeader
               breadcrumbs={[
-                { label: 'Sertifikati', href: '/admin/certificates' },
+                { label: 'Certifikati', href: '/admin/certificates' },
                 { label: row.readable_id },
               ]}
               title={row.readable_id}
@@ -64,15 +64,15 @@ export default function AdminCertificateDetailPage(props: PageProps<'/admin/cert
             {row.requested_delivery ? (
               row.delivered_at ? (
                 <Alert severity="success" icon={<LocalShippingOutlinedIcon fontSize="inherit" />}>
-                  <AlertTitle>Štampani sertifikat je poslat</AlertTitle>
+                  <AlertTitle>Štampani certifikat je poslat</AlertTitle>
                   Poslato {formatDateTime(row.delivered_at)}
                   {row.deliverer ? ` — označio/la ${row.deliverer.full_name}` : ''}. Student je
-                  obavešten.
+                  obaviješten.
                 </Alert>
               ) : (
                 <ContentCard
-                  title="Zahtev za štampani sertifikat"
-                  description="Student je zatražio da mu se sertifikat pošalje poštom. Označite kada je pošiljka predata."
+                  title="Zahtjev za štampani certifikat"
+                  description="Student je zatražio da mu se certifikat pošalje poštom. Označite kada je pošiljka predata."
                 >
                   <CertificateDeliveryActions certificate={row} size="medium" />
                 </ContentCard>
@@ -120,12 +120,12 @@ export default function AdminCertificateDetailPage(props: PageProps<'/admin/cert
               </Grid>
             </Grid>
 
-            <ContentCard title="Detalji sertifikata">
+            <ContentCard title="Detalji certifikata">
               <DetailList
                 items={[
-                  { label: 'Broj sertifikata', value: row.readable_id },
+                  { label: 'Broj certifikata', value: row.readable_id },
                   {
-                    label: 'Zahtev za dostavu',
+                    label: 'Zahtjev za dostavu',
                     value: (
                       <StatusChip {...deliveryStatus(row.requested_delivery, row.delivered_at)} />
                     ),
@@ -141,7 +141,7 @@ export default function AdminCertificateDetailPage(props: PageProps<'/admin/cert
                     hidden: !row.delivered_at,
                   },
                   { label: 'Izdat', value: formatDateTime(row.created_at) },
-                  { label: 'Poslednja izmena', value: formatDateTime(row.updated_at) },
+                  { label: 'Posljednja izmjena', value: formatDateTime(row.updated_at) },
                   {
                     label: 'ID',
                     value: <Typography variant="caption">{row.id}</Typography>,

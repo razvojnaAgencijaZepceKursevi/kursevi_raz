@@ -9,6 +9,7 @@ import PageHeader from '@/components/layout/PageHeader';
 import ContentCard from '@/components/layout/ContentCard';
 import EmptyState from '@/components/feedback/EmptyState';
 import { BLOG_POSTS } from '@/lib/blog';
+import { formatDate } from '@/lib/format';
 
 export const metadata = {
   title: 'Blog — Kursevi',
@@ -32,6 +33,9 @@ export const metadata = {
  * can be crawled without one.
  */
 export default function BlogIndexPage() {
+  // Array order is display order — newest first lives in `blog.ts`.
+  const posts = BLOG_POSTS;
+
   return (
     <PageContainer>
       <PageHeader
@@ -39,7 +43,7 @@ export default function BlogIndexPage() {
         description="Tekstovi o učenju, kursevima i temama koje pokrivamo."
       />
 
-      {BLOG_POSTS.length === 0 ? (
+      {posts.length === 0 ? (
         <ContentCard>
           <EmptyState
             icon={<ArticleOutlinedIcon />}
@@ -49,7 +53,7 @@ export default function BlogIndexPage() {
         </ContentCard>
       ) : (
         <Grid container spacing={3}>
-          {BLOG_POSTS.map((post) => (
+          {posts.map((post) => (
             <Grid key={post.slug} size={{ xs: 12, sm: 6, md: 4 }}>
               <Card variant="outlined" sx={{ height: '100%' }}>
                 {/* CardActionArea resolves to a real anchor through the theme's
@@ -57,7 +61,7 @@ export default function BlogIndexPage() {
                 <CardActionArea href={`/blog/${post.slug}`} sx={{ height: '100%', p: 3 }}>
                   <Stack spacing={1}>
                     <Typography variant="overline" color="text.secondary">
-                      {post.category}
+                      {formatDate(post.publishedAt)}
                     </Typography>
                     <Typography variant="h6" component="h2">
                       {post.title}

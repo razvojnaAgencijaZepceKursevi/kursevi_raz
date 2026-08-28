@@ -5,22 +5,35 @@
  */
 
 /**
- * `sr-BA`, not `sr-RS`: the product prices in convertible marks. Dates come out
- * identically to `sr-RS` (`06.08.2026.`), so this is a rename rather than a
- * behaviour change — but `bs-BA` is *not* interchangeable, as it formats dates
- * with spaces (`06. 08. 2026.`).
+ * `bs-BA`. The UI is Bosnian (ijekavian), and this is the locale that agrees
+ * with it — see §7 "The UI language is Bosnian".
+ *
+ * This replaced `sr-BA`, which was **not** a cosmetic difference:
+ * `Intl.RelativeTimeFormat('sr-BA')` renders in **Cyrillic** (`прије 5 минута`),
+ * so every notification timestamp was the only Cyrillic text in an otherwise
+ * Latin UI. `sr-Latn-BA` would fix the script but still says `avgust` where
+ * Bosnian says `august`.
+ *
+ * The one thing `bs-BA` changes for the worse is date spacing —
+ * `06. 08. 2026.` rather than `06.08.2026.` — which is why an earlier note here
+ * called it "not interchangeable". That spacing is the Bosnian convention, so
+ * with the copy in Bosnian it is now the correct rendering rather than a
+ * regression.
  */
-const LOCALE = 'sr-BA';
+const LOCALE = 'bs-BA';
 const CURRENCY = 'BAM';
 
 const priceFormatter = new Intl.NumberFormat(LOCALE, {
   style: 'currency',
   currency: CURRENCY,
   /**
-   * **`narrowSymbol` is load-bearing.** The default (`symbol`) renders BAM in a
-   * Serbian locale as Cyrillic `КМ` — visually almost identical to Latin `KM`,
-   * but a different pair of characters, which would be the only Cyrillic text
-   * in an otherwise Latin UI and would break any search or copy-paste on it.
+   * `narrowSymbol` was load-bearing under `sr-BA`, where the default (`symbol`)
+   * rendered BAM as Cyrillic `КМ` — visually almost identical to Latin `KM`,
+   * but a different pair of characters, which broke search and copy-paste.
+   *
+   * Under `bs-BA` both settings produce Latin `KM`, so this is now belt and
+   * braces rather than a fix. Kept deliberately: it costs nothing and it means
+   * a future locale change cannot quietly reintroduce Cyrillic currency.
    */
   currencyDisplay: 'narrowSymbol',
   // Prices are numeric(10,2) but are nearly always whole marks — show decimals
@@ -49,29 +62,28 @@ export function formatPrice(price: number): string {
   return priceFormatter.format(price);
 }
 
-/** ISO timestamp → `06.08.2026.` */
+/** ISO timestamp → `06. 08. 2026.` */
 export function formatDate(iso: string | null | undefined): string {
   if (!iso) return '—';
   return dateFormatter.format(new Date(iso));
 }
 
-/** ISO timestamp → `06.08.2026. 14:30` */
+/** ISO timestamp → `06. 08. 2026. u 14:30` */
 export function formatDateTime(iso: string | null | undefined): string {
   if (!iso) return '—';
   return dateTimeFormatter.format(new Date(iso));
 }
 
 /**
- * ISO timestamp → `pre 5 minuta`, `juče`, `pre 3 dana`.
+ * ISO timestamp → `prije 5 minuta`, `jučer`, `prije 3 dana`.
  *
  * Notification lists are read by "how fresh is this", not "what date was it",
  * so an absolute timestamp makes the reader do arithmetic to answer the only
  * question they have. Falls back to the absolute date past a week, where
- * "pre 43 dana" stops being easier than reading the date.
+ * "prije 43 dana" stops being easier than reading the date.
  *
- * `Intl.RelativeTimeFormat` handles the Serbian plural forms itself — hand-
- * rolling this with `pluralSr` would mean re-deriving rules the platform
- * already knows.
+ * `Intl.RelativeTimeFormat` handles the plural forms itself — hand-rolling this
+ * with `pluralBs` would mean re-deriving rules the platform already knows.
  */
 const relativeFormatter = new Intl.RelativeTimeFormat(LOCALE, { numeric: 'auto' });
 
@@ -99,9 +111,9 @@ export function truncate(text: string, maxLength = 120): string {
 }
 
 /**
- * Serbian plural form for a count.
+ * Bosnian plural form for a count.
  *
- * Serbian has three, chosen by the *last digit* (with a carve-out for the teens):
+ * There are three, chosen by the *last digit* (with a carve-out for the teens):
  *
  *   1 kurs   ·  21 kurs   ·  101 kurs        → `one`
  *   2 kursa  ·  34 kursa                     → `few`   (last digit 2–4)
@@ -110,9 +122,9 @@ export function truncate(text: string, maxLength = 120): string {
  * The 11–14 exception is the part that's easy to miss: 11 ends in 1 but takes
  * `many`, so "11 kurs" is wrong. Pass all three forms and let this pick.
  *
- *   `${n} ${pluralSr(n, 'kurs', 'kursa', 'kurseva')}`  →  "3 kursa"
+ *   `${n} ${pluralBs(n, 'kurs', 'kursa', 'kurseva')}`  →  "3 kursa"
  */
-export function pluralSr(count: number, one: string, few: string, many: string): string {
+export function pluralBs(count: number, one: string, few: string, many: string): string {
   const lastTwo = Math.abs(count) % 100;
   const lastOne = lastTwo % 10;
 
@@ -124,7 +136,7 @@ export function pluralSr(count: number, one: string, few: string, many: string):
 
 /** `3` → `3 kursa`. The count of courses in a category, phrased correctly. */
 export function formatCourseCount(count: number): string {
-  return `${count} ${pluralSr(count, 'kurs', 'kursa', 'kurseva')}`;
+  return `${count} ${pluralBs(count, 'kurs', 'kursa', 'kurseva')}`;
 }
 
 /** First letters of a name, for avatar fallbacks. */

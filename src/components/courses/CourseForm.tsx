@@ -79,7 +79,7 @@ export default function CourseForm({
           <FormTextField
             name="description"
             label="Opis"
-            placeholder="Šta student uči na ovom kursu i kome je namenjen."
+            placeholder="Šta student uči na ovom kursu i kome je namijenjen."
             helperText="Prikazuje se na stranici kursa. Nije obavezan, ali pomaže pri odluci o kupovini."
             multiline
             rows={5}
@@ -87,7 +87,7 @@ export default function CourseForm({
         </Stack>
       </ContentCard>
 
-      <ContentCard title="Kategorija i cena">
+      <ContentCard title="Kategorija i cijena">
         <Grid container spacing={2}>
           <Grid size={{ xs: 12, sm: 6 }}>
             <FormSelect
@@ -106,7 +106,7 @@ export default function CourseForm({
           <Grid size={{ xs: 12, sm: 6 }}>
             <FormNumberField
               name="price"
-              label="Cena"
+              label="Cijena"
               suffix="KM"
               min={0}
               // Marks, not dinars — courses land in the tens-to-hundreds, so the
@@ -122,7 +122,7 @@ export default function CourseForm({
       {showSlugField ? (
         <ContentCard
           title="Adresa stranice"
-          description="Deo URL-a po kojem je kurs dostupan javno."
+          description="Dio URL-a po kojem je kurs dostupan javno."
         >
           <Stack spacing={2}>
             <FormTextField
@@ -132,8 +132,9 @@ export default function CourseForm({
               helperText="Ostavite prazno da se adresa ponovo generiše iz naziva kursa."
             />
             <Alert severity="warning">
-              Promena adrese menja javni link ka kursu. Stari link prestaje da radi, pa ga nemojte
-              menjati ako je već negde podeljen. Preimenovanje kursa samo po sebi ne menja adresu.
+              Promjena adrese mijenja javni link ka kursu. Stari link prestaje da radi, pa ga
+              nemojte mijenjati ako je već negdje podijeljen. Preimenovanje kursa samo po sebi ne
+              mijenja adresu.
             </Alert>
           </Stack>
         </ContentCard>
@@ -152,7 +153,7 @@ export default function CourseForm({
           <FormSwitch
             name="published"
             label="Objavi kurs"
-            description="Objavljeni kursevi su vidljivi svim posetiocima i mogu se kupiti. Nacrti su vidljivi samo vama i administratorima."
+            description="Objavljeni kursevi su vidljivi svim posjetiocima i mogu se kupiti. Nacrti su vidljivi samo vama i administratorima."
           />
         ) : (
           <Alert severity="info">

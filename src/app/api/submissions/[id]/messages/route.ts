@@ -218,7 +218,7 @@ async function notifyThread(input: {
   const task = unwrapMaybe(
     await svc
       .from('tasks')
-      .select('modules(title, course_id, courses(name))')
+      .select('module_id, modules(title, course_id, courses(name, slug))')
       .eq('id', input.taskId)
       .maybeSingle(),
   );
@@ -226,13 +226,19 @@ async function notifyThread(input: {
   const moduleTitle = task?.modules?.title ?? 'modul';
   const courseName = task?.modules?.courses?.name ?? 'kurs';
   const courseId = task?.modules?.course_id ?? null;
+  const courseSlug = task?.modules?.courses?.slug ?? null;
 
   const fromStudent = input.senderId === input.studentId;
 
   // Reviewers reach the thread through the admin screen, the student through
   // the module. Same conversation, two different doors.
   const reviewerHref = `/admin/submissions/${input.submissionId}`;
-  const studentHref = '/dashboard';
+  // Straight to the thread rather than to the student's hub. Being told your
+  // work was reviewed and then landing on a menu is a step for no reason. Falls
+  // back to their courses if the course was deleted out from under it.
+  const studentHref = courseSlug
+    ? `/courses/${courseSlug}/modules/${task?.module_id}/task`
+    : '/dashboard/courses';
 
   // An excerpt, not the whole message: the point is to bring someone back to
   // the thread, and a long paste in an email body is worse at that than a line.
@@ -269,16 +275,16 @@ async function notifyThread(input: {
     notifyAfterResponse({
       userIds: [input.studentId],
       type: 'submission_needs_revision',
-      title: 'Potrebna je izmena rešenja',
-      body: `Predavač traži izmenu rešenja za „${moduleTitle}” (${courseName}).`,
+      title: 'Potrebna je izmjena rješenja',
+      body: `Predavač traži izmjenu rješenja za „${moduleTitle}” (${courseName}).`,
       link: studentHref,
       email: {
-        subject: `Potrebna izmena — ${moduleTitle}`,
-        heading: 'Potrebna je izmena rešenja',
+        subject: `Potrebna izmjena — ${moduleTitle}`,
+        heading: 'Potrebna je izmjena rješenja',
         lines: [
-          `Predavač je pregledao vaše rešenje zadatka za modul „${moduleTitle}” na kursu „${courseName}” i traži izmenu.`,
+          `Predavač je pregledao vaše rješenje zadatka za modul „${moduleTitle}” na kursu „${courseName}” i traži izmjenu.`,
           excerpt,
-          'Ispravite rešenje i odgovorite u istoj prepisci.',
+          'Ispravite rješenje i odgovorite u istoj prepisci.',
         ],
         action: { label: 'Otvori zadatak', href: studentHref },
       },
@@ -289,17 +295,17 @@ async function notifyThread(input: {
     notifyAfterResponse({
       userIds: [input.studentId],
       type: 'submission_approved',
-      title: 'Rešenje je prihvaćeno',
+      title: 'Rješenje je prihvaćeno',
       body: `Zadatak za „${moduleTitle}” (${courseName}) je završen.`,
       link: studentHref,
       email: {
-        subject: `Rešenje prihvaćeno — ${moduleTitle}`,
-        heading: 'Rešenje je prihvaćeno',
+        subject: `Rješenje prihvaćeno — ${moduleTitle}`,
+        heading: 'Rješenje je prihvaćeno',
         lines: [
-          `Vaše rešenje zadatka za modul „${moduleTitle}” na kursu „${courseName}” je prihvaćeno.`,
+          `Vaše rješenje zadatka za modul „${moduleTitle}” na kursu „${courseName}” je prihvaćeno.`,
           'Zadatak je time završen, a prepiska je zatvorena.',
         ],
-        action: { label: 'Nastavi kurs', href: studentHref },
+        action: { label: 'Otvori zadatak', href: studentHref },
       },
     });
   }

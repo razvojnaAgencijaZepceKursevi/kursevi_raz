@@ -54,18 +54,18 @@ export const PATCH = withRoute(async (req, ctx: Ctx) => {
     notifyAfterResponse({
       userIds: await adminIds(svc),
       type: 'certificate_delivery_requested',
-      title: 'Zahtev za slanje sertifikata',
-      body: `${profile.full_name} traži štampani sertifikat za kurs „${courseName}”.`,
+      title: 'Zahtjev za slanje certifikata',
+      body: `${profile.full_name} traži štampani certifikat za kurs „${courseName}”.`,
       link: href,
       email: {
-        subject: `Zahtev za slanje sertifikata — ${updated.readable_id}`,
-        heading: 'Zahtev za štampani sertifikat',
+        subject: `Zahtjev za slanje certifikata — ${updated.readable_id}`,
+        heading: 'Zahtjev za štampani certifikat',
         lines: [
-          `${profile.full_name} (${profile.email}) traži da mu/joj se pošalje štampani sertifikat za kurs „${courseName}”.`,
-          `Broj sertifikata: ${updated.readable_id}.`,
-          'Nakon slanja označite sertifikat kao poslat da zahtev nestane sa liste.',
+          `${profile.full_name} (${profile.email}) traži da mu/joj se pošalje štampani certifikat za kurs „${courseName}”.`,
+          `Broj certifikata: ${updated.readable_id}.`,
+          'Nakon slanja označite certifikat kao poslat da zahtjev nestane sa liste.',
         ],
-        action: { label: 'Otvori sertifikat', href },
+        action: { label: 'Otvori certifikat', href },
       },
     });
   }

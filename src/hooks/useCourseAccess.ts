@@ -3,6 +3,7 @@
 import { usePurchases } from './usePurchases';
 import { useAuthStore } from '@/store/useAuthStore';
 import { purchaseStateFrom, type PurchaseState } from '@/lib/courseAccess';
+import type { Purchase } from '@/lib/schemas/purchases.schema';
 
 /**
  * What the current viewer is allowed to do with one course.
@@ -32,6 +33,14 @@ export type CourseAccess = {
   bypassSequence: boolean;
   /** Hide the price once it can no longer be acted on. */
   showPrice: boolean;
+  /**
+   * The still-pending request, when there is one.
+   *
+   * Carried through so the course page can show its payment reference — the
+   * student needs that number to make the transfer, and the moment right after
+   * requesting is exactly when they need it.
+   */
+  pendingPurchase: Purchase | undefined;
 };
 
 export function useCourseAccess(courseId: string | undefined): CourseAccess {
@@ -53,12 +62,15 @@ export function useCourseAccess(courseId: string | undefined): CourseAccess {
 
   const canOpenModules = isAdmin || purchaseState === 'approved';
 
+  const pendingPurchase = purchases.data?.data.find((p) => p.status === 'requested');
+
   return {
     isResolved,
     isAuthenticated,
     isAdmin,
     purchaseState,
     canOpenModules,
+    pendingPurchase,
     bypassSequence: isAdmin,
     // Redundant once someone owns the course; an admin never pays for one.
     showPrice: !canOpenModules,

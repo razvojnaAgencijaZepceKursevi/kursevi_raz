@@ -61,7 +61,9 @@ export default function CourseOwnerSection({ course }: { course: Course }) {
         body: { owner_id: ownerId === '' ? null : ownerId },
       });
       toast.success(
-        ownerId === '' ? 'Kurs više nema predavača.' : `Kurs je dodeljen: ${selected?.full_name}.`,
+        ownerId === ''
+          ? 'Kurs više nema predavača.'
+          : `Kurs je dodijeljen: ${selected?.full_name}.`,
       );
       setConfirming(false);
     } catch (error) {
@@ -72,19 +74,19 @@ export default function CourseOwnerSection({ course }: { course: Course }) {
   return (
     <ContentCard
       title="Predavač"
-      description="Predavač može da uređuje ovaj kurs i da pregleda predata rešenja na njemu."
+      description="Predavač može da uređuje ovaj kurs i da pregleda predata rješenja na njemu."
     >
       <Stack spacing={2}>
         {!course.owner_id ? (
           <Alert severity="warning">
-            Ovaj kurs trenutno nema predavača — nijedan predavač ne može da ga uređuje. Dodelite ga
-            nekome ili ga uređujte kao administrator.
+            Ovaj kurs trenutno nema predavača — nijedan predavač ne može da ga uređuje. Dodijelite
+            ga nekome ili ga uređujte kao administrator.
           </Alert>
         ) : null}
 
         {selected?.deactivated_at ? (
           <Alert severity="warning">
-            Trenutni predavač je deaktiviran i ne može da pristupi kursu. Dodelite kurs drugom
+            Trenutni predavač je deaktiviran i ne može da pristupi kursu. Dodijelite kurs drugom
             predavaču.
           </Alert>
         ) : null}
@@ -96,7 +98,7 @@ export default function CourseOwnerSection({ course }: { course: Course }) {
           onChange={(event) => setOwnerId(event.target.value)}
           disabled={teachers.isPending || update.isPending}
           helperText={
-            teachers.isPending ? 'Učitavanje predavača…' : 'Promena važi odmah nakon potvrde.'
+            teachers.isPending ? 'Učitavanje predavača…' : 'Promjena važi odmah nakon potvrde.'
           }
         >
           <MenuItem value="">
@@ -118,20 +120,20 @@ export default function CourseOwnerSection({ course }: { course: Course }) {
             disabled={!changed || update.isPending}
             onClick={() => setConfirming(true)}
           >
-            {update.isPending ? 'Čuvanje…' : 'Dodeli kurs'}
+            {update.isPending ? 'Čuvanje…' : 'Dodijeli kurs'}
           </Button>
         </Stack>
       </Stack>
 
       <ConfirmDialog
         open={confirming}
-        title="Promeniti predavača kursa?"
+        title="Promijeniti predavača kursa?"
         description={
           ownerId === ''
-            ? 'Kurs će ostati bez predavača. Nijedan predavač neće moći da ga uređuje niti da pregleda predata rešenja na njemu, dok mu ne dodelite novog.'
-            : `Kurs se dodeljuje predavaču ${selected?.full_name ?? ''}. Dobija pravo da uređuje sve module, kvizove i zadatke na njemu i da pregleda predata rešenja. Prethodni predavač gubi taj pristup.`
+            ? 'Kurs će ostati bez predavača. Nijedan predavač neće moći da ga uređuje niti da pregleda predata rješenja na njemu, dok mu ne dodijelite novog.'
+            : `Kurs se dodjeljuje predavaču ${selected?.full_name ?? ''}. Dobija pravo da uređuje sve module, kvizove i zadatke na njemu i da pregleda predata rješenja. Prethodni predavač gubi taj pristup.`
         }
-        confirmLabel="Dodeli"
+        confirmLabel="Dodijeli"
         severity="primary"
         pending={update.isPending}
         onCancel={() => setConfirming(false)}

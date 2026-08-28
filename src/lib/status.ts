@@ -25,19 +25,23 @@ export const PURCHASE_STATUS: Record<PurchaseStatus, StatusDisplay> = {
 
 export const SUBMISSION_STATUS: Record<TaskSubmissionStatus, StatusDisplay> = {
   pending: { label: 'Čeka pregled', color: 'warning' },
-  needs_revision: { label: 'Potrebna izmena', color: 'info' },
+  needs_revision: { label: 'Potrebna izmjena', color: 'info' },
   approved: { label: 'Prihvaćeno', color: 'success' },
 };
 
 /**
- * A support issue. Three states, and the middle one carries the point: an
+ * A support request. Three states, and the middle one carries the point: an
  * admin has replied but nobody has agreed it is finished, which is different
  * from both "untouched" and "done".
+ *
+ * Labels are masculine to agree with *zahtjev*: the section is "Podrška" and an
+ * item in it is a "zahtjev za podršku". Deliberately not "prijava", which in
+ * Serbian also means *signing in* — the login page is titled exactly that.
  */
 export const ISSUE_STATUS: Record<IssueStatus, StatusDisplay> = {
-  open: { label: 'Otvorena', color: 'warning' },
-  answered: { label: 'Odgovoreno', color: 'info' },
-  closed: { label: 'Zatvorena', color: 'default' },
+  open: { label: 'Otvoren', color: 'warning' },
+  answered: { label: 'Odgovoren', color: 'info' },
+  closed: { label: 'Zatvoren', color: 'default' },
 };
 
 export const USER_ROLE: Record<UserRole, StatusDisplay> = {
@@ -83,5 +87,5 @@ export const deliveryStatus = (requested: boolean, deliveredAt: string | null): 
   if (deliveredAt) return { label: 'Poslato', color: 'success' };
   return requested
     ? { label: 'Zatražena dostava', color: 'warning' }
-    : { label: 'Bez zahteva', color: 'default' };
+    : { label: 'Bez zahtjeva', color: 'default' };
 };

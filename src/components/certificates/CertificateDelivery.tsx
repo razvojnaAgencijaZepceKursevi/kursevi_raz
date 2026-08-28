@@ -30,7 +30,7 @@ export default function CertificateDelivery({ certificate }: { certificate: Cert
   if (certificate.delivered_at) {
     return (
       <Alert severity="success" icon={<LocalShippingOutlinedIcon fontSize="inherit" />}>
-        <AlertTitle>Štampani sertifikat je poslat</AlertTitle>
+        <AlertTitle>Štampani certifikat je poslat</AlertTitle>
         Poslato {formatDate(certificate.delivered_at)}. Ako pošiljka ne stigne u razumnom roku,
         javite nam se.
       </Alert>
@@ -41,8 +41,8 @@ export default function CertificateDelivery({ certificate }: { certificate: Cert
     return (
       <Stack spacing={1.5}>
         <Alert severity="info" icon={<LocalShippingOutlinedIcon fontSize="inherit" />}>
-          <AlertTitle>Zahtev je poslat</AlertTitle>
-          Tražili ste štampani primerak. Javićemo vam kada bude poslat poštom.
+          <AlertTitle>Zahtjev je poslat</AlertTitle>
+          Tražili ste štampani primjerak. Javit ćemo vam kada bude poslat poštom.
         </Alert>
         {/* Withdrawing is allowed and notifies nobody — it just takes the row
             off the admin's queue. Same endpoint, `requested_delivery: false`. */}
@@ -55,13 +55,13 @@ export default function CertificateDelivery({ certificate }: { certificate: Cert
               request.mutate(
                 { certificateId: certificate.id, requestedDelivery: false },
                 {
-                  onSuccess: () => toast.success('Zahtev je povučen.'),
+                  onSuccess: () => toast.success('Zahtjev je povučen.'),
                   onError: (error) => toast.error(errorMessage(error)),
                 },
               );
             }}
           >
-            Povuci zahtev
+            Povuci zahtjev
           </Button>
         </Stack>
       </Stack>
@@ -71,7 +71,7 @@ export default function CertificateDelivery({ certificate }: { certificate: Cert
   return (
     <Stack spacing={1.5}>
       <Typography variant="body2" color="text.secondary">
-        Želite sertifikat i u štampanom obliku? Pošaljite zahtev i poslaćemo vam ga poštom.
+        Želite certifikat i u štampanom obliku? Pošaljite zahtjev i poslat ćemo vam ga poštom.
       </Typography>
       <Stack direction="row">
         <Button
@@ -82,13 +82,13 @@ export default function CertificateDelivery({ certificate }: { certificate: Cert
             request.mutate(
               { certificateId: certificate.id },
               {
-                onSuccess: () => toast.success('Zahtev za štampani sertifikat je poslat.'),
+                onSuccess: () => toast.success('Zahtjev za štampani certifikat je poslat.'),
                 onError: (error) => toast.error(errorMessage(error)),
               },
             );
           }}
         >
-          {request.isPending ? 'Slanje…' : 'Zatraži štampani primerak'}
+          {request.isPending ? 'Slanje…' : 'Zatraži štampani primjerak'}
         </Button>
       </Stack>
     </Stack>

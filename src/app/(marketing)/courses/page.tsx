@@ -1,14 +1,13 @@
 'use client';
 
-import MenuItem from '@mui/material/MenuItem';
 import Grid from '@mui/material/Grid';
 import Stack from '@mui/material/Stack';
-import TextField from '@mui/material/TextField';
 import PageContainer from '@/components/layout/PageContainer';
 import PageHeader from '@/components/layout/PageHeader';
 import QueryState from '@/components/feedback/QueryState';
 import EmptyState from '@/components/feedback/EmptyState';
 import SearchField from '@/components/data/SearchField';
+import FilterSelect from '@/components/data/FilterSelect';
 import PaginationBar from '@/components/data/PaginationBar';
 import CourseCard from '@/components/courses/CourseCard';
 import { useCourses } from '@/hooks/useCourses';
@@ -40,7 +39,7 @@ export default function CourseCataloguePage() {
 
   return (
     <PageContainer>
-      <PageHeader title="Kursevi" description="Izaberite kurs i pošaljite zahtev za pristup." />
+      <PageHeader title="Kursevi" description="Izaberite kurs i pošaljite zahtjev za pristup." />
 
       <Stack
         direction={{ xs: 'column', md: 'row' }}
@@ -55,21 +54,14 @@ export default function CourseCataloguePage() {
           />
         </Stack>
 
-        <TextField
-          select
+        <FilterSelect
           label="Kategorija"
           value={list.filters.categoryId}
-          onChange={(event) => list.setFilter('categoryId', event.target.value)}
-          sx={{ minWidth: { md: 220 } }}
+          onChange={(value) => list.setFilter('categoryId', value)}
           disabled={categories.isPending}
-        >
-          <MenuItem value="">Sve kategorije</MenuItem>
-          {categories.options.map((option) => (
-            <MenuItem key={option.value} value={option.value}>
-              {option.label}
-            </MenuItem>
-          ))}
-        </TextField>
+          allLabel="Sve kategorije"
+          options={categories.options}
+        />
       </Stack>
 
       <QueryState

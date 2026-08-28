@@ -80,9 +80,9 @@ export default function NotificationSettingsPage() {
   return (
     <PageContainer maxWidth="form">
       <PageHeader
-        breadcrumbs={[{ label: 'Obaveštenja', href: '/notifications' }, { label: 'Podešavanja' }]}
-        title="Podešavanja obaveštenja"
-        description="Izaberite o čemu želite da budete obavešteni i na koji način."
+        breadcrumbs={[{ label: 'Obavještenja', href: '/notifications' }, { label: 'Podešavanja' }]}
+        title="Podešavanja obavještenja"
+        description="Izaberite o čemu želite da budete obaviješteni i na koji način."
       />
 
       <QueryState query={preferences} errorTitle="Podešavanja nije moguće učitati">
@@ -100,9 +100,9 @@ export default function NotificationSettingsPage() {
               {!response.meta.email_configured ? (
                 <Alert severity="info">
                   <AlertTitle>Slanje email-a još nije aktivirano</AlertTitle>
-                  Email obaveštenja su podešena, ali nalog za slanje još nije povezan — dok se ne
-                  poveže, stižu samo obaveštenja u aplikaciji. Vaš izbor se pamti i primeniće se čim
-                  slanje bude uključeno.
+                  Email obavještenja su podešena, ali nalog za slanje još nije povezan — dok se ne
+                  poveže, stižu samo obavještenja u aplikaciji. Vaš izbor se pamti i primijenit će
+                  se čim slanje bude uključeno.
                 </Alert>
               ) : null}
 
@@ -170,7 +170,7 @@ export default function NotificationSettingsPage() {
                               }
                               slotProps={{
                                 input: {
-                                  'aria-label': `${definition.label} — obaveštenje u aplikaciji`,
+                                  'aria-label': `${definition.label} — obavještenje u aplikaciji`,
                                 },
                               }}
                             />
@@ -201,7 +201,7 @@ export default function NotificationSettingsPage() {
 
               <Box>
                 <Button href="/notifications" startIcon={<ArrowBackIcon />} color="inherit">
-                  Nazad na obaveštenja
+                  Nazad na obavještenja
                 </Button>
               </Box>
             </Stack>

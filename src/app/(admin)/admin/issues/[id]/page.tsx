@@ -26,10 +26,10 @@ import { ISSUE_STATUS } from '@/lib/status';
 import { toast } from '@/store/useToastStore';
 import type { IssueStatus } from '@/lib/schemas/issues.schema';
 
-/** What the reply does to the issue. `answered` is the ordinary case. */
+/** What the reply does to the request. `answered` is the ordinary case. */
 const OUTCOMES: { value: IssueStatus; label: string }[] = [
   { value: 'answered', label: 'Odgovoreno' },
-  { value: 'open', label: 'Ostavi otvorenu' },
+  { value: 'open', label: 'Ostavi otvoren' },
   { value: 'closed', label: 'Zatvori' },
 ];
 
@@ -39,7 +39,7 @@ const OUTCOMES: { value: IssueStatus; label: string }[] = [
  * ## The decision rides on the reply
  *
  * Same shape as `<SubmissionReview>`, and for the same reason: a status change
- * with no message leaves someone looking at "Zatvorena" with nothing saying
+ * with no message leaves someone looking at "Zatvoren" with nothing saying
  * why. One request carries both.
  *
  * ## Closing is not final
@@ -76,7 +76,7 @@ export default function AdminIssueDetailPage(props: PageProps<'/admin/issues/[id
     return (
       <PageContainer>
         <ContentCard>
-          <EmptyState title="Prijava nije pronađena" description="Ova prijava ne postoji." />
+          <EmptyState title="Zahtjev nije pronađen" description="Ovaj zahtjev ne postoji." />
         </ContentCard>
       </PageContainer>
     );
@@ -84,20 +84,20 @@ export default function AdminIssueDetailPage(props: PageProps<'/admin/issues/[id
 
   return (
     <PageContainer>
-      <QueryState query={issue} errorTitle="Prijavu nije moguće učitati">
+      <QueryState query={issue} errorTitle="Zahtjev nije moguće učitati">
         {(row) => (
           <>
             <PageHeader
-              breadcrumbs={[{ label: 'Prijave', href: '/admin/issues' }, { label: row.subject }]}
+              breadcrumbs={[{ label: 'Podrška', href: '/admin/issues' }, { label: row.subject }]}
               title={row.subject}
-              description={`Prijavio/la ${row.profiles?.full_name ?? 'nepoznat korisnik'}`}
+              description={`Poslao/la ${row.profiles?.full_name ?? 'nepoznat korisnik'}`}
               actions={<StatusChip {...ISSUE_STATUS[row.status]} size="medium" />}
             />
 
             {row.status === 'closed' ? (
               <Alert severity="info">
-                Prijava je zatvorena{row.closed_at ? ` ${formatDateTime(row.closed_at)}` : ''}.
-                Korisnik je i dalje može ponovo otvoriti odgovorom.
+                Zahtjev je zatvoren{row.closed_at ? ` ${formatDateTime(row.closed_at)}` : ''}.
+                Korisnik ga i dalje može ponovo otvoriti odgovorom.
               </Alert>
             ) : null}
 
@@ -116,12 +116,12 @@ export default function AdminIssueDetailPage(props: PageProps<'/admin/issues/[id
                   },
                   { label: 'Email', value: row.profiles?.email ?? '—' },
                   { label: 'Poslato', value: formatDateTime(row.created_at) },
-                  { label: 'Poslednja izmena', value: formatDateTime(row.updated_at) },
+                  { label: 'Posljednja izmjena', value: formatDateTime(row.updated_at) },
                 ]}
               />
             </ContentCard>
 
-            <ContentCard title="Prepiska" description="Poruke obe strane." disablePadding>
+            <ContentCard title="Prepiska" description="Poruke obje strane." disablePadding>
               <IssueThread issueId={row.id} reporterId={row.reporter_id} />
 
               <Divider />

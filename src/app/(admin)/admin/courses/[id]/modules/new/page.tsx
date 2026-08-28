@@ -80,7 +80,7 @@ export default function NewModulePage(props: PageProps<'/admin/courses/[id]/modu
           { label: 'Novi modul' },
         ]}
         title="Novi modul"
-        description="Modul se dodaje na kraj kursa. Materijale i redosled podešavate nakon kreiranja."
+        description="Modul se dodaje na kraj kursa. Materijale i redoslijed podešavate nakon kreiranja."
       />
 
       {/*

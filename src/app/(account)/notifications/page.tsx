@@ -7,15 +7,14 @@ import SettingsOutlinedIcon from '@mui/icons-material/SettingsOutlined';
 import Box from '@mui/material/Box';
 import Button from '@mui/material/Button';
 import Divider from '@mui/material/Divider';
-import MenuItem from '@mui/material/MenuItem';
 import Stack from '@mui/material/Stack';
-import TextField from '@mui/material/TextField';
 import Typography from '@mui/material/Typography';
 import PageContainer from '@/components/layout/PageContainer';
 import PageHeader from '@/components/layout/PageHeader';
 import ContentCard from '@/components/layout/ContentCard';
 import QueryState from '@/components/feedback/QueryState';
 import EmptyState from '@/components/feedback/EmptyState';
+import FilterSelect from '@/components/data/FilterSelect';
 import PaginationBar from '@/components/data/PaginationBar';
 import {
   useMarkAllNotificationsRead,
@@ -53,8 +52,8 @@ export default function NotificationsPage() {
   return (
     <PageContainer>
       <PageHeader
-        title="Obaveštenja"
-        description="Sve što se dogodilo na vašem nalogu, po redosledu."
+        title="Obavještenja"
+        description="Sve što se dogodilo na vašem nalogu, po redoslijedu."
         actions={
           <Stack direction="row" spacing={1}>
             <Button href="/settings/notifications" startIcon={<SettingsOutlinedIcon />}>
@@ -78,16 +77,13 @@ export default function NotificationsPage() {
           spacing={2}
           sx={{ p: 2.5, alignItems: { md: 'center' } }}
         >
-          <TextField
-            select
+          <FilterSelect
             label="Prikaz"
             value={list.filters.unread}
-            onChange={(event) => list.setFilter('unread', event.target.value)}
-            sx={{ maxWidth: { md: 220 } }}
-          >
-            <MenuItem value="">Sva obaveštenja</MenuItem>
-            <MenuItem value="true">Samo nepročitana</MenuItem>
-          </TextField>
+            onChange={(value) => list.setFilter('unread', value)}
+            allLabel="Sva obavještenja"
+            options={[{ value: 'true', label: 'Samo nepročitana' }]}
+          />
 
           <Typography
             variant="body2"
@@ -100,18 +96,18 @@ export default function NotificationsPage() {
 
         <QueryState
           query={notifications}
-          errorTitle="Obaveštenja nije moguće učitati"
+          errorTitle="Obavještenja nije moguće učitati"
           isEmpty={(page) => page.data.length === 0}
           empty={
             list.filters.unread === 'true' ? (
               <EmptyState
-                title="Nema nepročitanih obaveštenja"
-                description="Sve ste pročitali. Promenite prikaz da vidite starija."
+                title="Nema nepročitanih obavještenja"
+                description="Sve ste pročitali. Promijenite prikaz da vidite starija."
               />
             ) : (
               <EmptyState
-                title="Nemate obaveštenja"
-                description="Ovde ćete videti sve što se dogodi na vašem nalogu."
+                title="Nemate obavještenja"
+                description="Ovdje ćete vidjeti sve što se dogodi na vašem nalogu."
               />
             )
           }

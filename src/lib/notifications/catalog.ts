@@ -43,30 +43,30 @@ export const NOTIFICATION_GROUPS: Record<
 > = {
   purchases: {
     title: 'Kupovine',
-    description: 'Zahtevi za pristup kursevima i odluke o njima.',
+    description: 'Zahtjevi za pristup kursevima i odluke o njima.',
   },
   submissions: {
     title: 'Zadaci',
     description: 'Predaje zadataka, poruke u prepisci i odluke predavača.',
   },
   certificates: {
-    title: 'Sertifikati',
-    description: 'Izdavanje sertifikata i slanje štampanih primeraka.',
+    title: 'Certifikati',
+    description: 'Izdavanje certifikata i slanje štampanih primjeraka.',
   },
   account: {
     title: 'Nalog i kursevi',
-    description: 'Promene na vašem nalogu i na kursevima koje vodite.',
+    description: 'Promjene na vašem nalogu i na kursevima koje vodite.',
   },
   support: {
-    title: 'Prijave i podrška',
-    description: 'Prijave problema i pitanja upućena administratorima.',
+    title: 'Podrška',
+    description: 'Pitanja i problemi upućeni administratorima.',
   },
 };
 
 export const NOTIFICATION_CATALOG: Record<NotificationType, NotificationDefinition> = {
   /* ---- purchases ---- */
   purchase_requested: {
-    label: 'Novi zahtev za kupovinu',
+    label: 'Novi zahtjev za kupovinu',
     description: 'Kada student zatraži pristup kursu i čeka odobrenje.',
     // Only admins decide on purchases, so only admins are told. A teacher may
     // read the requests on their own courses but cannot act on them, and a
@@ -81,16 +81,16 @@ export const NOTIFICATION_CATALOG: Record<NotificationType, NotificationDefiniti
     group: 'purchases',
   },
   purchase_denied: {
-    label: 'Zahtev odbijen',
-    description: 'Kada vam administrator odbije zahtev za pristup kursu.',
+    label: 'Zahtjev odbijen',
+    description: 'Kada vam administrator odbije zahtjev za pristup kursu.',
     audience: ['student'],
     group: 'purchases',
   },
 
   /* ---- submissions ---- */
   submission_received: {
-    label: 'Novo predato rešenje',
-    description: 'Kada student preda rešenje zadatka na kursu koji pregledate.',
+    label: 'Novo predato rješenje',
+    description: 'Kada student preda rješenje zadatka na kursu koji pregledate.',
     audience: ['admin', 'teacher'],
     group: 'submissions',
   },
@@ -101,34 +101,34 @@ export const NOTIFICATION_CATALOG: Record<NotificationType, NotificationDefiniti
     group: 'submissions',
   },
   submission_needs_revision: {
-    label: 'Zatražena izmena rešenja',
-    description: 'Kada predavač traži da ispravite predato rešenje.',
+    label: 'Zatražena izmjena rješenja',
+    description: 'Kada predavač traži da ispravite predato rješenje.',
     audience: ['student'],
     group: 'submissions',
   },
   submission_approved: {
-    label: 'Rešenje prihvaćeno',
-    description: 'Kada predavač prihvati vaše rešenje i zadatak bude završen.',
+    label: 'Rješenje prihvaćeno',
+    description: 'Kada predavač prihvati vaše rješenje i zadatak bude završen.',
     audience: ['student'],
     group: 'submissions',
   },
 
   /* ---- certificates ---- */
   certificate_issued: {
-    label: 'Sertifikat izdat',
-    description: 'Kada završite sve module kursa i dobijete sertifikat.',
+    label: 'Certifikat izdat',
+    description: 'Kada završite sve module kursa i dobijete certifikat.',
     audience: ['student'],
     group: 'certificates',
   },
   certificate_delivery_requested: {
-    label: 'Zahtev za slanje sertifikata',
-    description: 'Kada student zatraži da mu se štampani sertifikat pošalje poštom.',
+    label: 'Zahtjev za slanje certifikata',
+    description: 'Kada student zatraži da mu se štampani certifikat pošalje poštom.',
     audience: ['admin'],
     group: 'certificates',
   },
   certificate_delivered: {
-    label: 'Sertifikat poslat poštom',
-    description: 'Kada administrator označi da je vaš štampani sertifikat poslat.',
+    label: 'Certifikat poslat poštom',
+    description: 'Kada administrator označi da je vaš štampani certifikat poslat.',
     audience: ['student'],
     group: 'certificates',
   },
@@ -143,30 +143,30 @@ export const NOTIFICATION_CATALOG: Record<NotificationType, NotificationDefiniti
     group: 'account',
   },
   account_role_changed: {
-    label: 'Promena uloge naloga',
-    description: 'Kada vam administrator promeni ulogu na nalogu.',
+    label: 'Promjena uloge naloga',
+    description: 'Kada vam administrator promijeni ulogu na nalogu.',
     audience: ['admin', 'teacher', 'student'],
     group: 'account',
   },
 
   /* ---- support ---- */
   issue_opened: {
-    label: 'Nova prijava',
-    description: 'Kada korisnik pošalje novu prijavu problema ili pitanje.',
-    // Only admins handle issues — deliberately not teachers, since a prijava
+    label: 'Novi zahtjev za podršku',
+    description: 'Kada korisnik pošalje novo pitanje ili prijavi problem.',
+    // Only admins handle these — deliberately not teachers, since a request
     // may well be about one.
     audience: ['admin'],
     group: 'support',
   },
   issue_reply: {
-    label: 'Odgovor na prijavu',
-    description: 'Kada druga strana odgovori u prepisci o prijavi.',
+    label: 'Odgovor podrške',
+    description: 'Kada druga strana odgovori u prepisci o zahtjevu.',
     audience: ['admin', 'teacher', 'student'],
     group: 'support',
   },
   issue_closed: {
-    label: 'Prijava zatvorena',
-    description: 'Kada administrator zatvori vašu prijavu.',
+    label: 'Zahtjev zatvoren',
+    description: 'Kada administrator zatvori vaš zahtjev.',
     audience: ['admin', 'teacher', 'student'],
     group: 'support',
   },

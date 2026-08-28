@@ -119,7 +119,7 @@ export default function MessageComposer({
             onClick={() => inputRef.current?.click()}
             disabled={pending}
           >
-            {file ? 'Zameni prilog' : 'Dodaj prilog'}
+            {file ? 'Zamijeni prilog' : 'Dodaj prilog'}
           </Button>
           <Typography variant="caption" color="text.secondary">
             PDF, ZIP, TXT ili slika, do {formatBytes(MAX_UPLOAD_BYTES)}

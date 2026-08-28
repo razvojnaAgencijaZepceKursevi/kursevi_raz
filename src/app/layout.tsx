@@ -27,7 +27,7 @@ export default function RootLayout({
   children: React.ReactNode;
 }>) {
   return (
-    <html lang="sr" className={`${geistSans.variable} ${geistMono.variable}`}>
+    <html lang="bs" className={`${geistSans.variable} ${geistMono.variable}`}>
       <body>
         <ThemeRegistry>
           <QueryProvider>

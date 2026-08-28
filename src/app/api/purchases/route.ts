@@ -99,17 +99,20 @@ export const POST = withRoute(async (req) => {
   notifyAfterResponse({
     userIds: await adminIds(createServiceRoleClient()),
     type: 'purchase_requested',
-    title: 'Novi zahtev za kupovinu',
-    body: `${profile.full_name} je zatražio/la pristup kursu „${course.name}”.`,
+    title: 'Novi zahtjev za kupovinu',
+    body: `${profile.full_name} je zatražio/la pristup kursu „${course.name}”. Poziv na broj: ${created.readable_id}.`,
     link: `/admin/purchases/${created.id}`,
     email: {
-      subject: `Novi zahtev za pristup — ${course.name}`,
-      heading: 'Novi zahtev za kupovinu',
+      subject: `Novi zahtjev za pristup — ${course.name}`,
+      heading: 'Novi zahtjev za kupovinu',
       lines: [
         `${profile.full_name} (${profile.email}) je zatražio/la pristup kursu „${course.name}”.`,
-        'Odobrite zahtev tek nakon što je uplata potvrđena.',
+        // The reference is what makes this actionable: it is what the payment
+        // will arrive under, so an admin can reconcile without opening the app.
+        `Poziv na broj: ${created.readable_id}.`,
+        'Odobrite zahtjev tek nakon što je uplata potvrđena.',
       ],
-      action: { label: 'Otvori zahtev', href: `/admin/purchases/${created.id}` },
+      action: { label: 'Otvori zahtjev', href: `/admin/purchases/${created.id}` },
     },
   });
 

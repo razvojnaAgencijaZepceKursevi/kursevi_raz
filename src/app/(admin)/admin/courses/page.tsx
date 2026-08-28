@@ -3,15 +3,14 @@
 import * as React from 'react';
 import AddIcon from '@mui/icons-material/Add';
 import Button from '@mui/material/Button';
-import MenuItem from '@mui/material/MenuItem';
 import Stack from '@mui/material/Stack';
-import TextField from '@mui/material/TextField';
 import PageContainer from '@/components/layout/PageContainer';
 import PageHeader from '@/components/layout/PageHeader';
 import ContentCard from '@/components/layout/ContentCard';
 import QueryState from '@/components/feedback/QueryState';
 import EmptyState from '@/components/feedback/EmptyState';
 import SearchField from '@/components/data/SearchField';
+import FilterSelect from '@/components/data/FilterSelect';
 import PaginationBar from '@/components/data/PaginationBar';
 import ViewModeToggle, { type ViewMode } from '@/components/data/ViewModeToggle';
 import CourseGrid from '@/components/courses/CourseGrid';
@@ -69,33 +68,26 @@ export default function AdminCoursesPage() {
             />
           </Stack>
 
-          <TextField
-            select
+          <FilterSelect
             label="Kategorija"
             value={list.filters.categoryId}
-            onChange={(event) => list.setFilter('categoryId', event.target.value)}
+            onChange={(value) => list.setFilter('categoryId', value)}
             disabled={categories.isPending}
-            sx={{ maxWidth: { md: 220 } }}
-          >
-            <MenuItem value="">Sve kategorije</MenuItem>
-            {categories.options.map((option) => (
-              <MenuItem key={option.value} value={option.value}>
-                {option.label}
-              </MenuItem>
-            ))}
-          </TextField>
+            allLabel="Sve kategorije"
+            options={categories.options}
+          />
 
-          <TextField
-            select
+          <FilterSelect
             label="Status"
             value={list.filters.published}
-            onChange={(event) => list.setFilter('published', event.target.value)}
-            sx={{ maxWidth: { md: 180 } }}
-          >
-            <MenuItem value="">Svi statusi</MenuItem>
-            <MenuItem value="true">Objavljeni</MenuItem>
-            <MenuItem value="false">Nacrti</MenuItem>
-          </TextField>
+            onChange={(value) => list.setFilter('published', value)}
+            allLabel="Svi statusi"
+            width={180}
+            options={[
+              { value: 'true', label: 'Objavljeni' },
+              { value: 'false', label: 'Nacrti' },
+            ]}
+          />
 
           <Stack sx={{ ml: { md: 'auto' } }}>
             <ViewModeToggle value={viewMode} onChange={setViewMode} />

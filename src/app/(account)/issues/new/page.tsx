@@ -36,7 +36,7 @@ export default function NewIssuePage() {
   async function submit() {
     try {
       const { data } = await create.mutateAsync({ subject: subject.trim(), body: body.trim() });
-      toast.success('Prijava je poslata. Odgovorićemo vam u ovoj prepisci.');
+      toast.success('Zahtjev je poslat. Odgovorit ćemo vam u ovoj prepisci.');
       router.push(`/issues/${data.id}`);
     } catch (error) {
       toast.error(errorMessage(error));
@@ -46,9 +46,9 @@ export default function NewIssuePage() {
   return (
     <PageContainer maxWidth="form">
       <PageHeader
-        breadcrumbs={[{ label: 'Moje prijave', href: '/issues' }, { label: 'Nova prijava' }]}
-        title="Nova prijava"
-        description="Opišite problem ili pitanje. Administrator odgovara u istoj prepisci, a vi dobijate obaveštenje."
+        breadcrumbs={[{ label: 'Podrška', href: '/issues' }, { label: 'Novi zahtjev' }]}
+        title="Novi zahtjev"
+        description="Opišite problem ili pitanje. Administrator odgovara u istoj prepisci, a vi dobijate obavještenje."
       />
 
       <ContentCard>
@@ -75,7 +75,7 @@ export default function NewIssuePage() {
 
           <Stack direction={{ xs: 'column', sm: 'row' }} spacing={1.5}>
             <Button variant="contained" disabled={!canSubmit} onClick={() => void submit()}>
-              {create.isPending ? 'Slanje…' : 'Pošalji prijavu'}
+              {create.isPending ? 'Slanje…' : 'Pošalji zahtjev'}
             </Button>
             <Button href="/issues" color="inherit" startIcon={<ArrowBackIcon />}>
               Odustani

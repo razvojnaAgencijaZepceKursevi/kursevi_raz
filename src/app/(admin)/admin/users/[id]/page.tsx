@@ -82,7 +82,7 @@ export default function AdminUserDetailPage(props: PageProps<'/admin/users/[id]'
                         value: <StatusChip {...accountStatus(profile.deactivated_at)} />,
                       },
                       { label: 'Registrovan', value: formatDateTime(profile.created_at) },
-                      { label: 'Poslednja izmena', value: formatDateTime(profile.updated_at) },
+                      { label: 'Posljednja izmjena', value: formatDateTime(profile.updated_at) },
                       {
                         label: 'ID',
                         value: <Typography variant="caption">{profile.id}</Typography>,
@@ -95,22 +95,22 @@ export default function AdminUserDetailPage(props: PageProps<'/admin/users/[id]'
               <Grid size={{ xs: 12, lg: 5 }}>
                 <ContentCard title="Uloge i prava">
                   <Alert severity="info">
-                    Email adresu menja sam korisnik kroz svoj nalog — ovde se ne može izmeniti.
-                    Predavač uređuje isključivo kurseve koje poseduje; ako mu oduzmete tu ulogu,
+                    Email adresu mijenja sam korisnik kroz svoj nalog — ovdje se ne može izmijeniti.
+                    Predavač uređuje isključivo kurseve koje posjeduje; ako mu oduzmete tu ulogu,
                     odmah gubi pristup njihovom sadržaju, ali kursevi ostaju sačuvani.
                   </Alert>
                 </ContentCard>
               </Grid>
             </Grid>
 
-            <ContentCard title="Zahtevi za kupovinu" disablePadding>
+            <ContentCard title="Zahtjevi za kupovinu" disablePadding>
               <QueryState
                 query={purchases}
-                errorTitle="Zahteve nije moguće učitati"
+                errorTitle="Zahtjeve nije moguće učitati"
                 isEmpty={(page) => page.data.length === 0}
                 empty={
                   <EmptyState
-                    title="Nema zahteva"
+                    title="Nema zahtjeva"
                     description="Ovaj korisnik još nije zatražio nijedan kurs."
                   />
                 }
@@ -128,7 +128,7 @@ export default function AdminUserDetailPage(props: PageProps<'/admin/users/[id]'
                       },
                       {
                         id: 'price',
-                        header: 'Cena',
+                        header: 'Cijena',
                         align: 'right',
                         cell: (row) => formatPrice(row.price),
                       },
@@ -148,14 +148,14 @@ export default function AdminUserDetailPage(props: PageProps<'/admin/users/[id]'
               </QueryState>
             </ContentCard>
 
-            <ContentCard title="Sertifikati" disablePadding>
+            <ContentCard title="Certifikati" disablePadding>
               <QueryState
                 query={certificates}
-                errorTitle="Sertifikate nije moguće učitati"
+                errorTitle="Certifikate nije moguće učitati"
                 isEmpty={(page) => page.data.length === 0}
                 empty={
                   <EmptyState
-                    title="Nema sertifikata"
+                    title="Nema certifikata"
                     description="Korisnik još nije završio nijedan kurs."
                   />
                 }

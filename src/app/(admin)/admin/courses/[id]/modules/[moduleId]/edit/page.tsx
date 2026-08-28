@@ -99,7 +99,7 @@ export default function EditModulePage(
                   { label: currentModule.title },
                 ]}
                 title={currentModule.title}
-                description="Izmena modula."
+                description="Izmjena modula."
                 actions={
                   <Stack direction="row" spacing={1.5}>
                     <Button
@@ -123,7 +123,7 @@ export default function EditModulePage(
               <ModuleForm
                 defaultValues={moduleToFormValues(currentModule)}
                 onSubmit={handleSubmit}
-                submitLabel="Sačuvaj izmene"
+                submitLabel="Sačuvaj izmjene"
                 pendingLabel="Čuvanje modula…"
                 cancelHref={`/admin/courses/${courseId}/modules`}
               />

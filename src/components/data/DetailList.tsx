@@ -20,7 +20,7 @@ export type DetailItem = {
  *   <DetailList
  *     items={[
  *       { label: 'Student', value: purchase.profiles?.full_name ?? '—' },
- *       { label: 'Cena', value: formatPrice(purchase.price) },
+ *       { label: 'Cijena', value: formatPrice(purchase.price) },
  *     ]}
  *   />
  */

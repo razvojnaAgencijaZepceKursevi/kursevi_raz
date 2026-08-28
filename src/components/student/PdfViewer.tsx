@@ -203,7 +203,7 @@ export default function PdfViewer({ src, title }: { src: string; title?: string 
           size="small"
           onClick={() => setPage((p) => Math.min(pageCount, p + 1))}
           disabled={page >= pageCount || pageCount === 0}
-          aria-label="Sledeća strana"
+          aria-label="Sljedeća strana"
         >
           <ChevronRightIcon />
         </IconButton>

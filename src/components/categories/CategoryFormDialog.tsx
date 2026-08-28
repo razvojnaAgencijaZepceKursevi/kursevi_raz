@@ -81,7 +81,7 @@ export default function CategoryFormDialog({
       maxWidth="xs"
       fullWidth
     >
-      <DialogTitle>{isEdit ? 'Izmeni kategoriju' : 'Nova kategorija'}</DialogTitle>
+      <DialogTitle>{isEdit ? 'Izmijeni kategoriju' : 'Nova kategorija'}</DialogTitle>
 
       <DialogContent sx={{ pb: 3 }}>
         <Form form={form} onSubmit={handleSubmit} pendingLabel={isEdit ? 'Čuvanje…' : 'Kreiranje…'}>

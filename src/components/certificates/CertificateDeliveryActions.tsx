@@ -74,8 +74,8 @@ export default function CertificateDeliveryActions({
 
       <ConfirmDialog
         open={confirming}
-        title="Označiti sertifikat kao poslat?"
-        description="Zabeležićemo datum slanja i vas kao osobu koja je poslala. Student dobija obaveštenje da je sertifikat na putu, pa ovo uradite tek kada je pošiljka stvarno predata."
+        title="Označiti certifikat kao poslat?"
+        description="Zabilježit ćemo datum slanja i vas kao osobu koja je poslala. Student dobija obavještenje da je certifikat na putu, pa ovo uradite tek kada je pošiljka stvarno predata."
         confirmLabel="Označi kao poslato"
         severity="primary"
         pending={mark.isPending}

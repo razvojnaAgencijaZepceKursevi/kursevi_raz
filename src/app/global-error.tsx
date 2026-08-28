@@ -29,8 +29,8 @@ export default function GlobalError({ error }: { error: Error & { digest?: strin
         <main style={{ maxWidth: 460, padding: 24, textAlign: 'center' }}>
           <h1 style={{ fontSize: 20, marginBottom: 8 }}>Aplikacija trenutno nije dostupna</h1>
           <p style={{ fontSize: 15, lineHeight: 1.6, color: '#4b5563', margin: '0 0 20px' }}>
-            Došlo je do neočekivane greške. Osvežite stranicu — ako se ponavlja, javite se timu koji
-            održava aplikaciju.
+            Došlo je do neočekivane greške. Osvježite stranicu — ako se ponavlja, javite se timu
+            koji održava aplikaciju.
           </p>
           {/*
             A plain anchor, and the lint rule is wrong here specifically. This
