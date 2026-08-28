@@ -7,6 +7,7 @@ import ListItemIcon from '@mui/material/ListItemIcon';
 import ListItemText from '@mui/material/ListItemText';
 import Stack from '@mui/material/Stack';
 import Typography from '@mui/material/Typography';
+import { NavPending } from '@/components/feedback/NavProgress';
 import { isNavItemActive, navForRole, type StaffRole } from './adminNav';
 
 /**
@@ -71,6 +72,14 @@ export default function AdminNavList({
                       },
                     }}
                   />
+                  {/*
+                    Reports this link's pending state to the top-of-shell
+                    progress bar. Renders nothing, and has to live *inside* the
+                    link — `useLinkStatus` only works on a `<Link>` descendant,
+                    and `ListItemButton href` resolves to one through the
+                    theme's `LinkComponent`.
+                  */}
+                  <NavPending />
                 </ListItemButton>
               );
             })}

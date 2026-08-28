@@ -43,7 +43,7 @@ export default function AdminCertificateDetailPage(props: PageProps<'/admin/cert
 
   return (
     <PageContainer>
-      <QueryState query={certificate} errorTitle="Certifikat nije moguće učitati">
+      <QueryState skeleton="detail" query={certificate} errorTitle="Certifikat nije moguće učitati">
         {(row) => (
           <>
             <PageHeader

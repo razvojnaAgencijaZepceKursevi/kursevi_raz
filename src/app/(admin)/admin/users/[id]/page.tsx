@@ -49,7 +49,7 @@ export default function AdminUserDetailPage(props: PageProps<'/admin/users/[id]'
 
   return (
     <PageContainer>
-      <QueryState query={user} errorTitle="Korisnika nije moguće učitati">
+      <QueryState skeleton="detail" query={user} errorTitle="Korisnika nije moguće učitati">
         {(profile) => (
           <>
             <PageHeader

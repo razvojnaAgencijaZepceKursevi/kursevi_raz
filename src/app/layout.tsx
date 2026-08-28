@@ -7,6 +7,7 @@ import ThemeSync from '@/theme/ThemeSync';
 import QueryProvider from '@/lib/query/QueryProvider';
 import AuthProvider from '@/components/AuthProvider';
 import ToastHost from '@/components/feedback/ToastHost';
+import { NavProgressBar } from '@/components/feedback/NavProgress';
 
 const geistSans = Geist({
   variable: '--font-geist-sans',
@@ -55,6 +56,10 @@ export default function RootLayout({
               {/* Applies the signed-in user's saved scheme once it loads.
                   Renders nothing; needs both the theme and the query client. */}
               <ThemeSync />
+              {/* Fixed to the top of the viewport, above everything. Covers the
+                  gap between clicking a nav link and the destination's
+                  `loading.tsx` appearing. */}
+              <NavProgressBar />
               {children}
               {/* Mounted once, app-wide. Anything can raise a toast from
                   anywhere via `toast.success(...)` — see @/store/useToastStore. */}

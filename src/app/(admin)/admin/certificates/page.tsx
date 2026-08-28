@@ -98,6 +98,7 @@ export default function AdminCertificatesPage() {
         </Stack>
 
         <QueryState
+          skeleton="table"
           query={certificates}
           errorTitle="Certifikate nije moguće učitati"
           isEmpty={(page) => page.data.length === 0}

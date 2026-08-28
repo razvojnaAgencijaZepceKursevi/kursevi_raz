@@ -108,6 +108,7 @@ export default function AdminCourseModulesPage(props: PageProps<'/admin/courses/
         {updateModule.isPending ? <LinearProgress /> : null}
 
         <QueryState
+          skeleton="list"
           query={modules}
           errorTitle="Module nije moguće učitati"
           isEmpty={(page) => page.data.length === 0}

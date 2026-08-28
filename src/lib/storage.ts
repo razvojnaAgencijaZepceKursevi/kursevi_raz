@@ -14,12 +14,22 @@ export const BUCKETS = {
   moduleFiles: 'module-files',
   taskFiles: 'task-files',
   taskMessageAttachments: 'task-message-attachments',
+  newsletterImages: 'newsletter-images',
 } as const;
 
 export type BucketName = (typeof BUCKETS)[keyof typeof BUCKETS];
 
 /** Buckets served straight from the CDN, with no signed URL needed. */
-const PUBLIC_BUCKETS: readonly BucketName[] = [BUCKETS.courseThumbnails];
+const PUBLIC_BUCKETS: readonly BucketName[] = [
+  BUCKETS.courseThumbnails,
+  /*
+   * Public because a mail client fetches embedded images anonymously — there is
+   * no session to authorise, and a signed URL would expire and break the
+   * message for anyone reading it later. See migration 0033 for why that
+   * disclosure is acceptable for this bucket and no other.
+   */
+  BUCKETS.newsletterImages,
+];
 
 export const isPublicBucket = (bucket: BucketName) => PUBLIC_BUCKETS.includes(bucket);
 
@@ -37,6 +47,9 @@ export const BUCKET_PATH_SEGMENTS: Record<BucketName, number> = {
   [BUCKETS.moduleFiles]: 2,
   [BUCKETS.taskFiles]: 2,
   [BUCKETS.taskMessageAttachments]: 1,
+  // `{yyyy-mm}/` — a newsletter image belongs to no row, so there is no id to
+  // key on; the month keeps the bucket browsable by hand.
+  [BUCKETS.newsletterImages]: 1,
 };
 
 /**

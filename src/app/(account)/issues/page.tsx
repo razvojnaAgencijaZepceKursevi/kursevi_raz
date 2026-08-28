@@ -45,6 +45,7 @@ export default function MyIssuesPage() {
 
       <ContentCard disablePadding>
         <QueryState
+          skeleton="table"
           query={issues}
           errorTitle="Zahtjeve nije moguće učitati"
           isEmpty={(page) => page.data.length === 0}

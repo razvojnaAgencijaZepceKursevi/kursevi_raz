@@ -4,6 +4,7 @@ import Divider from '@mui/material/Divider';
 import Link from '@mui/material/Link';
 import Stack from '@mui/material/Stack';
 import Typography from '@mui/material/Typography';
+import { FEATURES } from '@/lib/features';
 
 /**
  * Footer for the public pages.
@@ -21,8 +22,8 @@ const SECTIONS: { title: string; links: { label: string; href: string }[] }[] = 
   {
     title: 'Kursevi',
     links: [
-      { label: 'Svi kursevi', href: '/courses' },
-      { label: 'Blog', href: '/blog' },
+      ...(FEATURES.catalog ? [{ label: 'Svi kursevi', href: '/courses' }] : []),
+      ...(FEATURES.blog ? [{ label: 'Blog', href: '/blog' }] : []),
     ],
   },
   {

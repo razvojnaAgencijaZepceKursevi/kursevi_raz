@@ -14,6 +14,7 @@ import QueryState from '@/components/feedback/QueryState';
 import EmptyState from '@/components/feedback/EmptyState';
 import ConfirmDialog from '@/components/feedback/ConfirmDialog';
 import DataTable from '@/components/data/DataTable';
+import MarkdownEditor from '@/components/markdown/MarkdownEditor';
 import { useNewsletterRecipients, useSendNewsletter } from '@/hooks/useNewsletter';
 import { errorMessage } from '@/lib/api/errorMessage';
 import { pluralBs } from '@/lib/format';
@@ -31,11 +32,21 @@ import { toast } from '@/store/useToastStore';
  * `EMAIL_FROM` unset every send is skipped and logged, and an admin who needs
  * to reach subscribers through some other tool should not be blocked on that.
  *
- * ## Composed, not pasted
+ * ## Markdown, not raw HTML
  *
- * There is no HTML field. The template escapes everything it interpolates, so
- * an admin cannot break the layout in Outlook (which renders with Word) or
- * paste markup a spam filter reads as phishing.
+ * The body is written in the same editor the legal documents use, so an author
+ * gets headings, links, lists and images without knowing the syntax. What is
+ * *stored and sent* is Markdown — `renderMarkdownEmail` decides the actual
+ * markup, with every style inlined, because email clients have no stylesheet
+ * (Outlook renders with Word; Gmail strips `<style>`).
+ *
+ * That keeps the original guarantee: an admin still cannot paste markup that
+ * breaks the layout or that a filter reads as phishing, because raw HTML inside
+ * the Markdown is escaped rather than honoured.
+ *
+ * Images are pasted or dropped straight in. They upload to a public bucket and
+ * are referenced by URL, never inlined as base64 — no major mail client renders
+ * a `data:` image, so the message would arrive with broken boxes.
  */
 export default function AdminNewsletterPage() {
   const recipients = useNewsletterRecipients();
@@ -49,15 +60,8 @@ export default function AdminNewsletterPage() {
   const emails = (recipients.data?.data ?? []).map((r) => r.email);
   const emailConfigured = recipients.data?.meta.email_configured ?? false;
 
-  // Blank lines separate paragraphs — the same convention as writing anywhere
-  // else, and it maps exactly onto the template's `lines`.
-  const lines = body
-    .split(/\n\s*\n/)
-    .map((line) => line.trim().replace(/\s*\n\s*/g, ' '))
-    .filter(Boolean);
-
   const canSend =
-    subject.trim() !== '' && heading.trim() !== '' && lines.length > 0 && emails.length > 0;
+    subject.trim() !== '' && heading.trim() !== '' && body.trim() !== '' && emails.length > 0;
 
   async function copyEmails() {
     try {
@@ -97,7 +101,7 @@ export default function AdminNewsletterPage() {
       const result = await send.mutateAsync({
         subject: subject.trim(),
         heading: heading.trim(),
-        lines,
+        body,
       });
       setConfirming(false);
 
@@ -155,6 +159,7 @@ export default function AdminNewsletterPage() {
         disablePadding
       >
         <QueryState
+          skeleton="table"
           query={recipients}
           errorTitle="Primaoce nije moguće učitati"
           isEmpty={(page) => page.data.length === 0}
@@ -180,7 +185,7 @@ export default function AdminNewsletterPage() {
 
       <ContentCard
         title="Nova poruka"
-        description="Prazan red razdvaja pasuse. Formatiranje je isto kao u ostalim emailovima aplikacije."
+        description="Naslovi, linkovi, liste i slike. Pregled desno pokazuje kako će poruka izgledati."
       >
         <Stack spacing={2}>
           <TextField
@@ -188,6 +193,7 @@ export default function AdminNewsletterPage() {
             value={subject}
             onChange={(event) => setSubject(event.target.value)}
             disabled={send.isPending}
+            helperText="Ovo se vidi u listi poruka, prije nego što je iko otvori."
           />
           <TextField
             label="Naslov u poruci"
@@ -195,14 +201,12 @@ export default function AdminNewsletterPage() {
             onChange={(event) => setHeading(event.target.value)}
             disabled={send.isPending}
           />
-          <TextField
-            label="Tekst"
+          <MarkdownEditor
             value={body}
-            onChange={(event) => setBody(event.target.value)}
-            multiline
-            minRows={8}
+            onChange={setBody}
             disabled={send.isPending}
-            helperText={`${lines.length} ${pluralBs(lines.length, 'pasus', 'pasusa', 'pasusa')}`}
+            allowImages
+            helperText="Sliku možete prevući ili nalijepiti (Ctrl+V) direktno u tekst — automatski se otprema i ubacuje."
           />
 
           <Stack direction="row" sx={{ justifyContent: 'flex-end' }}>

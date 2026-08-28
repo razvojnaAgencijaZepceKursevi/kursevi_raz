@@ -1683,6 +1683,133 @@ course-scoped page, add it there or it is URL-only.
 
 ---
 
+### Loading states: two layers, and a fallback shaped like its destination
+
+- **The two waits are different and need different answers.** A click on a nav link waits
+  first for the route segment (JS chunk + server render), then, once the page mounts, for
+  React Query to fetch. Only the second had any treatment; the first had none, so the app
+  sat on the previous screen doing nothing visible.
+
+- **`loading.tsx` per section, not one at the top.** Next resolves the _nearest_
+  `loading.tsx`, so the single one at `/admin` rendered the same centred spinner for the
+  dashboard, the course table and the settings forms — it was generic because it had to be,
+  and generic is the one thing a loading state must not be. There are 32 now, each picking
+  a shape from `PageSkeletons`; the files stay three lines long.
+
+- **A dynamic detail route needs its own.** Without it the parent list's fallback renders —
+  a table skeleton standing in for a single record, promising a layout the page then
+  contradicts. Every `[id]` route has one; the probe asserts that structurally rather than
+  by eye, so a new detail route without a fallback fails the check.
+
+- **`<NavProgressBar>` covers the click itself.** A segment fallback only appears once the
+  navigation starts resolving; the click and any pre-render fetch have no feedback at all.
+  `useLinkStatus` only works **inside a `<Link>` descendant** and there is no app-wide
+  "navigation pending" hook, so each nav item renders a `<NavPending>` marker that reports
+  into a small store, and the bar reads that. Its honest limit: only links carrying the
+  marker feed the bar — everything else is covered by `loading.tsx`, which is the layer
+  that applies universally.
+
+  The bar is `position: fixed` and always mounted, faded rather than unmounted. Both matter:
+  fixed so it can never shift layout (the trap the Next docs call out for inline
+  indicators), always-mounted so a fast navigation does not flicker.
+
+- **`QueryState` defaults to a skeleton, not a spinner.** `skeleton="table" | "list" |
+"grid" | "detail" | "form" | "text" | "spinner" | "none"` — named shapes rather than a
+  component per call site, because there are only a handful of layouts here. The default
+  changed from `<LoadingState>` to a text skeleton, which is better than a spinner
+  essentially everywhere; `'spinner'` is still available for a small inline region with no
+  shape worth imitating.
+
+- **`unstable_instant` was considered and not adopted.** Next 16 can validate that a route
+  produces an instant static shell, but it requires `cacheComponents: true`, which changes
+  caching semantics app-wide. That is a deliberate architectural decision, not something to
+  switch on while fixing spinners.
+
+- **Two skeleton bugs found by rasterising the preview, not by reading the code.** A
+  `variant="rectangular"` Skeleton with only `aspectRatio` collapses to zero height — MUI's
+  rectangular variant has no intrinsic height — so the course-card media block silently
+  vanished and the skeleton came out shorter than the real card, causing the exact layout
+  jump it exists to prevent. And table cells of identical width in a perfect grid read as a
+  decorative _pattern_ rather than as text arriving; they now draw from a fixed pool of
+  widths, deterministic so the skeleton does not reshuffle on re-render.
+
+  Same lesson as the certificate PDF: **look at it.** Both of these typecheck, lint and
+  render without error.
+
+---
+
+### The newsletter is written in Markdown and rendered to email HTML
+
+- **`renderMarkdownEmail` (`src/lib/email/markdown.ts`) is a second renderer, deliberately.**
+  `<MarkdownContent>` emits React with MUI components and a stylesheet; email clients have
+  none. Gmail strips `<style>` in several contexts and Outlook renders with Word, so
+  **every style has to be inline on the element it applies to** — the opposite of how the
+  app's components work. It walks the same mdast (`remark-parse` + `remark-gfm`, the pair
+  the editor's preview uses), so the preview stays an honest picture while the output is
+  email-safe.
+
+- **Both halves come from one parse**, so the HTML and the plain-text alternative can never
+  describe different content — including raw-HTML nodes, which the HTML part escapes and
+  the text part echoes. Dropping them would have been equally safe and would have made the
+  preview lie: an author who pasted a stray tag would see it in the preview and not in the
+  email.
+
+- **Images are uploaded, never inlined.** A pasted screenshot as a `data:` URI is the
+  obvious shortcut and fails where it matters — Gmail, Outlook and Apple Mail all refuse to
+  render `data:` images, so the message would look right in the composer and arrive with
+  broken boxes. Paste or drop uploads to `newsletter-images` (migration 0033) and inserts
+  `![alt](url)`.
+
+- **That bucket is public, and it is the only content bucket that is.** A mail client
+  fetches the image anonymously — there is no session to authorise, and a signed URL would
+  expire and break the message for anyone reading it later. Acceptable only because these
+  are marketing images already being broadcast; nothing course- or student-scoped may go
+  there. Writes stay admin-only, or a public bucket is an open file host.
+
+- **A lone image is not wrapped in `<p>`** — several clients add their own paragraph
+  spacing and the image ends up with a stray gap under it.
+
+- The newsletter footer differs from the transactional one: it says why the message arrived
+  and links to the opt-out. `EmailContent` gained `body` and `footer` for this; the
+  `lines[]` shape stays for notifications, where there is nothing to format.
+
+### Feature flags, for staged presentation (`src/lib/features.ts`)
+
+- **Absent means enabled; only the literal `"false"` disables.** The opposite default would
+  mean a fresh clone, a CI run, or a forgotten variable silently ships a crippled app, and
+  every environment would have to list every flag to get the normal product. This way the
+  flags are a deliberate subtraction from a working whole — delete them and everything is
+  back, which is the promise the whole scheme rests on.
+
+- **They must be `NEXT_PUBLIC_`**, and read as literal `process.env.NEXT_PUBLIC_…`
+  expressions. Next substitutes those textually at build time, so `process.env[name]` reads
+  as `undefined` — and most of this app's screens are Client Components, which would then
+  disagree with the server about what is switched on.
+
+- **A flag hides a feature; it does not protect one.** Nav entries disappear and
+  `proxy.ts` 404s the routes (a rewrite, not a redirect — a redirect would advertise that
+  the page exists). The API routes and RLS policies are untouched, and the probe asserts
+  that explicitly: if `/api/issues` ever starts 404ing with the flag off, a presentation
+  aid has quietly become access control.
+
+- `googleAuth` is the one flag that is **off unless explicitly enabled**, because it has
+  always needed the provider configured in the Supabase dashboard — a visible button that
+  400s is worse than no button, and nobody can fix that from the app.
+
+- Twelve segments: catalog, purchases, quizzes, tasks, certificates, notifications,
+  support, blog, newsletter, teachers, themeSwitch, googleAuth. `FEATURE_ROUTES` maps the
+  ones that own URLs; `themeSwitch` and `googleAuth` are absent from it because they are
+  controls inside pages that stay reachable.
+
+### Signing out lives in the user menu
+
+- It used to be both a button in the bar and an item in the menu, on the reasoning that
+  signing out is one of the things the bar is for. That put one action in two places and
+  spent bar space on something people do once a day. Now it is under Podešavanja — both
+  are "this account" — and last, because it is the destructive one.
+
+---
+
 ## 8. Known gaps / next up
 
 - **No admin `PlaceholderPage` remains.** `/admin/submissions` was the last one.

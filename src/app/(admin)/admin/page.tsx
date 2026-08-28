@@ -171,6 +171,7 @@ export default function AdminDashboardPage() {
         disablePadding
       >
         <QueryState
+          skeleton="list"
           query={recentCourses}
           isEmpty={(page) => page.data.length === 0}
           empty={

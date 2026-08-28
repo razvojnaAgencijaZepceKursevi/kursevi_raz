@@ -42,7 +42,7 @@ export default function AdminPurchaseDetailPage(props: PageProps<'/admin/purchas
 
   return (
     <PageContainer>
-      <QueryState query={purchase} errorTitle="Zahtjev nije moguće učitati">
+      <QueryState skeleton="detail" query={purchase} errorTitle="Zahtjev nije moguće učitati">
         {(row) => {
           const studentName = row.profiles?.full_name ?? 'Nepoznat korisnik';
 

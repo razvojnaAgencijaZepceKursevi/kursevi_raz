@@ -33,8 +33,12 @@ export const sendNewsletterSchema = z
   .object({
     subject: z.string().trim().min(1, 'Naslov emaila je obavezan.').max(200),
     heading: z.string().trim().min(1, 'Naslov poruke je obavezan.').max(200),
-    /** One paragraph each; the template escapes them. */
-    lines: z.array(z.string().trim().min(1)).min(1, 'Poruka ne može biti prazna.').max(50),
+    /**
+     * The body, as Markdown. The 100k ceiling is generous on purpose — an
+     * inlined base64 image would blow past it, which is the point: images are
+     * uploaded and referenced by URL, never embedded in the body.
+     */
+    body: z.string().trim().min(1, 'Poruka ne može biti prazna.').max(100_000),
     preheader: z.string().trim().max(200).optional(),
     action_label: z.string().trim().max(60).optional(),
     action_href: z.string().trim().max(500).optional(),

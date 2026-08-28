@@ -95,6 +95,7 @@ export default function AdminCoursesPage() {
         </Stack>
 
         <QueryState
+          skeleton="table"
           query={courses}
           errorTitle="Kurseve nije moguće učitati"
           isEmpty={(page) => page.data.length === 0}

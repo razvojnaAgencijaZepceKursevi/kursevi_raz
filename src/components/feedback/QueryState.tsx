@@ -4,6 +4,14 @@ import * as React from 'react';
 import EmptyState from './EmptyState';
 import ErrorState from './ErrorState';
 import LoadingState from './LoadingState';
+import {
+  CardGridSkeleton,
+  DetailListSkeleton,
+  FormSkeleton,
+  ListRowsSkeleton,
+  TableSkeleton,
+  TextBlockSkeleton,
+} from './Skeletons';
 
 /**
  * Renders the four states of a React Query read — loading, error, empty,
@@ -15,6 +23,7 @@ import LoadingState from './LoadingState';
  *
  *   <QueryState
  *     query={coursesQuery}
+ *     skeleton="table"
  *     isEmpty={(page) => page.data.length === 0}
  *     empty={<EmptyState title="Nema kurseva" />}
  *   >
@@ -36,6 +45,43 @@ export type MinimalQueryResult<TData> = {
   refetch: () => unknown;
 };
 
+/**
+ * Which placeholder to draw while the data is in flight.
+ *
+ * Named shapes rather than a component per call site, because there are only a
+ * handful of layouts in this app and the point is that the placeholder matches
+ * the content. Pass `loading` instead when a screen needs something bespoke.
+ *
+ * `'spinner'` is still available for a small inline region with no shape worth
+ * imitating — but it is deliberately no longer the default. A centred spinner
+ * says only "something is happening", and it collapses the region to its own
+ * height, so the layout jumps when the data lands.
+ */
+export type QuerySkeleton =
+  'text' | 'table' | 'list' | 'grid' | 'detail' | 'form' | 'spinner' | 'none';
+
+function renderSkeleton(kind: QuerySkeleton): React.ReactNode {
+  switch (kind) {
+    case 'table':
+      return <TableSkeleton />;
+    case 'list':
+      return <ListRowsSkeleton />;
+    case 'grid':
+      return <CardGridSkeleton />;
+    case 'detail':
+      return <DetailListSkeleton />;
+    case 'form':
+      return <FormSkeleton />;
+    case 'spinner':
+      return <LoadingState />;
+    case 'none':
+      return null;
+    case 'text':
+    default:
+      return <TextBlockSkeleton lines={4} />;
+  }
+}
+
 export type QueryStateProps<TData> = {
   query: MinimalQueryResult<TData>;
   children: (data: TData) => React.ReactNode;
@@ -45,7 +91,9 @@ export type QueryStateProps<TData> = {
    */
   isEmpty?: (data: TData) => boolean;
   empty?: React.ReactNode;
-  /** Override the default spinner — e.g. with a skeleton matching the content. */
+  /** A named placeholder shape. Ignored when `loading` is given. */
+  skeleton?: QuerySkeleton;
+  /** A bespoke placeholder, when none of the named shapes fits. */
   loading?: React.ReactNode;
   errorTitle?: string;
 };
@@ -55,6 +103,7 @@ export default function QueryState<TData>({
   children,
   isEmpty,
   empty,
+  skeleton = 'text',
   loading,
   errorTitle,
 }: QueryStateProps<TData>) {
@@ -62,7 +111,7 @@ export default function QueryState<TData>({
   // be false during a background refetch that still has no data to show, and a
   // disabled query (`enabled: false`) stays pending — deliberately, since it
   // has nothing to render either.
-  if (query.isPending) return <>{loading ?? <LoadingState />}</>;
+  if (query.isPending) return <>{loading ?? renderSkeleton(skeleton)}</>;
 
   if (query.isError) {
     return (

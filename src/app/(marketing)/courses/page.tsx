@@ -65,6 +65,7 @@ export default function CourseCataloguePage() {
       </Stack>
 
       <QueryState
+        skeleton="grid"
         query={courses}
         errorTitle="Kurseve nije moguće učitati"
         isEmpty={(page) => page.data.length === 0}

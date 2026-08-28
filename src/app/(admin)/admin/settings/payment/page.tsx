@@ -28,7 +28,8 @@ import type { PaymentSettings } from '@/lib/schemas/payment.schema';
  * same thing twice on purpose: there is one seller, and it is the platform's,
  * not a course author's.
  *
- * The form renders **inside** `<QueryState>` because `defaultValues` is read
+ * The form renders **inside** `<QueryState
+          skeleton="form">` because `defaultValues` is read
  * once at mount — the standing rule for every edit form in this codebase.
  */
 function PaymentSettingsForm({ settings }: { settings: PaymentSettings }) {

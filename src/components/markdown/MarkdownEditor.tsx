@@ -3,10 +3,13 @@
 import * as React from 'react';
 import dynamic from 'next/dynamic';
 import Box from '@mui/material/Box';
+import CircularProgress from '@mui/material/CircularProgress';
+import Stack from '@mui/material/Stack';
 import Skeleton from '@mui/material/Skeleton';
 import Typography from '@mui/material/Typography';
 import { useColorScheme } from '@mui/material/styles';
 import MarkdownContent from './MarkdownContent';
+import { imageFilesFrom, useImagePaste } from './useImagePaste';
 import '@uiw/react-md-editor/markdown-editor.css';
 
 /**
@@ -38,6 +41,15 @@ import '@uiw/react-md-editor/markdown-editor.css';
  * all — the security question is answered by not having a second renderer
  * rather than by configuring one.
  *
+ * ## Images are pasted, dropped, or neither
+ *
+ * `allowImages` turns on paste and drop handling: the file is uploaded and
+ * `![alt](url)` is appended. It is opt-in because the two callers differ — a
+ * newsletter is emailed, so its images must live at a public URL a mail client
+ * can fetch anonymously, while the legal documents are rendered in-app and have
+ * no such need. Turning it on where it is not wanted would put an upload
+ * affordance on a screen with nowhere sensible to put the file.
+ *
  * ## Why the dynamic import
  *
  * The editor touches `window` at module scope, so it must never reach a server
@@ -55,14 +67,71 @@ export default function MarkdownEditor({
   disabled = false,
   height = 460,
   helperText,
+  allowImages = false,
 }: {
   value: string;
   onChange: (value: string) => void;
   disabled?: boolean;
   height?: number;
   helperText?: string;
+  /** Enables paste/drop image upload. See the note above. */
+  allowImages?: boolean;
 }) {
   const { mode, systemMode } = useColorScheme();
+  const { uploadImage, uploading } = useImagePaste();
+
+  /*
+   * `onChange` is read through a ref inside the handlers below. Without it the
+   * paste listener would close over the `value` from the render that attached
+   * it, so pasting a second image would overwrite the first — the classic stale
+   * closure, and one that only shows up on the second attempt.
+   */
+  const latest = React.useRef({ value, onChange });
+  // Updated in an effect, not during render — writing a ref while rendering is
+  // a tearing hazard under concurrent rendering, and lint rejects it. An effect
+  // with no dependency array runs after every commit, which is early enough:
+  // the handlers below only ever fire in response to a user event, long after
+  // paint.
+  React.useEffect(() => {
+    latest.current = { value, onChange };
+  });
+
+  const insertImages = React.useCallback(
+    async (files: File[]) => {
+      for (const file of files) {
+        const url = await uploadImage(file);
+        if (!url) continue;
+        const current = latest.current.value;
+        const separator = current.endsWith('\n') || current === '' ? '' : '\n\n';
+        latest.current.onChange(`${current}${separator}![${file.name}](${url})\n`);
+      }
+    },
+    [uploadImage],
+  );
+
+  const handlePaste = React.useCallback(
+    (event: React.ClipboardEvent) => {
+      if (!allowImages || disabled) return;
+      const files = imageFilesFrom(event.nativeEvent as ClipboardEvent);
+      if (files.length === 0) return;
+      // Only once there is actually an image: a plain text paste must go
+      // through untouched.
+      event.preventDefault();
+      void insertImages(files);
+    },
+    [allowImages, disabled, insertImages],
+  );
+
+  const handleDrop = React.useCallback(
+    (event: React.DragEvent) => {
+      if (!allowImages || disabled) return;
+      const files = imageFilesFrom(event.nativeEvent as DragEvent);
+      if (files.length === 0) return;
+      event.preventDefault();
+      void insertImages(files);
+    },
+    [allowImages, disabled, insertImages],
+  );
 
   /*
    * The library themes itself from a `data-color-mode` attribute rather than
@@ -77,6 +146,10 @@ export default function MarkdownEditor({
     <Box>
       <Box
         data-color-mode={colorMode}
+        onPaste={handlePaste}
+        onDrop={handleDrop}
+        // Without this the browser navigates away to the dropped file.
+        onDragOver={allowImages ? (event) => event.preventDefault() : undefined}
         sx={{
           // Match the app's inputs rather than the library's own chrome.
           '& .w-md-editor': {
@@ -114,6 +187,15 @@ export default function MarkdownEditor({
           textareaProps={{ disabled }}
         />
       </Box>
+
+      {uploading ? (
+        <Stack direction="row" spacing={1} sx={{ alignItems: 'center', mt: 1 }}>
+          <CircularProgress size={14} />
+          <Typography variant="caption" color="text.secondary">
+            Slika se otprema…
+          </Typography>
+        </Stack>
+      ) : null}
 
       {helperText ? (
         <Typography variant="caption" color="text.secondary" sx={{ display: 'block', mt: 1 }}>

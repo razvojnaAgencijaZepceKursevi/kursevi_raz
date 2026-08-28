@@ -95,6 +95,7 @@ export default function NotificationsPage() {
         </Stack>
 
         <QueryState
+          skeleton="list"
           query={notifications}
           errorTitle="Obavještenja nije moguće učitati"
           isEmpty={(page) => page.data.length === 0}

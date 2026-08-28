@@ -2,6 +2,7 @@ import { createServerClient } from '@supabase/ssr';
 import { NextResponse, type NextRequest } from 'next/server';
 import type { Database } from '@/types/database.types';
 import { landingPathForRole } from '@/lib/auth/routes';
+import { disabledRoutePrefixes } from '@/lib/features';
 
 /**
  * Route protection.
@@ -77,6 +78,22 @@ export async function proxy(request: NextRequest) {
   } = await supabase.auth.getUser();
 
   const { pathname } = request.nextUrl;
+
+  /*
+   * A switched-off feature's URLs stop resolving, not just its links.
+   *
+   * Hiding a nav entry is presentation; during a staged demo a bookmark or a
+   * typed address would otherwise walk straight into a section that is meant to
+   * be weeks away. 404 rather than redirect, because as far as this build is
+   * concerned the page does not exist — a redirect would advertise that it does.
+   *
+   * This is deliberately *not* access control: the API routes and RLS are
+   * untouched, and a flag protects nothing. See `src/lib/features.ts`.
+   */
+  const offPrefixes = disabledRoutePrefixes();
+  if (offPrefixes.length > 0 && startsWithAny(pathname, offPrefixes)) {
+    return NextResponse.rewrite(new URL('/404', request.url));
+  }
 
   const isProtected = startsWithAny(pathname, PROTECTED_PREFIXES);
   const isAdminOnly = startsWithAny(pathname, ADMIN_PREFIXES);

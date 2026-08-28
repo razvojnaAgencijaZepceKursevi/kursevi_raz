@@ -1,11 +1,12 @@
-import LoadingState from '@/components/feedback/LoadingState';
+// Route-segment fallback. Next renders this the instant a navigation into
+// this section starts, so the destination's shape appears immediately instead
+// of the page sitting on the previous screen. See `PageSkeletons` for why each
+// section has its own rather than one generic spinner at the top.
+// `/admin` is the dashboard. It is also the fallback for any admin route
+// without a nearer `loading.tsx`, which is why the shape stays generic enough
+// to not be actively wrong there.
+import { DashboardSkeleton } from '@/components/feedback/PageSkeletons';
 
-/**
- * Shown while any `/admin/*` page's server component is still resolving.
- *
- * The sidebar and top bar live in the layout above this, so they stay visible
- * and interactive — only the content area swaps to this fallback.
- */
-export default function AdminLoading() {
-  return <LoadingState minHeight="60vh" />;
+export default function Loading() {
+  return <DashboardSkeleton tiles={5} tileSpan={2.4} />;
 }

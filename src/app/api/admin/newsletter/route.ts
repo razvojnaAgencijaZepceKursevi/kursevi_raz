@@ -4,7 +4,9 @@ import { requireAdmin } from '@/lib/auth/guards';
 import { createClient } from '@/lib/supabase/server';
 import { isEmailConfigured, sendEmail } from '@/lib/email/client';
 import { renderEmail } from '@/lib/email/template';
+import { renderMarkdownEmail } from '@/lib/email/markdown';
 import { sendNewsletterSchema } from '@/lib/schemas/newsletter.schema';
+import { publicEnv } from '@/lib/env';
 
 export const dynamic = 'force-dynamic';
 
@@ -81,17 +83,33 @@ export const POST = withRoute(async (req) => {
 
   const list = await recipients();
 
+  /*
+   * Rendered once, outside the loop. The message is identical for every
+   * recipient, and parsing the Markdown per address would do the same work N
+   * times for nothing.
+   */
+  const rendered = renderMarkdownEmail(body.body);
+
+  const { html, text } = renderEmail({
+    heading: body.heading,
+    body: rendered,
+    preheader: body.preheader,
+    ...(body.action_label && body.action_href
+      ? { action: { label: body.action_label, href: body.action_href } }
+      : {}),
+    // Marketing mail, so the footer says so and points at the opt-out rather
+    // than at the notification settings.
+    footer: {
+      lines: ['Ovaj email ste dobili jer ste se prijavili na newsletter.'],
+      link: {
+        label: 'Odjavite se u podešavanjima',
+        href: `${publicEnv.siteUrl.replace(/\/$/, '')}/settings/newsletter`,
+      },
+    },
+  });
+
   const results = await Promise.all(
     list.map(async (person) => {
-      const { html, text } = renderEmail({
-        heading: body.heading,
-        lines: body.lines,
-        preheader: body.preheader,
-        ...(body.action_label && body.action_href
-          ? { action: { label: body.action_label, href: body.action_href } }
-          : {}),
-      });
-
       const result = await sendEmail({ to: person.email, subject: body.subject, html, text });
       return result.status;
     }),

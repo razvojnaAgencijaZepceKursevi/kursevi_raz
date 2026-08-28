@@ -9,6 +9,7 @@ import Stack from '@mui/material/Stack';
 import Toolbar from '@mui/material/Toolbar';
 import AppHeader from '@/components/layout/AppHeader';
 import { useAuthStore } from '@/store/useAuthStore';
+import { FEATURES } from '@/lib/features';
 
 /**
  * Top bar for the public-facing pages.
@@ -42,12 +43,16 @@ export default function PublicHeader() {
         </Link>
 
         <Stack direction="row" spacing={2.5} sx={{ ml: 2, display: { xs: 'none', sm: 'flex' } }}>
-          <Link href="/courses" variant="body2" underline="hover" color="text.secondary">
-            Kursevi
-          </Link>
-          <Link href="/blog" variant="body2" underline="hover" color="text.secondary">
-            Blog
-          </Link>
+          {FEATURES.catalog ? (
+            <Link href="/courses" variant="body2" underline="hover" color="text.secondary">
+              Kursevi
+            </Link>
+          ) : null}
+          {FEATURES.blog ? (
+            <Link href="/blog" variant="body2" underline="hover" color="text.secondary">
+              Blog
+            </Link>
+          ) : null}
         </Stack>
 
         <Box sx={{ flex: 1 }} />

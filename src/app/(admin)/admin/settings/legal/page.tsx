@@ -143,7 +143,7 @@ export default function AdminLegalSettingsPage() {
         </Tabs>
 
         <Stack sx={{ p: 2.5 }}>
-          <QueryState query={document} errorTitle="Dokument nije moguće učitati">
+          <QueryState skeleton="form" query={document} errorTitle="Dokument nije moguće učitati">
             {/* Keyed on the slug: switching tabs must reset the editor's local
                 state to the newly loaded document. */}
             {(data) => <LegalEditor key={data.slug} document={data} />}
