@@ -50,7 +50,7 @@ export default function PublicHeader() {
           <Link href="/courses" variant="body2" underline="hover" color="text.secondary">
           Kursevi
           </Link>
-          <Link href="/how-it-works" variant="body2" underline="hover" color="text.secondary">
+          <Link href="/#kako-funkcionise" variant="body2" underline="hover" color="text.secondary">
           Kako funkcioniše
           </Link>
           <Link href="/blog" variant="body2" underline="hover" color="text.secondary">
