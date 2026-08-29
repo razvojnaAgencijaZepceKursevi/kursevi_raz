@@ -2,6 +2,7 @@ import Hero from '@/components/landing/Hero';
 import StatsBar from '@/components/landing/StatsBar';
 import FeaturedCourses from '@/components/landing/FeaturedCourses';
 import HowItWorks from '@/components/landing/HowItWorks';
+import WhyUs from '@/components/landing/WhyUs';
 
 export const metadata = {
   title: 'Kursevi — online kursevi sa certifikatom',
@@ -41,6 +42,7 @@ export default function LandingPage() {
       <StatsBar />
        <FeaturedCourses />
            <HowItWorks />
+           <WhyUs />
     </>
   );
 }
