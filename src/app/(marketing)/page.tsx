@@ -4,6 +4,7 @@ import FeaturedCourses from '@/components/landing/FeaturedCourses';
 import HowItWorks from '@/components/landing/HowItWorks';
 import WhyUs from '@/components/landing/WhyUs';
 import Faq from '@/components/landing/Faq';
+import CtaBanner from '@/components/landing/CtaBanner';
 
 export const metadata = {
   title: 'Kursevi — online kursevi sa certifikatom',
@@ -45,6 +46,7 @@ export default function LandingPage() {
            <HowItWorks />
            <WhyUs />
            <Faq />
+           <CtaBanner />
     </>
   );
 }
