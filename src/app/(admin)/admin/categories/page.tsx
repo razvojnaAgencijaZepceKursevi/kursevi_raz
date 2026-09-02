@@ -30,7 +30,8 @@ import type { CategoryWithCount } from '@/lib/schemas/categories.schema';
  * pages.
  *
  * Structurally it is still the standard admin list screen — `useListParams` for
- * state, `<QueryState>` for the four states, `<DataTable>` for the rows — so it
+ * state, `<QueryState
+          skeleton="table">` for the four states, `<DataTable>` for the rows — so it
  * reads the same as users, purchases and certificates.
  *
  * There is no filter bar beyond search: with one column worth filtering on and

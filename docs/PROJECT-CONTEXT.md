@@ -1212,11 +1212,11 @@ but must still handle a 403 on an individual resource.
   `excerpt` is the one field to resist trimming: it is the meta description as well as the
   card summary, and it is the most SEO-relevant text after the title and the body.
 
-- **Nothing renders the Markdown yet.** `/blog/[slug]` prints `content` as preformatted
-  text; the parser and its styling are a deliberate later step, so that one block is the
-  only thing that changes when it lands. The renderer should be a **Server** Component —
-  the blog exists to be crawled, so the article has to be in the initial HTML rather than
-  assembled after hydration.
+- **`<MarkdownContent>` renders it, as a Server Component.** The blog exists to be
+  crawled, so the article is parsed on the server and is in the initial HTML rather than
+  assembled after hydration — verified by grepping the raw response, which is the only way
+  to tell that apart from a client render. The same component renders the legal pages and
+  the admin editor's preview.
 
 - **A ``` fence inside `content` would terminate the TypeScript template literal.**
   Markdown accepts `~~~` as an equivalent fence — use that. Inline code needs an escaped
@@ -1424,6 +1424,391 @@ The sidebar (`adminNav.ts`) only lists top-level sections. Course-scoped pages a
 reached from the courses list row menu (`CourseActions`, the ⋮ button) — that is
 the only in-app route to `/admin/courses/{id}/modules`. When you build a new
 course-scoped page, add it there or it is URL-only.
+
+### `set_updated_at()` requires an `updated_by` column — and fails only on UPDATE
+
+- The shared trigger from 0002 does two things: `new.updated_at = now()` and, when
+  `auth.uid()` is present, `new.updated_by = auth.uid()`. Attaching it to a table without
+  that column creates fine and then raises **`record "new" has no field "updated_by"`** at
+  runtime.
+
+- **Two things hid this for six migrations.** It fires on UPDATE and never on INSERT, so
+  the first write to any row succeeded; and the assignment is guarded by
+  `if auth.uid() is not null`, so every write through the **service-role** client skipped
+  it silently. `issues` (0026) is only ever written service-side, so it never bit.
+  `notification_preferences` (0025) is written with the caller's own client — the row
+  genuinely is the user's — so changing a notification switch worked the first time and
+  **500'd the second time**. That was live.
+
+- Found by `user_preferences` (0029) hitting it on its second write, then confirmed
+  directly against the database with a signed-in JWT for all three tables before fixing.
+  A probe that wrote once would have passed.
+
+- 0031 adds `set_updated_at_only()` and 0032 moves all three tables onto it. **Use
+  `set_updated_at()` when a row has several possible editors, and `set_updated_at_only()`
+  when it has exactly one** — adding an `updated_by` that could only ever repeat the
+  primary key would be the tail wagging the dog.
+
+### Money and dates are formatted by hand, not by `Intl`
+
+- `formatPrice` and `formatDate` used `Intl` with a `bs-BA` locale. That is correct _when
+  the runtime has Bosnian locale data_ and silently wrong when it does not: a runtime
+  missing `bs` falls back to its default, and an English fallback renders **`KM 123`**
+  instead of `123 KM`, and `8/6/2026` instead of `06.08.2026.` — on some machines and not
+  others, which is the worst way for a formatting bug to behave.
+
+- Both are now built from parts in `format.ts`: `.` groups thousands, `,` separates
+  decimals, the symbol goes last, and the date is `dd.mm.yyyy.`. No locale data involved,
+  so every machine agrees. **Dates are `dd.mm.yyyy.` everywhere** — the spaced
+  `06. 08. 2026.` that `bs-BA` produced is gone.
+
+- `formatRelativeTime` was rebuilt on `pluralBs` for the same reason. `Intl.RelativeTimeFormat`
+  was the most locale-fragile string in the app: `sr` renders it in Cyrillic and a missing
+  `bs` renders it in English, and it is read dozens of times a day in the notification list.
+
+- `Intl` is still right where a format is genuinely locale-dependent. It is not, when the
+  product has one fixed answer.
+
+### The empty-value select bug had a second half: `displayEmpty`
+
+- Forcing `shrink` (documented above) moved the label off the value but left the control
+  looking _empty_, because `isFilled()` gates more than the label. In `SelectInput`:
+
+  ```js
+  if (isFilled({ value }) || displayEmpty) { … computeDisplay = true … }
+  ```
+
+  With `value === ''` and no `displayEmpty`, `computeDisplay` never runs and MUI draws a
+  **zero-width space** instead of the selected item's label. That is why choosing "Sve
+  kategorije" left the field blank: the option was selected, it just had nothing on screen
+  to say so.
+
+- The two props are one fix and now travel together in `<FilterSelect>`, `<FormSelect>`
+  (only when an empty option exists) and `<CourseOwnerSection>` — the last of which is the
+  screen whose entire purpose is showing who owns a course, and which went blank the moment
+  an admin picked "Bez predavača".
+
+### Light/dark, in two layers
+
+- The theme always defined both schemes; `ThemeRegistry` pinned it to light with
+  `defaultMode="light" storageManager={null}`. Both are gone.
+
+- **localStorage is the fast layer** (MUI's own, re-enabled by dropping `storageManager`),
+  **the database is the durable one** (`user_preferences.theme`, applied by `<ThemeSync>`).
+  The toggle repaints immediately and saves afterwards; a switch that waited on a round
+  trip would feel broken, and if the save fails the local choice is deliberately kept —
+  the click was honoured on this device, and only the _saving_ failed.
+
+- `<ThemeSync>` applies a fetched value **once** (a ref guards it). Re-asserting on every
+  render would fight the toggle: the query still holds the old value while the mutation is
+  in flight, so the effect would snap the scheme back under the user's click.
+
+- `InitColorSchemeScript` is the first child of `<body>` and `<html>` carries
+  `suppressHydrationWarning`. Without the script a dark-scheme user gets a white flash on
+  every full page load, because the server cannot know a choice that lives in localStorage;
+  the attribute goes with it, since the script mutates `<html>` before React hydrates.
+
+### `StatCard` is the dashboard tile for both roles
+
+- The student hub's tiles were hand-rolled cards — icon, heading, a sentence, and the count
+  rendered as prose ("2 zahtjeva čeka"). Four of those side by side had no hierarchy: every
+  card was similar-weight text, so the numbers, which are the entire reason to look, were
+  the least prominent thing on each one.
+
+- They are now `<StatCard>`, the same component the admin dashboard uses, with a new
+  optional `caption`. Two things fall out: the two dashboards read as one product, and the
+  near-duplicate markup is gone.
+
+- **The "needs attention" cue is a stripe, not a filled block.** A solid `warning.main`
+  icon tile read as an error rather than a queue; it is now a 3px left border plus a
+  coloured glyph and number. `attention` also requires a non-zero value — a highlighted
+  tile reading 0 is an empty queue, which is good news and must look ordinary.
+
+### Payment details (migration 0030)
+
+- 0028 gave a purchase a `readable_id` so an admin could reconcile a bank transfer. The
+  other half — _who to pay_ — existed nowhere, so a student got a reference number and had
+  to ask for the rest. `payment_settings` is that half, shown by `<PaymentInstructions>`
+  beside the reference.
+
+- **A singleton table, enforced by the database**: a boolean primary key constrained to
+  `true`. A key/value settings table would have made every field untyped text and pushed
+  validation into application code for no gain.
+
+- **Public to read, admin to write.** It is the seller's business identity, the same
+  information printed on any invoice, and the catalogue is public — someone deciding
+  whether to buy may want to see who they would be paying first. `requireAdmin`, not
+  `requireStaff`: there is one seller and it belongs to the platform, not to a course author.
+
+- `isPayable()` requires at least a name and an account number; below that the student sees
+  a notice rather than a half-empty table they might try to transfer money against.
+
+- `payment_purpose_template` substitutes `{reference}` and `{course}`. A template rather
+  than a fixed string because the reference has to be able to sit _inside_ the sentence,
+  and what a bank wants in that field varies. Unknown placeholders are left visible — a
+  stray `{foo}` is a typo an admin can see, whereas deleting it hides the mistake.
+
+### Legal documents live in the database, unlike the blog
+
+- `legal_documents` holds `terms` and `privacy`, edited at `/admin/settings/legal`. This is
+  deliberately **not** the blog's treatment: the blog is a typed array in the repo because
+  publishing there should be a code review, but a privacy policy changes in response to a
+  lawyer or a regulator, sometimes urgently, and needing a deploy to correct one is the
+  wrong trade.
+
+- Keyed by a text slug with a check constraint, so a third document is a one-line migration
+  — the right amount of friction for a legal text. Empty `content` is a real state and
+  renders as "not written yet"; an apparently-complete but blank terms page is worse than an
+  honest placeholder, because a visitor would take it as the agreement.
+
+### Newsletter (`user_preferences.newsletter_opt_in`)
+
+- **An admin may read the opt-in list but never write it.** 0029's policies allow admin
+  SELECT and owner-only INSERT/UPDATE, so nobody can subscribe someone else to marketing
+  email. Verified directly through PostgREST, including the negative: an admin's attempt to
+  opt a user out leaves the row unchanged.
+
+- Kept separate from `notification_preferences`, which is the per-event matrix for
+  transactional mail. Someone who wants to hear that their task was reviewed has not thereby
+  agreed to a mailing list, and the two are different bodies of law.
+
+- **Both sending and export exist, on purpose.** Sending works — the message is composed as
+  a heading plus paragraphs and goes through the same escaping template as every other mail,
+  so an admin cannot paste markup that breaks Outlook or reads as phishing. But the export
+  is the half that works _today_, with `EMAIL_FROM` unset.
+
+- One message per recipient, never one addressed to everyone — that would expose every
+  subscriber to every other. It runs inline rather than in `after()`, unlike notifications:
+  this _is_ the action the admin took, so they are owed the counts. A list in the thousands
+  would want a queue.
+
+### Google sign-in is wired but off
+
+- Supabase performs the OAuth exchange itself, so the client id and secret go in the
+  **Supabase dashboard**, not `.env.local`. `GOOGLE_OAUTH_CLIENT_ID` / `_SECRET` are
+  recorded in `.env.example` for reference and nothing reads them at runtime.
+
+- `NEXT_PUBLIC_GOOGLE_AUTH_ENABLED` is the switch the UI reads, and `<GoogleSignInButton>`
+  renders `null` unless it is `"true"`. A visible provider button that 400s is worse than no
+  button, because the user cannot fix it.
+
+- In Google Cloud the authorised redirect URI must be Supabase's callback
+  (`<project-ref>.supabase.co/auth/v1/callback`), **not** this app's `/auth/callback` —
+  that is only where Supabase sends the browser afterwards, and it already handles the code
+  exchange and role landing.
+
+### PDF materials fit the page, not the width
+
+- Scaling a portrait A4 to the container's _width_ makes it ~1.4x taller than it is wide,
+  inside a page that already scrolls — so reading one PDF page meant scrolling the document,
+  losing the toolbar, and never seeing a whole page. The default now fits the whole page
+  into a bounded viewport (`min(70vh, 760px)`), with a fit-width toggle and zoom for anyone
+  who wants otherwise.
+
+- A `ResizeObserver` feeds the container's measured box into state, because entering
+  fullscreen resizes it without any other prop changing — without that the canvas keeps its
+  old scale until the next page turn.
+
+- Fullscreen uses the native API on the wrapper rather than a dialog: a dialog would remount
+  the component and re-fetch the PDF, while keeping the element means the canvas and the
+  loaded document survive and only the scale is recomputed.
+
+---
+
+### One settings screen, three tabs
+
+- `/settings` is a layout (`settings/layout.tsx`) that owns the container, the heading and
+  the tabs; the three child pages are only their own section. `/settings` itself redirects
+  to the first tab. Adding a fourth section is a page plus one line in `SettingsTabs`.
+
+- **Each section keeps its own URL**, because the tabs are `<Tab component={NextLink} href>`
+  rather than client-side state. What was messy was the _navigation_ — two entries in the
+  account menu for what is obviously one screen — not the addresses. One entry now.
+
+- The newsletter opt-in was split out of the appearance page. Those two were only together
+  because they were added in one go; a colour scheme and a marketing opt-in have nothing to
+  do with each other, and the opt-in is deliberately kept apart from the notification matrix
+  as well (transactional versus marketing — different bodies of law).
+
+### Markdown: one renderer, one editor, raw Markdown in the database
+
+- **`<MarkdownContent>` is the single renderer** — the blog, both legal pages, and the
+  editor's preview pane all go through it. It has no `'use client'`, so in a Server
+  Component page the Markdown is parsed on the server and the whole article is in the
+  initial HTML; imported into the editor it simply joins that client bundle instead.
+
+- **The editor's preview is overridden to use it.** `@uiw/react-md-editor` ships its own
+  renderer; `components={{ preview: … }}` replaces it with `<MarkdownContent>`. Two things
+  follow: an author is looking at the published page's own code path rather than an
+  approximation of it, and the library's renderer — which allows raw HTML by default and
+  would need `rehype-sanitize` bolted on — never runs. The security question is answered by
+  not having a second renderer rather than by configuring one.
+
+- **`rehype-raw` is deliberately absent**, so HTML inside content is escaped and shown as
+  text. Verified end to end: a `<script>` tag saved through the admin API comes back
+  escaped in the public page's HTML, not executed.
+
+- **The editor stores raw Markdown, always.** The toolbar inserts syntax into the text
+  rather than maintaining a separate document model, so the stored value is exactly what
+  renders. That is why it is a Markdown editor and not a WYSIWYG one: TipTap and friends are
+  HTML-native, so storing Markdown would mean converting both ways and losing fidelity on
+  every round trip — and the blog is already earmarked to move to `.md` files on disk if it
+  grows, which only works while the stored form is portable.
+
+- **`ssr: false` on the dynamic import is required, not an optimisation.** The library
+  touches `window` at module scope; without it the page 500s on the server.
+
+- The library themes itself from a `data-color-mode` attribute rather than from the MUI
+  theme, so `<MarkdownEditor>` maps `useColorScheme()` onto it — resolving `'system'`
+  through `systemMode`, or the editor renders light-on-light for anyone on a dark OS.
+
+### The legal pages became Server Components
+
+- They were Client Components fetching through React Query, so the text arrived only after
+  hydration and **the server sent a page with nothing in it**. Wrong twice over for a legal
+  document: a crawler sees an empty page, and a reader whose JavaScript is slow or blocked
+  is shown a shell where the agreement should be.
+
+- `getLegalDocument()` in `src/lib/server/legal.ts` reads on the server, marked
+  `server-only` so importing it from a Client Component is a build error rather than a
+  confusing runtime failure. It sits in `lib/` rather than inline in the page because a
+  component never talks to Supabase directly.
+
+- `useLegalDocument` still exists and is still right for the admin editor, which is
+  interactive and wants the cache. The two live alongside each other.
+
+- **This is only detectable by asserting on the raw response.** A browser screenshot looks
+  identical either way, and so does a probe that renders the page — which is why the probe
+  greps the server HTML for `<h2>`/`<strong>`/`<li>` and for the absence of literal `##`.
+
+---
+
+### Loading states: two layers, and a fallback shaped like its destination
+
+- **The two waits are different and need different answers.** A click on a nav link waits
+  first for the route segment (JS chunk + server render), then, once the page mounts, for
+  React Query to fetch. Only the second had any treatment; the first had none, so the app
+  sat on the previous screen doing nothing visible.
+
+- **`loading.tsx` per section, not one at the top.** Next resolves the _nearest_
+  `loading.tsx`, so the single one at `/admin` rendered the same centred spinner for the
+  dashboard, the course table and the settings forms — it was generic because it had to be,
+  and generic is the one thing a loading state must not be. There are 32 now, each picking
+  a shape from `PageSkeletons`; the files stay three lines long.
+
+- **A dynamic detail route needs its own.** Without it the parent list's fallback renders —
+  a table skeleton standing in for a single record, promising a layout the page then
+  contradicts. Every `[id]` route has one; the probe asserts that structurally rather than
+  by eye, so a new detail route without a fallback fails the check.
+
+- **`<NavProgressBar>` covers the click itself.** A segment fallback only appears once the
+  navigation starts resolving; the click and any pre-render fetch have no feedback at all.
+  `useLinkStatus` only works **inside a `<Link>` descendant** and there is no app-wide
+  "navigation pending" hook, so each nav item renders a `<NavPending>` marker that reports
+  into a small store, and the bar reads that. Its honest limit: only links carrying the
+  marker feed the bar — everything else is covered by `loading.tsx`, which is the layer
+  that applies universally.
+
+  The bar is `position: fixed` and always mounted, faded rather than unmounted. Both matter:
+  fixed so it can never shift layout (the trap the Next docs call out for inline
+  indicators), always-mounted so a fast navigation does not flicker.
+
+- **`QueryState` defaults to a skeleton, not a spinner.** `skeleton="table" | "list" |
+"grid" | "detail" | "form" | "text" | "spinner" | "none"` — named shapes rather than a
+  component per call site, because there are only a handful of layouts here. The default
+  changed from `<LoadingState>` to a text skeleton, which is better than a spinner
+  essentially everywhere; `'spinner'` is still available for a small inline region with no
+  shape worth imitating.
+
+- **`unstable_instant` was considered and not adopted.** Next 16 can validate that a route
+  produces an instant static shell, but it requires `cacheComponents: true`, which changes
+  caching semantics app-wide. That is a deliberate architectural decision, not something to
+  switch on while fixing spinners.
+
+- **Two skeleton bugs found by rasterising the preview, not by reading the code.** A
+  `variant="rectangular"` Skeleton with only `aspectRatio` collapses to zero height — MUI's
+  rectangular variant has no intrinsic height — so the course-card media block silently
+  vanished and the skeleton came out shorter than the real card, causing the exact layout
+  jump it exists to prevent. And table cells of identical width in a perfect grid read as a
+  decorative _pattern_ rather than as text arriving; they now draw from a fixed pool of
+  widths, deterministic so the skeleton does not reshuffle on re-render.
+
+  Same lesson as the certificate PDF: **look at it.** Both of these typecheck, lint and
+  render without error.
+
+---
+
+### The newsletter is written in Markdown and rendered to email HTML
+
+- **`renderMarkdownEmail` (`src/lib/email/markdown.ts`) is a second renderer, deliberately.**
+  `<MarkdownContent>` emits React with MUI components and a stylesheet; email clients have
+  none. Gmail strips `<style>` in several contexts and Outlook renders with Word, so
+  **every style has to be inline on the element it applies to** — the opposite of how the
+  app's components work. It walks the same mdast (`remark-parse` + `remark-gfm`, the pair
+  the editor's preview uses), so the preview stays an honest picture while the output is
+  email-safe.
+
+- **Both halves come from one parse**, so the HTML and the plain-text alternative can never
+  describe different content — including raw-HTML nodes, which the HTML part escapes and
+  the text part echoes. Dropping them would have been equally safe and would have made the
+  preview lie: an author who pasted a stray tag would see it in the preview and not in the
+  email.
+
+- **Images are uploaded, never inlined.** A pasted screenshot as a `data:` URI is the
+  obvious shortcut and fails where it matters — Gmail, Outlook and Apple Mail all refuse to
+  render `data:` images, so the message would look right in the composer and arrive with
+  broken boxes. Paste or drop uploads to `newsletter-images` (migration 0033) and inserts
+  `![alt](url)`.
+
+- **That bucket is public, and it is the only content bucket that is.** A mail client
+  fetches the image anonymously — there is no session to authorise, and a signed URL would
+  expire and break the message for anyone reading it later. Acceptable only because these
+  are marketing images already being broadcast; nothing course- or student-scoped may go
+  there. Writes stay admin-only, or a public bucket is an open file host.
+
+- **A lone image is not wrapped in `<p>`** — several clients add their own paragraph
+  spacing and the image ends up with a stray gap under it.
+
+- The newsletter footer differs from the transactional one: it says why the message arrived
+  and links to the opt-out. `EmailContent` gained `body` and `footer` for this; the
+  `lines[]` shape stays for notifications, where there is nothing to format.
+
+### Feature flags, for staged presentation (`src/lib/features.ts`)
+
+- **Absent means enabled; only the literal `"false"` disables.** The opposite default would
+  mean a fresh clone, a CI run, or a forgotten variable silently ships a crippled app, and
+  every environment would have to list every flag to get the normal product. This way the
+  flags are a deliberate subtraction from a working whole — delete them and everything is
+  back, which is the promise the whole scheme rests on.
+
+- **They must be `NEXT_PUBLIC_`**, and read as literal `process.env.NEXT_PUBLIC_…`
+  expressions. Next substitutes those textually at build time, so `process.env[name]` reads
+  as `undefined` — and most of this app's screens are Client Components, which would then
+  disagree with the server about what is switched on.
+
+- **A flag hides a feature; it does not protect one.** Nav entries disappear and
+  `proxy.ts` 404s the routes (a rewrite, not a redirect — a redirect would advertise that
+  the page exists). The API routes and RLS policies are untouched, and the probe asserts
+  that explicitly: if `/api/issues` ever starts 404ing with the flag off, a presentation
+  aid has quietly become access control.
+
+- `googleAuth` is the one flag that is **off unless explicitly enabled**, because it has
+  always needed the provider configured in the Supabase dashboard — a visible button that
+  400s is worse than no button, and nobody can fix that from the app.
+
+- Twelve segments: catalog, purchases, quizzes, tasks, certificates, notifications,
+  support, blog, newsletter, teachers, themeSwitch, googleAuth. `FEATURE_ROUTES` maps the
+  ones that own URLs; `themeSwitch` and `googleAuth` are absent from it because they are
+  controls inside pages that stay reachable.
+
+### Signing out lives in the user menu
+
+- It used to be both a button in the bar and an item in the menu, on the reasoning that
+  signing out is one of the things the bar is for. That put one action in two places and
+  spent bar space on something people do once a day. Now it is under Podešavanja — both
+  are "this account" — and last, because it is the destructive one.
+
+---
 
 ## 8. Known gaps / next up
 

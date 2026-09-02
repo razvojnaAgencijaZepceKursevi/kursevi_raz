@@ -53,7 +53,7 @@ export default function AdminSubmissionDetailPage(props: PageProps<'/admin/submi
 
   return (
     <PageContainer>
-      <QueryState query={submission} errorTitle="Predaju nije moguće učitati">
+      <QueryState skeleton="detail" query={submission} errorTitle="Predaju nije moguće učitati">
         {(row) => {
           const studentName = row.profiles?.full_name ?? 'Nepoznat student';
           const currentModule = row.tasks?.modules;

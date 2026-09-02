@@ -108,6 +108,7 @@ export default function AdminPurchasesPage(props: PageProps<'/admin/purchases'>)
         </Stack>
 
         <QueryState
+          skeleton="table"
           query={purchases}
           errorTitle="Zahtjeve nije moguće učitati"
           isEmpty={(page) => page.data.length === 0}

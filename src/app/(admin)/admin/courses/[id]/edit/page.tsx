@@ -28,7 +28,8 @@ import type { Course } from '@/lib/schemas/courses.schema';
  * The counterpart to `courses/new/page.tsx`, and worth reading alongside it —
  * they share `<CourseForm>` and differ only in flow.
  *
- * ## The form must live *inside* `<QueryState>`
+ * ## The form must live *inside* `<QueryState
+          skeleton="form">`
  *
  * `defaultValues` is read once, when the form mounts. Rendering `<CourseForm>`
  * next to the query — even guarded by `course.data &&` — risks mounting it

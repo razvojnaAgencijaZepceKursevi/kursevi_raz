@@ -100,6 +100,14 @@ export default function CourseOwnerSection({ course }: { course: Course }) {
           helperText={
             teachers.isPending ? 'Učitavanje predavača…' : 'Promjena važi odmah nakon potvrde.'
           }
+          /*
+           * "Bez predavača" is `''`, and MUI treats `''` as no value: it gates
+           * both the shrunk label and the rendering of the selected item on
+           * `isFilled({ value })`. Without these two the control went blank the
+           * moment an admin chose it — on the one screen whose entire purpose is
+           * to show who owns a course. Same fix as `<FilterSelect>`.
+           */
+          slotProps={{ inputLabel: { shrink: true }, select: { displayEmpty: true } }}
         >
           <MenuItem value="">
             <Typography variant="body2" color="text.secondary">

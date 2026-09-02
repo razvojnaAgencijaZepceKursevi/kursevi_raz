@@ -84,7 +84,7 @@ export default function AdminIssueDetailPage(props: PageProps<'/admin/issues/[id
 
   return (
     <PageContainer>
-      <QueryState query={issue} errorTitle="Zahtjev nije moguće učitati">
+      <QueryState skeleton="detail" query={issue} errorTitle="Zahtjev nije moguće učitati">
         {(row) => (
           <>
             <PageHeader

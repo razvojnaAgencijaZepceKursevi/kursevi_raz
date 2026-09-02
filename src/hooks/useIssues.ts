@@ -34,10 +34,20 @@ export const issueKeys = {
   messagesFor: (id: string) => [...issueKeys.all, 'messages', id] as const,
 };
 
-export function useIssues(params: IssueListParams = {}) {
+/**
+ * `enabled` matches `useAdminUsers`: pass `{ enabled: false }` rather than
+ * calling the hook conditionally. The admin dashboard needs it because the
+ * endpoint is RLS-scoped — a teacher asking would get their own tickets back,
+ * which would render as a support queue that is not one.
+ */
+export function useIssues(
+  params: IssueListParams = {},
+  { enabled = true }: { enabled?: boolean } = {},
+) {
   return useQuery({
     queryKey: issueKeys.list(params),
     queryFn: () => apiGet<Paginated<Issue>>(`/api/issues${toSearchParams(params)}`),
+    enabled,
   });
 }
 

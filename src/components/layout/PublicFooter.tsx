@@ -4,6 +4,7 @@ import Divider from '@mui/material/Divider';
 import Link from '@mui/material/Link';
 import Stack from '@mui/material/Stack';
 import Typography from '@mui/material/Typography';
+import { FEATURES } from '@/lib/features';
 
 import { SITE_NAME } from '@/lib/siteConfig';
 import Logo from '@/components/layout/Logo';

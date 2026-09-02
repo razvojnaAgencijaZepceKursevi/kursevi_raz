@@ -15,6 +15,7 @@ export const bucketNameSchema = z
     BUCKETS.moduleFiles,
     BUCKETS.taskFiles,
     BUCKETS.taskMessageAttachments,
+    BUCKETS.newsletterImages,
   ])
   .openapi('BucketName', { description: 'Target storage bucket' });
 

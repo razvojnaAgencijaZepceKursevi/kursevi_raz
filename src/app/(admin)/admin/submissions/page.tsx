@@ -99,6 +99,7 @@ export default function AdminSubmissionsPage(props: PageProps<'/admin/submission
         </Stack>
 
         <QueryState
+          skeleton="table"
           query={submissions}
           errorTitle="Predate zadatke nije moguće učitati"
           isEmpty={(page) => page.data.length === 0}

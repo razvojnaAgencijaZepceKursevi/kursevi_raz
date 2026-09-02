@@ -17,6 +17,8 @@ import MenuItem from '@mui/material/MenuItem';
 import Stack from '@mui/material/Stack';
 import Toolbar from '@mui/material/Toolbar';
 import Typography from '@mui/material/Typography';
+import { NavPending } from '@/components/feedback/NavProgress';
+import { FEATURES } from '@/lib/features';
 import NotificationBell from '@/components/notifications/NotificationBell';
 import { useLogout } from '@/hooks/useLogout';
 import { useAuthStore } from '@/store/useAuthStore';
@@ -71,7 +73,13 @@ function navForRole(role: UserRole): NavLink[] {
     { label: 'Kursevi', href: '/admin/courses' },
     // An admin gets the queue of everybody's issues; a teacher only their own,
     // because `issues` grants them nothing else — one may be about them.
-    { label: 'Podrška', href: role === 'admin' ? '/admin/issues' : '/issues' },
+    //
+    // Dropped rather than relocated when support is switched off: it has no
+    // other entry point in the staff shell, so there is nowhere else for it to
+    // live.
+    ...(FEATURES.support
+      ? [{ label: 'Podrška', href: role === 'admin' ? '/admin/issues' : '/issues' }]
+      : []),
   ];
 }
 
@@ -130,6 +138,9 @@ export default function AppHeader({
               sx={{ fontWeight: isActive(link.href, pathname) ? 600 : 400 }}
             >
               {link.label}
+              {/* Feeds the top progress bar; renders nothing. Must sit inside
+                  the link — see `<NavPending>`. */}
+              <NavPending />
             </Link>
           ))}
         </Stack>
@@ -159,21 +170,6 @@ export default function AppHeader({
               sx={{ display: { xs: 'inline-flex', sm: 'none' } }}
             />
           </Stack>
-        </Button>
-
-        {/* Visible rather than tucked in the menu: signing out is one of the
-            four things this bar is for, and hunting for it in a dropdown is the
-            kind of small friction people notice. It stays in the menu too, for
-            phones where the button is hidden. */}
-        <Button
-          onClick={() => void logout()}
-          disabled={pending}
-          color="inherit"
-          size="small"
-          startIcon={<LogoutIcon fontSize="small" />}
-          sx={{ display: { xs: 'none', sm: 'inline-flex' }, flexShrink: 0 }}
-        >
-          {pending ? 'Odjavljivanje…' : 'Odjavi se'}
         </Button>
 
         <Menu
@@ -212,18 +208,29 @@ export default function AppHeader({
             </MenuItem>
           ))}
 
-          <MenuItem component={NextLink} href="/settings/notifications" onClick={close}>
+          {/*
+            One entry for one screen. There were two — appearance and
+            notifications — which made a single settings page look like two
+            unrelated destinations. `/settings` lands on the first tab.
+          */}
+          <MenuItem component={NextLink} href="/settings" onClick={close}>
             <ListItemIcon>
               <SettingsOutlinedIcon fontSize="small" />
             </ListItemIcon>
-            <Typography variant="body2">Podešavanja obavještenja</Typography>
+            <Typography variant="body2">Podešavanja</Typography>
           </MenuItem>
 
-          <MenuItem
-            onClick={() => void logout()}
-            disabled={pending}
-            sx={{ display: { xs: 'flex', sm: 'none' } }}
-          >
+          <Divider />
+
+          {/*
+            The only way out, at every width. It used to be a button in the bar
+            as well, on the reasoning that signing out is one of the things the
+            bar is for — but that put the same action in two places and spent
+            bar space on something people do once a day. It sits under
+            Podešavanja because both are "this account", and last because it is
+            the destructive one.
+          */}
+          <MenuItem onClick={() => void logout()} disabled={pending}>
             <ListItemIcon>
               <LogoutIcon fontSize="small" />
             </ListItemIcon>

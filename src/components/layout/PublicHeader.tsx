@@ -11,6 +11,7 @@ import Stack from '@mui/material/Stack';
 import Toolbar from '@mui/material/Toolbar';
 import AppHeader from '@/components/layout/AppHeader';
 import { useAuthStore } from '@/store/useAuthStore';
+import { FEATURES } from '@/lib/features';
 
 /**
  * Top bar for the public-facing pages.

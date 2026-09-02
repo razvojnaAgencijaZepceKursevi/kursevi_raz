@@ -97,6 +97,20 @@ import {
   updateNotificationPreferencesSchema,
 } from '@/lib/schemas/notifications.schema';
 import {
+  updateUserPreferencesSchema,
+  userPreferencesResponseSchema,
+} from '@/lib/schemas/preferences.schema';
+import {
+  paymentSettingsResponseSchema,
+  updatePaymentSettingsSchema,
+} from '@/lib/schemas/payment.schema';
+import { legalDocumentResponseSchema, updateLegalDocumentSchema } from '@/lib/schemas/legal.schema';
+import {
+  newsletterRecipientsResponseSchema,
+  sendNewsletterResponseSchema,
+  sendNewsletterSchema,
+} from '@/lib/schemas/newsletter.schema';
+import {
   adminCertificateListResponseSchema,
   adminCertificateResponseSchema,
   certificateListResponseSchema,
@@ -1088,6 +1102,133 @@ registry.registerPath({
     body: { content: { 'application/json': { schema: updateNotificationPreferencesSchema } } },
   },
   responses: { 200: json(notificationPreferencesResponseSchema, 'The full matrix'), ...errors },
+});
+
+/* -------------------------------------------------------------------------- */
+/* Preferences                                                                 */
+/* -------------------------------------------------------------------------- */
+
+registry.registerPath({
+  method: 'get',
+  path: '/api/preferences',
+  tags: ['Preferences'],
+  summary: 'Your appearance and newsletter settings',
+  description: [
+    'Colour scheme and newsletter opt-in (migration 0029). The stored row is sparse —',
+    'it exists only once something has been changed — so this always returns a complete',
+    'object with defaults filled in (`theme: system`, `newsletter_opt_in: false`).',
+  ].join(' '),
+  security,
+  responses: { 200: json(userPreferencesResponseSchema, 'The merged preferences'), ...errors },
+});
+
+registry.registerPath({
+  method: 'patch',
+  path: '/api/preferences',
+  tags: ['Preferences'],
+  summary: 'Change appearance or newsletter settings',
+  description:
+    'Send only what changed; the route merges before upserting, so a request carrying only `theme` cannot reset the newsletter opt-in. Returns the whole refreshed object.',
+  security,
+  request: {
+    body: { content: { 'application/json': { schema: updateUserPreferencesSchema } } },
+  },
+  responses: { 200: json(userPreferencesResponseSchema, 'The merged preferences'), ...errors },
+});
+
+/* -------------------------------------------------------------------------- */
+/* Site content — payment details and legal documents                          */
+/* -------------------------------------------------------------------------- */
+
+registry.registerPath({
+  method: 'get',
+  path: '/api/payment-settings',
+  tags: ['Site content'],
+  summary: "The seller's payment details",
+  description: [
+    'Public, deliberately: this is the business identity printed on any invoice or',
+    'transfer slip, and the course catalogue is public, so a visitor may want to see',
+    'who they would be paying before creating an account. Exactly one row exists',
+    '(migration 0030 seeds it); its columns may be null while an admin fills it in.',
+  ].join(' '),
+  responses: { 200: json(paymentSettingsResponseSchema, 'The payment details'), ...errors },
+});
+
+registry.registerPath({
+  method: 'patch',
+  path: '/api/payment-settings',
+  tags: ['Site content'],
+  summary: 'Change the payment details (admin)',
+  description:
+    'Admin only — `requireAdmin`, not `requireStaff`: there is one seller and it is the platform\u2019s, not a course author\u2019s. Send only what changed.',
+  security,
+  request: {
+    body: { content: { 'application/json': { schema: updatePaymentSettingsSchema } } },
+  },
+  responses: { 200: json(paymentSettingsResponseSchema, 'The payment details'), ...errors },
+});
+
+registry.registerPath({
+  method: 'get',
+  path: '/api/legal/{slug}',
+  tags: ['Site content'],
+  summary: 'One legal document',
+  description:
+    'Public by definition — these are the documents a visitor must be able to read before agreeing to anything. `slug` is `terms` or `privacy`; anything else is a 400. Empty `content` means "not written yet", which the page renders as a notice rather than as a blank document.',
+  request: { params: z.object({ slug: z.string() }) },
+  responses: { 200: json(legalDocumentResponseSchema, 'The document'), ...errors },
+});
+
+registry.registerPath({
+  method: 'patch',
+  path: '/api/legal/{slug}',
+  tags: ['Site content'],
+  summary: 'Edit a legal document (admin)',
+  description:
+    'Stored in the database rather than the repo, unlike the blog: terms change in response to a lawyer or a regulator, sometimes urgently, and requiring a deploy to correct a privacy policy is the wrong trade.',
+  security,
+  request: {
+    params: z.object({ slug: z.string() }),
+    body: { content: { 'application/json': { schema: updateLegalDocumentSchema } } },
+  },
+  responses: { 200: json(legalDocumentResponseSchema, 'The document'), ...errors },
+});
+
+/* -------------------------------------------------------------------------- */
+/* Newsletter                                                                  */
+/* -------------------------------------------------------------------------- */
+
+registry.registerPath({
+  method: 'get',
+  path: '/api/admin/newsletter',
+  tags: ['Newsletter'],
+  summary: 'Everyone opted in to the newsletter (admin)',
+  description: [
+    'Unpaginated: the point of the screen is to copy or export the whole set.',
+    'Deactivated accounts are excluded. An admin may *read* this list but can never',
+    'add to it — `newsletter_opt_in` is writable only by its owner (migration 0029).',
+  ].join(' '),
+  security,
+  responses: {
+    200: json(newsletterRecipientsResponseSchema, 'The opted-in users'),
+    ...errors,
+  },
+});
+
+registry.registerPath({
+  method: 'post',
+  path: '/api/admin/newsletter',
+  tags: ['Newsletter'],
+  summary: 'Send the newsletter (admin)',
+  description: [
+    'One message per recipient, never one addressed to everyone — that would expose',
+    'every subscriber to every other. Runs inline rather than in `after()`, unlike',
+    'notifications: this *is* the action the admin took, so they are owed the result.',
+    'With mail unconfigured every send is skipped and reported as such.',
+  ].join(' '),
+  security,
+  request: { body: { content: { 'application/json': { schema: sendNewsletterSchema } } } },
+  responses: { 200: json(sendNewsletterResponseSchema, 'Per-send counts'), ...errors },
 });
 
 /* -------------------------------------------------------------------------- */

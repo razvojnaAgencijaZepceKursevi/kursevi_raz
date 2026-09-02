@@ -98,6 +98,7 @@ export default function AdminCertificatesPage() {
         </Stack>
 
         <QueryState
+          skeleton="table"
           query={certificates}
           errorTitle="Certifikate nije moguće učitati"
           isEmpty={(page) => page.data.length === 0}
@@ -177,7 +178,7 @@ export default function AdminCertificatesPage() {
                     id: 'actions',
                     header: '',
                     align: 'right',
-                    width: 200,
+                    width: 72,
                     // Only where there is something to fulfil. A certificate
                     // nobody asked to have posted has no delivery state worth
                     // setting, and a button on every row would say otherwise.
@@ -190,7 +191,7 @@ export default function AdminCertificatesPage() {
                           sx={{ justifyContent: 'flex-end' }}
                           onClick={(event) => event.stopPropagation()}
                         >
-                          <CertificateDeliveryActions certificate={row} />
+                          <CertificateDeliveryActions certificate={row} compact />
                         </Stack>
                       ) : null,
                   },

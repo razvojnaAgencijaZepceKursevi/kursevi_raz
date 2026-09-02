@@ -4,6 +4,8 @@ import * as React from 'react';
 import LocalShippingOutlinedIcon from '@mui/icons-material/LocalShippingOutlined';
 import UndoOutlinedIcon from '@mui/icons-material/UndoOutlined';
 import Button from '@mui/material/Button';
+import IconButton from '@mui/material/IconButton';
+import Tooltip from '@mui/material/Tooltip';
 import ConfirmDialog from '@/components/feedback/ConfirmDialog';
 import { useMarkCertificateDelivered } from '@/hooks/useCertificates';
 import { errorMessage } from '@/lib/api/errorMessage';
@@ -23,13 +25,24 @@ import type { AdminCertificate } from '@/lib/schemas/certificates.schema';
  * an admin correcting their own records and notifies nobody, so it just
  * happens. Confirming both would train people to click through the one that
  * matters.
+ *
+ * ## `compact` for the list, the full button for the detail page
+ *
+ * "Označi kao poslato" plus an icon is a wide control, and in a table cell it
+ * dominated the row and pushed the useful columns together. In `compact` mode
+ * it collapses to an icon button with the same label as its tooltip, so the
+ * table keeps its shape while the action stays one click away. The detail page,
+ * where the action *is* the point of the screen, keeps the labelled button.
  */
 export default function CertificateDeliveryActions({
   certificate,
   size = 'small',
+  compact = false,
 }: {
   certificate: AdminCertificate;
   size?: 'small' | 'medium';
+  /** Icon-only, for table rows. */
+  compact?: boolean;
 }) {
   const [confirming, setConfirming] = React.useState(false);
   const mark = useMarkCertificateDelivered();
@@ -47,6 +60,25 @@ export default function CertificateDeliveryActions({
   }
 
   if (delivered) {
+    if (compact) {
+      return (
+        <Tooltip title="Poništi oznaku slanja">
+          {/* A disabled button swallows pointer events, so the tooltip needs a
+              wrapper that still receives them. */}
+          <span>
+            <IconButton
+              size={size}
+              onClick={() => void setDelivered(false)}
+              disabled={mark.isPending}
+              aria-label="Poništi oznaku slanja"
+            >
+              <UndoOutlinedIcon fontSize="small" />
+            </IconButton>
+          </span>
+        </Tooltip>
+      );
+    }
+
     return (
       <Button
         size={size}
@@ -62,15 +94,31 @@ export default function CertificateDeliveryActions({
 
   return (
     <>
-      <Button
-        size={size}
-        variant="contained"
-        startIcon={<LocalShippingOutlinedIcon />}
-        onClick={() => setConfirming(true)}
-        disabled={mark.isPending}
-      >
-        Označi kao poslato
-      </Button>
+      {compact ? (
+        <Tooltip title="Označi kao poslato">
+          <span>
+            <IconButton
+              size={size}
+              color="primary"
+              onClick={() => setConfirming(true)}
+              disabled={mark.isPending}
+              aria-label="Označi kao poslato"
+            >
+              <LocalShippingOutlinedIcon fontSize="small" />
+            </IconButton>
+          </span>
+        </Tooltip>
+      ) : (
+        <Button
+          size={size}
+          variant="contained"
+          startIcon={<LocalShippingOutlinedIcon />}
+          onClick={() => setConfirming(true)}
+          disabled={mark.isPending}
+        >
+          Označi kao poslato
+        </Button>
+      )}
 
       <ConfirmDialog
         open={confirming}

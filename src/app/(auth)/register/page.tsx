@@ -7,6 +7,7 @@ import Link from '@mui/material/Link';
 import Stack from '@mui/material/Stack';
 import TextField from '@mui/material/TextField';
 import AuthCard from '@/components/AuthCard';
+import GoogleSignInButton from '@/components/auth/GoogleSignInButton';
 import { createClient } from '@/lib/supabase/client';
 import { publicEnv } from '@/lib/env';
 
@@ -123,6 +124,9 @@ export default function RegisterPage() {
           </Link>
         </Stack>
       </form>
+
+      {/* Renders nothing unless NEXT_PUBLIC_GOOGLE_AUTH_ENABLED is "true". */}
+      <GoogleSignInButton label="Registruj se sa Google nalogom" />
     </AuthCard>
   );
 }

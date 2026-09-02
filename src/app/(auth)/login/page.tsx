@@ -8,6 +8,7 @@ import Link from '@mui/material/Link';
 import Stack from '@mui/material/Stack';
 import TextField from '@mui/material/TextField';
 import AuthCard from '@/components/AuthCard';
+import GoogleSignInButton from '@/components/auth/GoogleSignInButton';
 import { createClient } from '@/lib/supabase/client';
 import { landingPathForRole, useAuthStore, type AuthProfile } from '@/store/useAuthStore';
 
@@ -92,6 +93,9 @@ function LoginForm() {
           </Stack>
         </Stack>
       </form>
+
+      {/* Renders nothing unless NEXT_PUBLIC_GOOGLE_AUTH_ENABLED is "true". */}
+      <GoogleSignInButton label="Prijavi se sa Google nalogom" />
     </AuthCard>
   );
 }

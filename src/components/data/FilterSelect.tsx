@@ -24,6 +24,23 @@ import TextField from '@mui/material/TextField';
  * Forcing `shrink` is the fix, and it belongs here rather than repeated on a
  * dozen call sites where the next filter added would forget it.
  *
+ * ## …and the second half of the same bug: `displayEmpty`
+ *
+ * Shrinking the label moved it out of the way but left the field looking
+ * *empty*, because `isFilled()` gates more than the label. In `SelectInput`:
+ *
+ * ```js
+ * if (isFilled({ value }) || displayEmpty) { … computeDisplay = true … }
+ * ```
+ *
+ * With `value === ''` and no `displayEmpty`, `computeDisplay` never runs, so
+ * the selected item's label is never rendered — MUI draws a zero-width space
+ * instead. That is why picking "Sve kategorije" left the control blank: the
+ * option was selected, it simply had nothing on screen to say so.
+ *
+ * `displayEmpty` is therefore not optional here. The two props are one fix:
+ * `shrink` moves the label up, `displayEmpty` puts the value in its place.
+ *
  * ## Why not change the sentinel instead
  *
  * Using `'all'` would dodge the shrink rule, but then every list page would
@@ -62,9 +79,10 @@ export default function FilterSelect({
       value={value}
       onChange={(event) => onChange(event.target.value)}
       disabled={disabled}
-      // Always shrunk: see the note above. Without this the label overlaps the
-      // "all" option whenever no filter is applied.
-      slotProps={{ inputLabel: { shrink: true } }}
+      // Both halves of the fix — see the note above. `shrink` keeps the label
+      // off the value; `displayEmpty` is what makes the "all" option actually
+      // render once it is selected.
+      slotProps={{ inputLabel: { shrink: true }, select: { displayEmpty: true } }}
       sx={{ width: '100%', maxWidth: { md: width } }}
     >
       {allLabel ? <MenuItem value="">{allLabel}</MenuItem> : null}

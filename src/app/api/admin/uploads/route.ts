@@ -36,6 +36,13 @@ const ACCEPTED_TYPES: Record<BucketName, readonly string[]> = {
 
   // Shared with `messageAttachmentSchema` in the browser.
   [BUCKETS.taskMessageAttachments]: ACCEPTED_MESSAGE_ATTACHMENT_TYPES,
+
+  /*
+   * Images only, and the same list as thumbnails. This bucket is public and is
+   * written by the newsletter composer, so the type check is what stops it
+   * becoming a general-purpose file host on a URL anyone can read.
+   */
+  [BUCKETS.newsletterImages]: ACCEPTED_IMAGE_TYPES,
 };
 
 /**

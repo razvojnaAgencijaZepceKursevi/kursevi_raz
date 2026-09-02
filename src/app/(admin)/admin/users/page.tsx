@@ -73,6 +73,7 @@ export default function AdminUsersPage() {
         </Stack>
 
         <QueryState
+          skeleton="table"
           query={users}
           errorTitle="Korisnike nije moguće učitati"
           isEmpty={(page) => page.data.length === 0}

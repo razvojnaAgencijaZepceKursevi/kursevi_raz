@@ -1,5 +1,8 @@
 import type { SvgIconComponent } from '@mui/icons-material';
+import AccountBalanceOutlinedIcon from '@mui/icons-material/AccountBalanceOutlined';
 import CategoryOutlinedIcon from '@mui/icons-material/CategoryOutlined';
+import GavelOutlinedIcon from '@mui/icons-material/GavelOutlined';
+import MarkEmailReadOutlinedIcon from '@mui/icons-material/MarkEmailReadOutlined';
 import DashboardOutlinedIcon from '@mui/icons-material/DashboardOutlined';
 import LibraryBooksOutlinedIcon from '@mui/icons-material/LibraryBooksOutlined';
 import PeopleOutlinedIcon from '@mui/icons-material/PeopleOutlined';
@@ -8,6 +11,7 @@ import AssignmentTurnedInOutlinedIcon from '@mui/icons-material/AssignmentTurned
 import SupportOutlinedIcon from '@mui/icons-material/SupportOutlined';
 import WorkspacePremiumOutlinedIcon from '@mui/icons-material/WorkspacePremiumOutlined';
 
+import { FEATURES, type FeatureName } from '@/lib/features';
 import type { UserRole } from '@/lib/auth/routes';
 
 /** Roles that may reach the admin shell at all. */
@@ -25,6 +29,11 @@ export type AdminNavItem = {
    * endpoints and by RLS, so a teacher who types the URL still gets nothing.
    */
   roles?: StaffRole[];
+  /**
+   * Hidden entirely when its feature is switched off. Presentation only — the
+   * routes are gated in `proxy.ts` and the endpoints are not gated at all.
+   */
+  feature?: FeatureName;
   /**
    * By default a link is highlighted when the URL is the link or sits below it,
    * so `/admin/courses` stays active on `/admin/courses/new`. Set this for
@@ -49,7 +58,10 @@ export type AdminNavSection = {
  */
 export const ADMIN_NAV: AdminNavSection[] = [
   {
-    items: [{ label: 'Pregled', href: '/admin', icon: DashboardOutlinedIcon, exact: true }],
+    // "Kontrolna tabla", matching `<AppHeader>`. It read "Pregled" here and
+    // "Kontrolna tabla" in the top bar — one destination with two names, which
+    // is exactly the ambiguity the course menu's "Pregled" was renamed for.
+    items: [{ label: 'Kontrolna tabla', href: '/admin', icon: DashboardOutlinedIcon, exact: true }],
   },
   {
     title: 'Sadržaj',
@@ -66,16 +78,62 @@ export const ADMIN_NAV: AdminNavSection[] = [
   {
     title: 'Studenti',
     items: [
-      { label: 'Zahtjevi za kupovinu', href: '/admin/purchases', icon: ReceiptLongOutlinedIcon },
-      { label: 'Predati zadaci', href: '/admin/submissions', icon: AssignmentTurnedInOutlinedIcon },
-      { label: 'Certifikati', href: '/admin/certificates', icon: WorkspacePremiumOutlinedIcon },
+      {
+        label: 'Zahtjevi za kupovinu',
+        href: '/admin/purchases',
+        icon: ReceiptLongOutlinedIcon,
+        feature: 'purchases',
+      },
+      {
+        label: 'Predati zadaci',
+        href: '/admin/submissions',
+        icon: AssignmentTurnedInOutlinedIcon,
+        feature: 'tasks',
+      },
+      {
+        label: 'Certifikati',
+        href: '/admin/certificates',
+        icon: WorkspacePremiumOutlinedIcon,
+        feature: 'certificates',
+      },
       { label: 'Korisnici', href: '/admin/users', icon: PeopleOutlinedIcon, roles: ['admin'] },
       {
         label: 'Podrška',
         href: '/admin/issues',
+        feature: 'support',
         icon: SupportOutlinedIcon,
         // Admins only: an issue may be about a teacher, so teachers do not see
         // the queue. RLS enforces it regardless of what the nav shows.
+        roles: ['admin'],
+      },
+    ],
+  },
+  {
+    // Platform-wide configuration. All admin-only, and not because of the
+    // sidebar — every endpoint behind these calls `requireAdmin()`, and the
+    // matching RLS policies say the same. There is one seller and one set of
+    // legal texts, and they belong to the platform rather than to a course
+    // author.
+    title: 'Postavke',
+    items: [
+      {
+        label: 'Podaci za uplatu',
+        href: '/admin/settings/payment',
+        feature: 'purchases',
+        icon: AccountBalanceOutlinedIcon,
+        roles: ['admin'],
+      },
+      {
+        label: 'Pravni dokumenti',
+        href: '/admin/settings/legal',
+        icon: GavelOutlinedIcon,
+        roles: ['admin'],
+      },
+      {
+        label: 'Newsletter',
+        href: '/admin/settings/newsletter',
+        feature: 'newsletter',
+        icon: MarkEmailReadOutlinedIcon,
         roles: ['admin'],
       },
     ],
@@ -89,7 +147,10 @@ export const ADMIN_NAV: AdminNavSection[] = [
 export function navForRole(role: StaffRole): AdminNavSection[] {
   return ADMIN_NAV.map((section) => ({
     ...section,
-    items: section.items.filter((item) => !item.roles || item.roles.includes(role)),
+    items: section.items.filter(
+      (item) =>
+        (!item.roles || item.roles.includes(role)) && (!item.feature || FEATURES[item.feature]),
+    ),
   })).filter((section) => section.items.length > 0);
 }
 

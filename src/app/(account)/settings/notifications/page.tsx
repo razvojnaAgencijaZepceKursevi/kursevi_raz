@@ -10,8 +10,6 @@ import Divider from '@mui/material/Divider';
 import Stack from '@mui/material/Stack';
 import Switch from '@mui/material/Switch';
 import Typography from '@mui/material/Typography';
-import PageContainer from '@/components/layout/PageContainer';
-import PageHeader from '@/components/layout/PageHeader';
 import ContentCard from '@/components/layout/ContentCard';
 import QueryState from '@/components/feedback/QueryState';
 import {
@@ -78,136 +76,130 @@ export default function NotificationSettingsPage() {
   }
 
   return (
-    <PageContainer maxWidth="form">
-      <PageHeader
-        breadcrumbs={[{ label: 'Obavještenja', href: '/notifications' }, { label: 'Podešavanja' }]}
-        title="Podešavanja obavještenja"
-        description="Izaberite o čemu želite da budete obaviješteni i na koji način."
-      />
+    // No container or heading: `settings/layout.tsx` owns the shell and the
+    // tabs, so this page is only its own section.
+    <QueryState skeleton="list" query={preferences} errorTitle="Podešavanja nije moguće učitati">
+      {(response) => {
+        // Grouped for reading. The catalogue's order is preserved inside each
+        // group, so the screen matches the order things are declared in.
+        const byGroup = new Map<NotificationGroup, NotificationPreference[]>();
+        for (const preference of response.data) {
+          const group = NOTIFICATION_CATALOG[preference.type as NotificationType].group;
+          byGroup.set(group, [...(byGroup.get(group) ?? []), preference]);
+        }
 
-      <QueryState query={preferences} errorTitle="Podešavanja nije moguće učitati">
-        {(response) => {
-          // Grouped for reading. The catalogue's order is preserved inside each
-          // group, so the screen matches the order things are declared in.
-          const byGroup = new Map<NotificationGroup, NotificationPreference[]>();
-          for (const preference of response.data) {
-            const group = NOTIFICATION_CATALOG[preference.type as NotificationType].group;
-            byGroup.set(group, [...(byGroup.get(group) ?? []), preference]);
-          }
+        return (
+          <Stack spacing={3}>
+            {!response.meta.email_configured ? (
+              <Alert severity="info">
+                <AlertTitle>Slanje email-a još nije aktivirano</AlertTitle>
+                Email obavještenja su podešena, ali nalog za slanje još nije povezan — dok se ne
+                poveže, stižu samo obavještenja u aplikaciji. Vaš izbor se pamti i primijenit će se
+                čim slanje bude uključeno.
+              </Alert>
+            ) : null}
 
-          return (
-            <Stack spacing={3}>
-              {!response.meta.email_configured ? (
-                <Alert severity="info">
-                  <AlertTitle>Slanje email-a još nije aktivirano</AlertTitle>
-                  Email obavještenja su podešena, ali nalog za slanje još nije povezan — dok se ne
-                  poveže, stižu samo obavještenja u aplikaciji. Vaš izbor se pamti i primijenit će
-                  se čim slanje bude uključeno.
-                </Alert>
-              ) : null}
-
-              {[...byGroup.entries()].map(([group, rows]) => (
-                <ContentCard
-                  key={group}
-                  title={NOTIFICATION_GROUPS[group].title}
-                  description={NOTIFICATION_GROUPS[group].description}
-                  disablePadding
-                >
-                  <Stack divider={<Divider />}>
-                    {/* One header row, so the two columns are labelled once
+            {[...byGroup.entries()].map(([group, rows]) => (
+              <ContentCard
+                key={group}
+                title={NOTIFICATION_GROUPS[group].title}
+                description={NOTIFICATION_GROUPS[group].description}
+                disablePadding
+              >
+                <Stack divider={<Divider />}>
+                  {/* One header row, so the two columns are labelled once
                         rather than on every switch. */}
-                    <Stack
-                      direction="row"
-                      spacing={2}
-                      sx={{ px: 3, py: 1.5, alignItems: 'center', bgcolor: 'action.hover' }}
+                  <Stack
+                    direction="row"
+                    spacing={2}
+                    sx={{ px: 3, py: 1.5, alignItems: 'center', bgcolor: 'action.hover' }}
+                  >
+                    <Box sx={{ flex: 1 }} />
+                    <Typography
+                      variant="caption"
+                      color="text.secondary"
+                      sx={{ width: 72, textAlign: 'center', flexShrink: 0 }}
                     >
-                      <Box sx={{ flex: 1 }} />
-                      <Typography
-                        variant="caption"
-                        color="text.secondary"
-                        sx={{ width: 72, textAlign: 'center', flexShrink: 0 }}
-                      >
-                        U aplikaciji
-                      </Typography>
-                      <Typography
-                        variant="caption"
-                        color="text.secondary"
-                        sx={{ width: 72, textAlign: 'center', flexShrink: 0 }}
-                      >
-                        Email
-                      </Typography>
-                    </Stack>
-
-                    {rows.map((preference) => {
-                      const definition = NOTIFICATION_CATALOG[preference.type as NotificationType];
-
-                      return (
-                        <Stack
-                          key={preference.type}
-                          direction="row"
-                          spacing={2}
-                          sx={{ px: 3, py: 1.75, alignItems: 'center' }}
-                        >
-                          <Stack spacing={0.25} sx={{ flex: 1, minWidth: 0 }}>
-                            <Typography variant="body2" sx={{ fontWeight: 600 }}>
-                              {definition.label}
-                            </Typography>
-                            <Typography variant="caption" color="text.secondary">
-                              {definition.description}
-                            </Typography>
-                          </Stack>
-
-                          <Box sx={{ width: 72, textAlign: 'center', flexShrink: 0 }}>
-                            <Switch
-                              checked={preference.in_app_enabled}
-                              disabled={saving === `${preference.type}:in_app_enabled`}
-                              onChange={(event) =>
-                                void handleToggle(
-                                  preference.type as NotificationType,
-                                  'in_app_enabled',
-                                  event.target.checked,
-                                )
-                              }
-                              slotProps={{
-                                input: {
-                                  'aria-label': `${definition.label} — obavještenje u aplikaciji`,
-                                },
-                              }}
-                            />
-                          </Box>
-
-                          <Box sx={{ width: 72, textAlign: 'center', flexShrink: 0 }}>
-                            <Switch
-                              checked={preference.email_enabled}
-                              disabled={saving === `${preference.type}:email_enabled`}
-                              onChange={(event) =>
-                                void handleToggle(
-                                  preference.type as NotificationType,
-                                  'email_enabled',
-                                  event.target.checked,
-                                )
-                              }
-                              slotProps={{
-                                input: { 'aria-label': `${definition.label} — email` },
-                              }}
-                            />
-                          </Box>
-                        </Stack>
-                      );
-                    })}
+                      U aplikaciji
+                    </Typography>
+                    <Typography
+                      variant="caption"
+                      color="text.secondary"
+                      sx={{ width: 72, textAlign: 'center', flexShrink: 0 }}
+                    >
+                      Email
+                    </Typography>
                   </Stack>
-                </ContentCard>
-              ))}
 
-              <Box>
-                <Button href="/notifications" startIcon={<ArrowBackIcon />} color="inherit">
-                  Nazad na obavještenja
-                </Button>
-              </Box>
-            </Stack>
-          );
-        }}
-      </QueryState>
-    </PageContainer>
+                  {rows.map((preference) => {
+                    const definition = NOTIFICATION_CATALOG[preference.type as NotificationType];
+
+                    return (
+                      <Stack
+                        key={preference.type}
+                        direction="row"
+                        spacing={2}
+                        sx={{ px: 3, py: 1.75, alignItems: 'center' }}
+                      >
+                        <Stack spacing={0.25} sx={{ flex: 1, minWidth: 0 }}>
+                          <Typography variant="body2" sx={{ fontWeight: 600 }}>
+                            {definition.label}
+                          </Typography>
+                          <Typography variant="caption" color="text.secondary">
+                            {definition.description}
+                          </Typography>
+                        </Stack>
+
+                        <Box sx={{ width: 72, textAlign: 'center', flexShrink: 0 }}>
+                          <Switch
+                            checked={preference.in_app_enabled}
+                            disabled={saving === `${preference.type}:in_app_enabled`}
+                            onChange={(event) =>
+                              void handleToggle(
+                                preference.type as NotificationType,
+                                'in_app_enabled',
+                                event.target.checked,
+                              )
+                            }
+                            slotProps={{
+                              input: {
+                                'aria-label': `${definition.label} — obavještenje u aplikaciji`,
+                              },
+                            }}
+                          />
+                        </Box>
+
+                        <Box sx={{ width: 72, textAlign: 'center', flexShrink: 0 }}>
+                          <Switch
+                            checked={preference.email_enabled}
+                            disabled={saving === `${preference.type}:email_enabled`}
+                            onChange={(event) =>
+                              void handleToggle(
+                                preference.type as NotificationType,
+                                'email_enabled',
+                                event.target.checked,
+                              )
+                            }
+                            slotProps={{
+                              input: { 'aria-label': `${definition.label} — email` },
+                            }}
+                          />
+                        </Box>
+                      </Stack>
+                    );
+                  })}
+                </Stack>
+              </ContentCard>
+            ))}
+
+            <Box>
+              <Button href="/notifications" startIcon={<ArrowBackIcon />} color="inherit">
+                Nazad na obavještenja
+              </Button>
+            </Box>
+          </Stack>
+        );
+      }}
+    </QueryState>
   );
 }
