@@ -42,11 +42,11 @@ export default function LandingPage() {
     <>
       <Hero />
       <StatsBar />
-       <FeaturedCourses />
-           <HowItWorks />
-           <WhyUs />
-           <Faq />
-           <CtaBanner />
+      <FeaturedCourses />
+      <HowItWorks />
+      <WhyUs />
+      <Faq />
+      <CtaBanner />
     </>
   );
 }

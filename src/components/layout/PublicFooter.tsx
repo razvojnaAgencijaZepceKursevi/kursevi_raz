@@ -29,7 +29,10 @@ const SECTIONS: { title: string; links: { label: string; href: string }[] }[] = 
       { label: 'Poslovanje i menadžment', href: '/courses?category=poslovanje-i-menadzment' },
       { label: 'Marketing', href: '/courses?category=marketing' },
       { label: 'Finansije i računovodstvo', href: '/courses?category=finansije-i-racunovodstvo' },
-      { label: 'Zanati i praktične vještine', href: '/courses?category=zanati-i-prakticne-vjestine' },
+      {
+        label: 'Zanati i praktične vještine',
+        href: '/courses?category=zanati-i-prakticne-vjestine',
+      },
     ],
   },
   {
@@ -84,7 +87,10 @@ export default function PublicFooter() {
                   variant="body2"
                   underline="hover"
                   color="text.secondary"
-                  {...(link.href.startsWith('http') && { target: '_blank', rel: 'noopener noreferrer' })} // This makes social links open in new tab
+                  {...(link.href.startsWith('http') && {
+                    target: '_blank',
+                    rel: 'noopener noreferrer',
+                  })} // This makes social links open in new tab
                 >
                   {link.label}
                 </Link>
@@ -96,7 +102,8 @@ export default function PublicFooter() {
         <Divider sx={{ my: 3 }} />
 
         <Typography variant="caption" color="text.secondary">
-          © {new Date().getFullYear()} {SITE_NAME}. Sva prava zadržana. Placeholder podaci o firmi i registraciji.
+          © {new Date().getFullYear()} {SITE_NAME}. Sva prava zadržana. Placeholder podaci o firmi i
+          registraciji.
         </Typography>
       </Container>
     </Box>

@@ -60,25 +60,25 @@ export default function HowItWorks() {
           {STEPS.map((step, index) => (
             <React.Fragment key={step.number}>
               {index > 0 && <Divider />}
-            <Grid container spacing={2} sx={{ py: 3, alignItems: 'baseline' }}>
-              <Grid size={{ xs: 3, md: 2 }}>
-                <Typography variant="h6" color="text.secondary" sx={{ fontWeight: 700 }}>
-                  {step.number}
-                </Typography>
-              </Grid>
+              <Grid container spacing={2} sx={{ py: 3, alignItems: 'baseline' }}>
+                <Grid size={{ xs: 3, md: 2 }}>
+                  <Typography variant="h6" color="text.secondary" sx={{ fontWeight: 700 }}>
+                    {step.number}
+                  </Typography>
+                </Grid>
 
-              <Grid size={{ xs: 9, md: 4 }}>
-                <Typography variant="h6" component="h3">
-                  {step.title}
-                </Typography>
-              </Grid>
+                <Grid size={{ xs: 9, md: 4 }}>
+                  <Typography variant="h6" component="h3">
+                    {step.title}
+                  </Typography>
+                </Grid>
 
-              <Grid size={{ xs: 12, md: 6 }}>
-                <Typography variant="body1" color="text.secondary">
-                  {step.description}
-                </Typography>
+                <Grid size={{ xs: 12, md: 6 }}>
+                  <Typography variant="body1" color="text.secondary">
+                    {step.description}
+                  </Typography>
+                </Grid>
               </Grid>
-            </Grid>
             </React.Fragment>
           ))}
         </Stack>

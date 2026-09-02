@@ -45,19 +45,19 @@ export default function PublicHeader() {
 
         <Stack direction="row" spacing={2.5} sx={{ ml: 2, display: { xs: 'none', sm: 'flex' } }}>
           <Link href="/" variant="body2" underline="hover" color="text.secondary">
-          Početna
+            Početna
           </Link>
           <Link href="/courses" variant="body2" underline="hover" color="text.secondary">
-          Kursevi
+            Kursevi
           </Link>
           <Link href="/#kako-funkcionise" variant="body2" underline="hover" color="text.secondary">
-          Kako funkcioniše
+            Kako funkcioniše
           </Link>
           <Link href="/blog" variant="body2" underline="hover" color="text.secondary">
-          Blog 
+            Blog
           </Link>
           <Link href="/kontakt" variant="body2" underline="hover" color="text.secondary">
-          Kontakt
+            Kontakt
           </Link>
         </Stack>
 
