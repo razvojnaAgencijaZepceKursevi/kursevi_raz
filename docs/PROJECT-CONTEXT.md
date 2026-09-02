@@ -1508,6 +1508,63 @@ course-scoped page, add it there or it is URL-only.
   every full page load, because the server cannot know a choice that lives in localStorage;
   the attribute goes with it, since the script mutates `<html>` before React hydrates.
 
+### Public pages are always light
+
+- **The saved colour scheme applies only behind auth.** A visitor deciding whether to buy a
+  course should see one presentation of the product, not one that depends on a setting they
+  have never seen — and the preference belongs to an account, which a stranger does not
+  have. `src/theme/colorSchemeRules.ts` holds the rule, `<ColorSchemeScope />` applies it.
+
+- **The list is of _themed_ prefixes, not public ones, and that direction is the point.**
+  Default-light means a new marketing page is correct by doing nothing; the opposite default
+  would have every new public page quietly inherit somebody's dark mode until a person
+  noticed. It mirrors `PROTECTED_PREFIXES` in `proxy.ts` but is deliberately a **separate**
+  list, because the two questions differ in exactly one place: the module viewer, quiz and
+  task pages live under the public `/courses/{slug}` URL and are gated by
+  `checkModulePageAccess`, not by the proxy. The proxy cannot express "under `/modules` but
+  not the course page" — a regex here can.
+
+- **Scoping the light palette to `<body>` looks right and is not enough.** CSS variables
+  inherit and portals are children of body, so a wrapper seems to cover everything. Measuring
+  the generated stylesheet is what killed it: `.dark` declares **28 variables the light scheme
+  never declares** — the 25 Paper elevation overlays plus `text-icon` and the two AppBar
+  tokens — and `var(--mui-overlays-1)` is referenced by every elevated card on the catalogue.
+  Worse, MUI's own components (AppBar, Avatar, FilledInput, OutlinedInput, Slider, StepButton)
+  emit `applyStyles('dark')` branches, which compile to the selector `.dark &` — matched by
+  the class on `<html>` and impossible to unmatch from further down the tree. Owning the class
+  MUI itself uses leaves the document in exactly the state a genuine light session produces,
+  with nothing to enumerate and nothing left to leak.
+
+- **A `MutationObserver`, because effect order cannot be won.** `<html>`'s class belongs to
+  MUI's provider, which re-asserts it from an effect in an **ancestor** of anything that could
+  correct it — and React runs child effects before parent ones. Writing the class from a child
+  is therefore overwritten a moment later, most visibly when `<ThemeSync>` applies a signed-in
+  user's stored `dark` mid-visit, after the preferences query resolves. Observing the attribute
+  inverts that: whoever writes last, this has the final word, and the callback is a microtask
+  so the correction lands before the browser can paint the wrong scheme.
+
+- **Never `setMode('light')` for this.** That is the _user's_ setting and it persists — to
+  localStorage at once and, through `<ThemeToggle>`, to `user_preferences`. Visiting the
+  landing page must not rewrite someone's theme. Nothing here touches MUI's state, which is
+  what lets leaving for a gated page restore the scheme exactly rather than guess at it.
+
+- **Two halves, same reason as `InitColorSchemeScript`.** An inline script in the root layout
+  runs before the first paint of a hard load (it must come _after_ MUI's, since it partly
+  undoes it); the component covers client-side navigation, where no script re-runs.
+
+- **Verified in headless Chrome with `mui-mode=dark` stored**, not by reading the code: `/`,
+  `/courses`, `/login`, `/blog` and `/courses/{slug}` all render light (`#f7f8fa`, no overlay
+  image on Paper); a signed-in student's `/dashboard` and
+  `/courses/{slug}/modules/{id}` render dark (`#0e0f13`); client-side navigation themed →
+  public → themed flips correctly both ways; and forcing `dark` onto `<html>` by hand on a
+  public page is reverted before the next animation frame.
+
+- **Accepted consequence:** a dark-mode student clicking from a course page into one of its
+  modules crosses a light→dark boundary, because the course page is public and the module page
+  is not. That is the rule applied honestly rather than an oversight. If it grates, the change
+  is to move `/courses` into the themed list — but then a signed-out visitor and a signed-in
+  one see different catalogues, which is what this rule exists to avoid.
+
 ### `StatCard` is the dashboard tile for both roles
 
 - The student hub's tiles were hand-rolled cards — icon, heading, a sentence, and the count
