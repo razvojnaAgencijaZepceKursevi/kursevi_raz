@@ -45,36 +45,31 @@ export default function WhyUs() {
 
       <Grid container spacing={{ xs: 5, md: 6 }}>
         <Grid size={{ xs: 12, md: 5 }}>
-          <Stack spacing={3}>
-            <Stack spacing={1}>
-              <Typography variant="overline" color="primary" sx={{ letterSpacing: 1.2 }}>
-                Zašto {SITE_NAME}
-              </Typography>
-              <Typography variant="h3" sx={{ fontSize: { xs: 28, md: 36 } }}>
-                Znanje koje se provjerava, ne samo gleda
+          <Box
+          sx={{
+            bgcolor: 'primary.main',
+            color: 'primary.contrastText',
+            borderRadius: 2,
+            p: { xs: 3, md: 4},
+            height: '100%',
+          }}
+          >
+            <Stack spacing={3}>
+              <Stack spacing={1}>
+                <Typography variant="overline" sx={{ letterSpacing: 1.2, color: 'inherit', opacity: 0.85 }}>
+                 Zašto Katedra 
+                </Typography>
+                <Typography variant="h3" sx={{ fontSize: { xs: 28, md: 36 } }}>
+                  Znanje koje se provjerava, ne samo gleda
+                </Typography>
+              </Stack>
+
+              <Typography variant="body1" sx={{ opacity: 0.9 }}>
+                Snimljene lekcije su početak. Ono što odvaja završen kurs od odgledanog kursa
+                je zadatak koji je neko pročitao i ocijenio.
               </Typography>
             </Stack>
-
-            <Typography variant="body1" color="text.secondary">
-              Snimljene lekcije su početak. Ono što odvaja završen kurs od odgledanog kursa je
-              zadatak koji je neko pročitao i ocijenio.
-            </Typography>
-
-            <Box
-              sx={{
-                aspectRatio: '4 / 3',
-                bgcolor: 'grey.100',
-                borderRadius: 2,
-                display: 'flex',
-                alignItems: 'center',
-                justifyContent: 'center',
-              }}
-            >
-              <Typography variant="body2" color="text.secondary">
-                Fotografija: predavač / pregled zadatka (placeholder)
-              </Typography>
-            </Box>
-          </Stack>
+          </Box>
         </Grid>
 
         <Grid size={{ xs: 12, md: 7 }}>

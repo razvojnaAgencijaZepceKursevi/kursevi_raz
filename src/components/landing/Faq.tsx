@@ -4,6 +4,8 @@ import Divider from '@mui/material/Divider';
 import Stack from '@mui/material/Stack';
 import Typography from '@mui/material/Typography';
 import Grid from '@mui/material/Grid';
+import { BorderAllRounded } from '@mui/icons-material';
+import Box from '@mui/material/Box';
 
 /**
  * "Pitanja koja dobijamo najcesce" - FAQ section on the landing page.
@@ -48,14 +50,24 @@ export default function Faq() {
 
       <Grid container spacing={{ xs: 4, md: 6 }}>
         <Grid size={{ xs: 12, md: 4 }}>
-          <Stack spacing={1}>
-            <Typography variant="overline" color="primary" sx={{ letterSpacing: 1.2 }}>
-              Česta pitanja
-            </Typography>
-            <Typography variant="h3" sx={{ fontSize: { xs: 28, md: 36 } }}>
-              Pitanja koja dobijamo najčešće
-            </Typography>
-          </Stack>
+          <Box
+          sx={{
+            bgcolor: 'primary.main',
+            color: 'primary.contrastText',
+            borderRadius: 2,
+            p: { xs: 3, md: 4 },
+            height: '50%',
+          }}
+          >
+            <Stack spacing={1}>
+              <Typography variant="overline" sx={{ letterSpacing: 1.2, color: 'inherit', opacity: 0.85 }}>
+                Česta pitanja
+              </Typography>
+              <Typography variant="h3" sx={{ fontSize: { xs: 28, md: 36 } }}>
+                 Pitanja koja dobijamo najčešće
+              </Typography>
+            </Stack>
+          </Box>
         </Grid>
 
         <Grid size={{ xs: 12, md: 8 }}>

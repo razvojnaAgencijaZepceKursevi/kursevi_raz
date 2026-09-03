@@ -1,6 +1,5 @@
 import Box from '@mui/material/Box';
 import Container from '@mui/material/Container';
-import Divider from '@mui/material/Divider';
 import Grid from '@mui/material/Grid';
 import Stack from '@mui/material/Stack';
 import Typography from '@mui/material/Typography';
@@ -39,7 +38,6 @@ export default function StatsBar() {
           ))}
         </Grid>
 
-        <Divider sx={{ mt: { xs: 4, md: 5 } }} />
       </Container>
     </Box>
   );
