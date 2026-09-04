@@ -58,12 +58,7 @@ export default function Hero() {
               Uči svojim tempom. Napreduj uz stvarnu povratnu informaciju.
             </Typography>
 
-            <Typography
-              variant="h6"
-              component="p"
-              color="text.secondary"
-              sx={{ fontWeight: 400 }}
-            >
+            <Typography variant="h6" component="p" color="text.secondary" sx={{ fontWeight: 400 }}>
               Registruj se, odaberi kurs iz naše ponude i prolazi materijale kada tebi odgovara.
               Zadatke pregleda predavač, a po završetku dobijaš certifikat.
             </Typography>
@@ -73,11 +68,11 @@ export default function Hero() {
                 Registruj se
               </Button>
               <Button
-               href="/courses" 
-               variant="outlined"
-               size="large"
-               sx={{ borderColor: 'divider', color: 'text.primary' }}
-               >
+                href="/courses"
+                variant="outlined"
+                size="large"
+                sx={{ borderColor: 'divider', color: 'text.primary' }}
+              >
                 Pregledaj kurseve
               </Button>
             </Stack>

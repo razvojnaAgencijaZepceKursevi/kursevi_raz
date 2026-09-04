@@ -3,6 +3,7 @@ import Container from '@mui/material/Container';
 import Grid from '@mui/material/Grid';
 import Stack from '@mui/material/Stack';
 import Typography from '@mui/material/Typography';
+import AnimatedNumber from '@/components/landing/AnimatedNumber';
 
 /**
  * Row of headline stats  shown right under the Hero on the landing page.
@@ -13,22 +14,26 @@ import Typography from '@mui/material/Typography';
  * Used once, directly after <Hero /> in (marketing)/page.tsx.
  */
 const STATS = [
-  { value: '42', label: 'OBJAVLJENA KURSA U PET OBLASTI' },
-  { value: '6.800', label: 'REGISTROVANIH STUDENATA' },
-  { value: '48h', label: 'ROK ZA PREGLED PREDANOG ZADATKA' },
-  { value: '91%', label: 'STUDENATA ZAVRŠI UPISANI KURS' },
+  { target: 42, suffix: '', thousands: false, label: 'OBJAVLJENA KURSA U PET OBLASTI' },
+  { target: 6800, suffix: '', thousands: true, label: 'REGISTROVANIH STUDENATA' },
+  { target: 48, suffix: 'h', thousands: false, label: 'ROK ZA PREGLED PREDANOG ZADATKA' },
+  { target: 91, suffix: '%', thousands: false, label: 'STUDENATA ZAVRŠI UPISANI KURS' },
 ];
 
 export default function StatsBar() {
   return (
     <Box sx={{ bgcolor: 'grey.50' }}>
-      <Container maxWidth="lg" sx={{ py: { xs: 5, md: 6 } }}>
+      <Container maxWidth="lg" sx={{ pt: { xs: 5, md: 6 } }}>
         <Grid container spacing={{ xs: 4, sm: 3 }}>
           {STATS.map((stat) => (
             <Grid key={stat.label} size={{ xs: 6, md: 3 }}>
               <Stack spacing={0.5}>
-                <Typography variant="h3" color="primary" sx={{ fontWeight: 700 }}>
-                  {stat.value}
+                <Typography variant="h1" color="primary" sx={{ fontWeight: 700 }}>
+                  <AnimatedNumber
+                    target={stat.target}
+                    suffix={stat.suffix}
+                    thousands={stat.thousands}
+                  />
                 </Typography>
                 <Typography variant="caption" color="text.secondary" sx={{ letterSpacing: 0.5 }}>
                   {stat.label}
@@ -37,7 +42,6 @@ export default function StatsBar() {
             </Grid>
           ))}
         </Grid>
-
       </Container>
     </Box>
   );

@@ -51,20 +51,23 @@ export default function Faq() {
       <Grid container spacing={{ xs: 4, md: 6 }}>
         <Grid size={{ xs: 12, md: 4 }}>
           <Box
-          sx={{
-            bgcolor: 'primary.main',
-            color: 'primary.contrastText',
-            borderRadius: 2,
-            p: { xs: 3, md: 4 },
-            height: '50%',
-          }}
+            sx={{
+              bgcolor: 'primary.main',
+              color: 'primary.contrastText',
+              borderRadius: 2,
+              p: { xs: 3, md: 4 },
+              height: '50%',
+            }}
           >
             <Stack spacing={1}>
-              <Typography variant="overline" sx={{ letterSpacing: 1.2, color: 'inherit', opacity: 0.85 }}>
+              <Typography
+                variant="overline"
+                sx={{ letterSpacing: 1.2, color: 'inherit', opacity: 0.85 }}
+              >
                 Česta pitanja
               </Typography>
               <Typography variant="h3" sx={{ fontSize: { xs: 28, md: 36 } }}>
-                 Pitanja koja dobijamo najčešće
+                Pitanja koja dobijamo najčešće
               </Typography>
             </Stack>
           </Box>
