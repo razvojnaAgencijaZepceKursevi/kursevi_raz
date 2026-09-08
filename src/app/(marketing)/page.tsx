@@ -30,8 +30,18 @@ export const metadata = {
  * provisional one, and nothing here can mislead anybody the way invented terms
  * of service could.
  *
- * A Server Component: it is static, so the first page a stranger sees costs no
- * JavaScript and is fully crawlable.
+ * ## The sections are bands, not a column
+ *
+ * Every section is a full-width `<Section>` with a surface of its own, and the
+ * tones alternate — plain, tint, paper, plain, paper, plain, brand. That
+ * alternation is what gives the page a vertical rhythm; there are no dividers
+ * between sections any more, because the edge of a band already separates it
+ * from the next one. Add a section in the middle and pick the tone its
+ * neighbours do not have.
+ *
+ * A Server Component: apart from `<FeaturedCourses>`, which needs a query, and
+ * the reveal-on-scroll wrappers inside each section, the first page a stranger
+ * sees is static and fully crawlable.
  *
  * Open question left for the owner: what a **signed-in** visitor should see
  * here — this page, or a redirect to `landingPathForRole`. Right now they get

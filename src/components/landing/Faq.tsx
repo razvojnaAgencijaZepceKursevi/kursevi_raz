@@ -1,20 +1,34 @@
 import * as React from 'react';
-import Container from '@mui/material/Container';
+import ArrowForwardRoundedIcon from '@mui/icons-material/ArrowForwardRounded';
+import Box from '@mui/material/Box';
+import Button from '@mui/material/Button';
 import Divider from '@mui/material/Divider';
+import Grid from '@mui/material/Grid';
 import Stack from '@mui/material/Stack';
 import Typography from '@mui/material/Typography';
-import Grid from '@mui/material/Grid';
-import { BorderAllRounded } from '@mui/icons-material';
-import Box from '@mui/material/Box';
+import Reveal from '@/components/landing/Reveal';
+import Section from '@/components/landing/Section';
 
 /**
- * "Pitanja koja dobijamo najcesce" - FAQ section on the landing page.
+ * "Pitanja koja dobijamo najčešće" — the FAQ.
  *
- * Static list, all answers shown open (matches the design mock).
- * Dividers between items are rendered manually, same pattern as
- * HowItWorks: each item wrapped in its own React.Fragment with a
- * conditional <Divider /> before all but the first, rather than relying
- * on Stacks's divider prop.
+ * ## Every answer is open, deliberately
+ *
+ * An accordion would be shorter, but these are five short answers, and the
+ * questions themselves are what a hesitant visitor is scanning for. Collapsing
+ * them would hide the reassurance behind a click and take the text out of the
+ * first thing a crawler reads. Dividers between items are rendered manually,
+ * for the same reason as in `<HowItWorks>`.
+ *
+ * ## The panel is sticky, and used to have an arbitrary height
+ *
+ * It was `height: '50%'`, which is half of whatever the row happened to be —
+ * a number with no meaning that left the panel floating in its column. It now
+ * sizes to its content and sticks while the answers scroll past, so the heading
+ * stays with what it is heading. `top` clears the sticky app bar.
+ *
+ * It also ends with the way out: an unanswered question is the one case where a
+ * FAQ has failed, and the fix is a link to somebody who can answer it.
  */
 const FAQS = [
   {
@@ -39,38 +53,42 @@ const FAQS = [
   {
     question: 'Kako se plaća?',
     answer:
-      'Kartično plaćanje ili uplatnica, po kursu. Za firme i grupne upise izdajemo fakturu — placeholder, uslovi se dopunjuju.',
+      'Kartično plaćanje ili uplatnica, po kursu. Za firme i grupne upise izdajemo fakturu — placeholder, uvjeti se dopunjuju.',
   },
 ];
 
 export default function Faq() {
   return (
-    <Container maxWidth="lg" sx={{ py: { xs: 6, md: 8 } }}>
-      <Divider sx={{ mb: { xs: 5, md: 6 } }} />
-
+    <Section tone="plain">
       <Grid container spacing={{ xs: 4, md: 6 }}>
         <Grid size={{ xs: 12, md: 4 }}>
-          <Box
-            sx={{
-              bgcolor: 'primary.main',
-              color: 'primary.contrastText',
-              borderRadius: 2,
-              p: { xs: 3, md: 4 },
-              height: '50%',
-            }}
-          >
-            <Stack spacing={1}>
-              <Typography
-                variant="overline"
-                sx={{ letterSpacing: 1.2, color: 'inherit', opacity: 0.85 }}
-              >
-                Česta pitanja
-              </Typography>
-              <Typography variant="h3" sx={{ fontSize: { xs: 28, md: 36 } }}>
-                Pitanja koja dobijamo najčešće
-              </Typography>
-            </Stack>
-          </Box>
+          <Reveal>
+            <Box sx={{ position: { md: 'sticky' }, top: 88 }}>
+              <Stack spacing={2.5}>
+                <Stack spacing={1}>
+                  <Typography variant="overline" color="primary" sx={{ letterSpacing: 1.2 }}>
+                    Česta pitanja
+                  </Typography>
+                  <Typography variant="h3" sx={{ fontSize: { xs: 28, md: 38 } }}>
+                    Pitanja koja dobijamo najčešće
+                  </Typography>
+                </Stack>
+
+                <Typography variant="body1" color="text.secondary">
+                  Nema odgovora na tvoje pitanje? Javi nam se — odgovaramo u toku radnog dana.
+                </Typography>
+
+                <Button
+                  href="/kontakt"
+                  variant="outlined"
+                  endIcon={<ArrowForwardRoundedIcon />}
+                  sx={{ alignSelf: 'flex-start', borderColor: 'divider', color: 'text.primary' }}
+                >
+                  Kontaktiraj nas
+                </Button>
+              </Stack>
+            </Box>
+          </Reveal>
         </Grid>
 
         <Grid size={{ xs: 12, md: 8 }}>
@@ -78,19 +96,21 @@ export default function Faq() {
             {FAQS.map((faq, index) => (
               <React.Fragment key={faq.question}>
                 {index > 0 && <Divider />}
-                <Stack spacing={1} sx={{ py: 3 }}>
-                  <Typography variant="h6" component="h3">
-                    {faq.question}
-                  </Typography>
-                  <Typography variant="body1" color="text.secondary">
-                    {faq.answer}
-                  </Typography>
-                </Stack>
+                <Reveal delay={index * 60}>
+                  <Stack spacing={1} sx={{ py: 3 }}>
+                    <Typography variant="h5" component="h3">
+                      {faq.question}
+                    </Typography>
+                    <Typography variant="body1" color="text.secondary">
+                      {faq.answer}
+                    </Typography>
+                  </Stack>
+                </Reveal>
               </React.Fragment>
             ))}
           </Stack>
         </Grid>
       </Grid>
-    </Container>
+    </Section>
   );
 }
