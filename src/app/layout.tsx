@@ -4,6 +4,8 @@ import InitColorSchemeScript from '@mui/material/InitColorSchemeScript';
 import './globals.css';
 import ThemeRegistry from '@/theme/ThemeRegistry';
 import ThemeSync from '@/theme/ThemeSync';
+import ColorSchemeScope from '@/theme/ColorSchemeScope';
+import { colorSchemeScopeScript } from '@/theme/colorSchemeRules';
 import QueryProvider from '@/lib/query/QueryProvider';
 import AuthProvider from '@/components/AuthProvider';
 import ToastHost from '@/components/feedback/ToastHost';
@@ -50,12 +52,26 @@ export default function RootLayout({
           legitimately disagree on that one attribute.
         */}
         <InitColorSchemeScript defaultMode="system" attribute="class" />
+        {/*
+          Runs immediately after the one above and partly undoes it: that script
+          applies the saved scheme, this one takes it back off when the page is
+          public. Order matters — it must overwrite, not be overwritten — and
+          both have to land before the first paint, or a dark-mode visitor
+          watches the landing page flip to light.
+
+          Same class on the same element, so the `suppressHydrationWarning`
+          already on <html> covers this too. See `colorSchemeRules.ts`.
+        */}
+        <script dangerouslySetInnerHTML={{ __html: colorSchemeScopeScript }} />
         <ThemeRegistry>
           <QueryProvider>
             <AuthProvider>
               {/* Applies the signed-in user's saved scheme once it loads.
                   Renders nothing; needs both the theme and the query client. */}
               <ThemeSync />
+              {/* Decides whether this page listens to that preference at all:
+                  public pages are always light. Renders nothing. */}
+              <ColorSchemeScope />
               {/* Fixed to the top of the viewport, above everything. Covers the
                   gap between clicking a nav link and the destination's
                   `loading.tsx` appearing. */}
