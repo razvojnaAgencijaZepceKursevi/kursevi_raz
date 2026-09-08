@@ -1,6 +1,7 @@
 import Box from '@mui/material/Box';
 import PublicFooter from '@/components/layout/PublicFooter';
 import PublicHeader from '@/components/layout/PublicHeader';
+import { MARKETING_GUTTER } from '@/components/layout/marketingGutter';
 
 /**
  * Chrome for every public-facing page: landing, course catalogue, individual
@@ -22,6 +23,11 @@ import PublicHeader from '@/components/layout/PublicHeader';
  * public page, nothing to repeat. It is what makes the legal and contact pages
  * reachable at all — nobody navigates *to* a privacy policy.
  *
+ * The gutter around `<main>` is a shared constant because the landing page
+ * cancels it: its hero, stats strip and closing banner are full-width bands,
+ * and `<Section>` undoes exactly this padding to get them there. See
+ * `marketingGutter.ts`.
+ *
  * No auth check: these pages are public by design. What a signed-in visitor
  * sees differs per page (see `useCourseAccess`), not per layout.
  */
@@ -29,7 +35,7 @@ export default function MarketingLayout({ children }: { children: React.ReactNod
   return (
     <Box sx={{ minHeight: '100dvh', bgcolor: 'background.default' }}>
       <PublicHeader />
-      <Box component="main" sx={{ p: { xs: 2, sm: 3, lg: 4 } }}>
+      <Box component="main" sx={{ p: MARKETING_GUTTER }}>
         {children}
       </Box>
       <PublicFooter />

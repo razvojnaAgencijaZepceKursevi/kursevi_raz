@@ -1175,6 +1175,78 @@ but must still handle a 403 on an individual resource.
 - One endpoint serves both sides, with RLS deciding scope, so `/api/issues` is "my issues"
   for a user and the whole queue for an admin. There is no `useAdminIssues` twin.
 
+### The landing page is a stack of bands (`<Section>`)
+
+- **It was a single column of `<Container>`s separated by hairline `<Divider>`s.** Every
+  section therefore sat on the same background at the same width with the same weight, so
+  the page read as one long document rather than as a sequence of distinct things — and a
+  visitor scrolling it had nothing to orient by. `<Section>` gives a section a surface of
+  its own and the full width of the viewport to put it on.
+
+- **Tones alternate, and that is the whole mechanism**: plain → tint → paper → plain →
+  paper → plain → brand. `plain` lets the page background through, `paper` is white with a
+  hairline border, `tint` is a faint wash of the brand colour (used once, on the stats
+  strip), `brand` is the gradient (used once, on the closing CTA). Adding a section in the
+  middle means picking the tone its neighbours do not have. There are no dividers between
+  sections any more — the edge of a band already separates it from the next one.
+
+- **`marketingGutter.ts` exists because a band has to cancel the layout's padding.**
+  `(marketing)/layout.tsx` pads `<main>` so ordinary public pages keep clear of the
+  viewport edge; a full-width band must undo exactly that, and a negative margin only
+  works while the two numbers agree. `MARKETING_GUTTER` and `MARKETING_BLEED` are written
+  once and imported by both, so changing the gutter moves the bands with it. `<Hero>`
+  bleeds directly rather than through `<Section>` — it is the one section whose surface is
+  a photograph rather than a colour.
+
+  `flushTop` / `flushBottom` additionally cancel the vertical padding, for the hero (which
+  butts against the app bar) and the CTA. The 64px between the CTA and the footer is the
+  footer's own `mt: 8` and is deliberately left alone: reaching across to cancel it would
+  couple the landing page to shared chrome for a gap that reads fine as a breath.
+
+- **`grey.50` was invisible and is gone.** The stats strip was painted `grey.50` (#fafafa)
+  on a `background.default` page (#f7f8fa) — the same colour to any eye — and with only
+  `pt` set, the band ended flush against the bottom of its labels. It is the `tint` band
+  now, with hairline rules between the four figures.
+
+- **Gradients are written as literal CSS variables**, the way `theme.ts` writes
+  `var(--mui-palette-divider)`. With `cssVariables` on, `theme.palette.primary.main` is
+  itself a `var(--…)` reference, so `alpha()` cannot parse it, and `theme.vars` is typed as
+  possibly-undefined so a callback needs a non-null assertion to compile. The
+  `--mui-palette-*-mainChannel` tokens exist for the alpha case. `secondary` is a stop past
+  100% rather than half the gradient: a band that spends as much width on the purple as on
+  the blue stops reading as this product's colour and starts reading as a stock gradient.
+
+- **`<Reveal>` is the scroll animation, and it hides nothing.** Same shape as
+  `<AnimatedNumber>` — an `IntersectionObserver` that disconnects on the first hit, so
+  nothing re-plays on the way back up. Only `opacity` and `transform` differ before the
+  reveal, so the copy is in the server HTML either way (verified by grepping the raw
+  response). Two safety nets: `prefers-reduced-motion` skips it in CSS, and a 1s timeout
+  reveals regardless, so a browser without `IntersectionObserver` cannot leave a section
+  invisible. Verified in headless Chrome: 22 reveals, none still faded after a scroll to
+  the bottom; under emulated `prefers-reduced-motion: reduce`, 101 below-fold elements with
+  0 faded and 0 transformed.
+
+- **`<WhyUs>`'s four blurbs became tiles**, replacing two absolutely-positioned dividers
+  laid across the grid at 50%. Those only line up while both rows happen to be the same
+  height — one description wrapping to an extra line puts a rule through text. The tiles
+  also give each blurb somewhere to put an icon, which is the actual gain: this is the one
+  section a visitor scans rather than reads.
+
+- **The FAQ answers stay open, and the panel beside them is sticky.** Five short answers
+  where the questions are what a hesitant visitor is scanning for; collapsing them would
+  hide the reassurance behind a click and take the text out of the first thing a crawler
+  reads. The panel had `height: '50%'` — half of whatever the row happened to be, a number
+  with no meaning — and now sizes to its content.
+
+- **The closing CTA has one primary action, not two equal ones.** Both buttons were
+  outlined, which made the banner ask a question instead of making a request. The solid
+  white button is the ask; the ghost button is the escape hatch.
+
+- **`<CourseCard>`'s hover lives in the component, not at the call site**, because it is
+  feedback about the card being a link — true of every grid it appears in, admin included.
+  `transform` is dropped under `prefers-reduced-motion`; the border colour is not, since a
+  colour shift is not motion and it is the half carrying the meaning.
+
 ### Public pages
 
 - Landing, blog index, blog post, terms, privacy, contact — plus `<PublicFooter />` in the
