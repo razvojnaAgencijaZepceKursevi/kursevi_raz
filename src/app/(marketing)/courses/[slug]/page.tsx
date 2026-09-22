@@ -78,7 +78,7 @@ export default function CourseViewPage(props: PageProps<'/courses/[slug]'>) {
   const course = useCourse(slug);
   const courseId = course.data?.id;
 
-  const access = useCourseAccess(courseId);
+  const access = useCourseAccess(courseId, course.data?.owner_id);
   const categories = useCategoryOptions();
 
   // Exactly one of these two runs — see the note above.
@@ -93,7 +93,7 @@ export default function CourseViewPage(props: PageProps<'/courses/[slug]'>) {
    * The certificate for this course, once it exists.
    *
    * Only asked for after the course reports itself finished, so the ordinary
-   * visitor and the mid-course student never pay for it. Admins are excluded:
+   * visitor and the mid-course student never pay for it. Staff are excluded:
    * they bypass the sequence, so `course_completed` says nothing about them.
    */
   const certificates = useCertificates(
@@ -102,7 +102,7 @@ export default function CourseViewPage(props: PageProps<'/courses/[slug]'>) {
       enabled:
         Boolean(courseId) &&
         access.isResolved &&
-        !access.isAdmin &&
+        !access.isStaff &&
         progress.data?.course_completed === true,
     },
   );
@@ -174,7 +174,7 @@ export default function CourseViewPage(props: PageProps<'/courses/[slug]'>) {
 
           return (
             <Stack spacing={3}>
-              {access.isAdmin ? (
+              {access.isStaff ? (
                 <Alert
                   severity="info"
                   action={
@@ -198,7 +198,9 @@ export default function CourseViewPage(props: PageProps<'/courses/[slug]'>) {
                     </Stack>
                   }
                 >
-                  Gledate javnu stranicu kursa kao administrator — svi moduli su vam otključani.
+                  {access.isAdmin
+                    ? 'Gledate javnu stranicu kursa kao administrator — svi moduli su vam otključani.'
+                    : 'Gledate javnu stranicu svog kursa — kao predavaču, svi moduli su vam otključani.'}
                 </Alert>
               ) : null}
 

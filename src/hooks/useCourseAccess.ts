@@ -9,11 +9,11 @@ import type { Purchase } from '@/lib/schemas/purchases.schema';
  * What the current viewer is allowed to do with one course.
  *
  * The course page has four audiences — signed out, signed in without a
- * purchase, signed in with one, and admin — and nearly every element on it
- * branches on which. Resolving that once, here, keeps the page from
+ * purchase, signed in with one, and staff (an admin, or the teacher who owns
+ * the course) — and nearly every element on it branches on which. Resolving that once, here, keeps the page from
  * re-deriving "is this person allowed to..." at every turn.
  *
- *   const access = useCourseAccess(courseId);
+ *   const access = useCourseAccess(courseId, course.owner_id);
  *   if (access.canOpenModules) …
  *
  * Note `isResolved`. Auth state arrives asynchronously, so on first paint every
@@ -26,10 +26,17 @@ export type CourseAccess = {
   isResolved: boolean;
   isAuthenticated: boolean;
   isAdmin: boolean;
+  /** The signed-in teacher owns this course. */
+  isOwner: boolean;
+  /**
+   * An admin or the owning teacher — someone previewing the course rather than
+   * studying it. Mirrors `assertCourseAccess` on the server.
+   */
+  isStaff: boolean;
   purchaseState: PurchaseState;
-  /** May open module content. Admins qualify without buying anything. */
+  /** May open module content. Staff qualify without buying anything. */
   canOpenModules: boolean;
-  /** Admins ignore the completed-so-far sequence and may open any module. */
+  /** Staff ignore the completed-so-far sequence and may open any module. */
   bypassSequence: boolean;
   /** Hide the price once it can no longer be acted on. */
   showPrice: boolean;
@@ -43,16 +50,28 @@ export type CourseAccess = {
   pendingPurchase: Purchase | undefined;
 };
 
-export function useCourseAccess(courseId: string | undefined): CourseAccess {
+export function useCourseAccess(
+  courseId: string | undefined,
+  /**
+   * `courses.owner_id`. Needed because a teacher's access to a course is a fact
+   * about the course, not about the teacher — the role alone does not say
+   * whether this one is theirs.
+   */
+  ownerId: string | null | undefined,
+): CourseAccess {
   const profile = useAuthStore((s) => s.profile);
   const authLoading = useAuthStore((s) => s.loading);
 
   const isAuthenticated = profile !== null;
   const isAdmin = profile?.role === 'admin';
+  // The role check matters: `owner_id` survives a demotion, and a former
+  // teacher is not staff any more (the database agrees — see `owns_course()`).
+  const isOwner = profile?.role === 'teacher' && Boolean(ownerId) && ownerId === profile.id;
+  const isStaff = isAdmin || isOwner;
 
   // Signed-out visitors would get a 401 here, so the query stays idle for them.
-  // Admins don't buy courses, so there's nothing to look up for them either.
-  const shouldCheckPurchase = Boolean(courseId) && isAuthenticated && !isAdmin;
+  // Staff don't buy courses, so there's nothing to look up for them either.
+  const shouldCheckPurchase = Boolean(courseId) && isAuthenticated && !isStaff;
 
   const purchases = usePurchases({ courseId, pageSize: 5 }, { enabled: shouldCheckPurchase });
 
@@ -60,7 +79,7 @@ export function useCourseAccess(courseId: string | undefined): CourseAccess {
 
   const isResolved = !authLoading && (!shouldCheckPurchase || !purchases.isPending);
 
-  const canOpenModules = isAdmin || purchaseState === 'approved';
+  const canOpenModules = isStaff || purchaseState === 'approved';
 
   const pendingPurchase = purchases.data?.data.find((p) => p.status === 'requested');
 
@@ -68,11 +87,13 @@ export function useCourseAccess(courseId: string | undefined): CourseAccess {
     isResolved,
     isAuthenticated,
     isAdmin,
+    isOwner,
+    isStaff,
     purchaseState,
     canOpenModules,
     pendingPurchase,
-    bypassSequence: isAdmin,
-    // Redundant once someone owns the course; an admin never pays for one.
+    bypassSequence: isStaff,
+    // Redundant once someone has access; staff never pay for a course.
     showPrice: !canOpenModules,
   };
 }

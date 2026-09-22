@@ -23,7 +23,9 @@ import { createClient } from '@/lib/supabase/server';
  *
  * ## What it checks, and what it doesn't
  *
- * Signed in, and either an admin or an approved purchase. **Not** the sequential
+ * Signed in, and one of the three people `assertCourseAccess` admits: an admin,
+ * the teacher who owns the course, or a student with an approved purchase.
+ * **Not** the sequential
  * unlock — that needs the whole course's progress, which the client components
  * already fetch, so it is applied there rather than paying for the query twice.
  *
@@ -32,7 +34,7 @@ import { createClient } from '@/lib/supabase/server';
  * what is *reachable*.
  */
 export type ModulePageAccess =
-  | { ok: true; course: { id: string; name: string; slug: string } }
+  | { ok: true; course: { id: string; name: string; slug: string; owner_id: string | null } }
   | { ok: false; reason: 'course-not-found' | 'no-access' };
 
 export async function checkModulePageAccess(
@@ -47,15 +49,22 @@ export async function checkModulePageAccess(
 
   const { data: course } = await supabase
     .from('courses')
-    .select('id, name, slug')
+    .select('id, name, slug, owner_id')
     .eq('slug', slug)
     .maybeSingle();
 
   if (!course) return { ok: false, reason: 'course-not-found' };
 
-  // Admins preview anything. A teacher reaches their own material through the
-  // admin screens, so this stays the two-case check the student flow needs.
+  // Admins preview anything, and so does the teacher who owns the course. The
+  // owner used to be left out on the theory that they would use the admin
+  // screens instead — but the admin screens link here ("Pregledaj"), and a
+  // teacher told they must buy their own course reads as a broken app. This is
+  // the same three-way rule as `assertCourseAccess`, which the module endpoints
+  // behind this page already apply.
   if (auth.profile.role === 'admin') return { ok: true, course };
+  if (auth.profile.role === 'teacher' && course.owner_id === auth.userId) {
+    return { ok: true, course };
+  }
 
   const { data: purchase } = await supabase
     .from('purchases')

@@ -59,7 +59,10 @@ export default function AdminCourseOverviewPage(props: PageProps<'/admin/courses
     return (
       <PageContainer>
         <ContentCard>
-          <EmptyState title="Kurs nije pronađen" description="Ovaj kurs ne postoji." />
+          <EmptyState
+            title="Kurs nije pronađen"
+            description="Ovaj kurs ne postoji ili nemate pristup njemu."
+          />
         </ContentCard>
       </PageContainer>
     );

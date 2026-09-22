@@ -43,7 +43,8 @@ import { toast } from '@/store/useToastStore';
  * cannot cheaply check *ordering*, because that needs the whole course's
  * progress. So this component applies `unlockedModuleIds` — completed modules
  * plus the first incomplete one — and refuses to render content for a module
- * that is still locked. Admins bypass it, same rule as the course page.
+ * that is still locked. Staff (an admin or the owning teacher) bypass it, same
+ * rule as the course page.
  *
  * That is a UI guard on top of a backend one: `modules` RLS still requires an
  * approved purchase regardless, so the worst a bypass achieves is seeing a
@@ -70,16 +71,19 @@ export default function ModuleViewer({
   courseId,
   courseName,
   courseSlug,
+  courseOwnerId,
   moduleId,
 }: {
   courseId: string;
   courseName: string;
   courseSlug: string;
+  /** `courses.owner_id` — lets the owning teacher preview like an admin. */
+  courseOwnerId: string | null;
   moduleId: string;
 }) {
   const modules = useCourseModules(courseId);
   const progress = useCourseProgress(courseId);
-  const access = useCourseAccess(courseId);
+  const access = useCourseAccess(courseId, courseOwnerId);
 
   const quiz = useModuleQuiz(moduleId);
   const task = useModuleTask(moduleId);
@@ -96,7 +100,7 @@ export default function ModuleViewer({
   const courseFinished = progress.data?.course_completed === true && !access.bypassSequence;
   const certificates = useCertificates(
     { courseId, pageSize: 1 },
-    { enabled: courseFinished && access.isResolved && !access.isAdmin },
+    { enabled: courseFinished && access.isResolved && !access.isStaff },
   );
   const certificate = certificates.data?.data[0];
 

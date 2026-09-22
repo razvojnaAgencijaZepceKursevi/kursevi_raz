@@ -19,7 +19,7 @@ import EmptyState from '@/components/feedback/EmptyState';
 import ModuleActions from '@/components/modules/ModuleActions';
 import { useAdminCourse } from '@/hooks/useCourses';
 import { useCourseModules, useUpdateModule } from '@/hooks/useModules';
-import { errorMessage } from '@/lib/api/errorMessage';
+import { errorMessage, isStatus } from '@/lib/api/errorMessage';
 import { pluralBs } from '@/lib/format';
 import { toast } from '@/store/useToastStore';
 import type { ModuleWithFiles } from '@/lib/schemas/modules.schema';
@@ -80,6 +80,27 @@ export default function AdminCourseModulesPage(props: PageProps<'/admin/courses/
     } catch (error) {
       toast.error(errorMessage(error));
     }
+  }
+
+  // A teacher opening someone else's course lands here as a 404 (see
+  // `GET /api/admin/courses/:id`). Say so, rather than render the header over a
+  // module list that is about to 403.
+  if (course.isError && isStatus(course.error, 404)) {
+    return (
+      <PageContainer>
+        <ContentCard>
+          <EmptyState
+            title="Kurs nije pronađen"
+            description="Ovaj kurs ne postoji ili nemate pristup njemu."
+            action={
+              <Button href="/admin/courses" variant="contained">
+                Nazad na kurseve
+              </Button>
+            }
+          />
+        </ContentCard>
+      </PageContainer>
+    );
   }
 
   return (

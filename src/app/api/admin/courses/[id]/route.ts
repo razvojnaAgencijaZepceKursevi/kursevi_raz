@@ -17,13 +17,22 @@ export const dynamic = 'force-dynamic';
 
 type Ctx = { params: Promise<{ id: string }> };
 
-/** GET /api/admin/courses/:id — any publish state (admin). */
+/** GET /api/admin/courses/:id — any publish state (admin, or the owning teacher). */
 export const GET = withRoute(async (_req, ctx: Ctx) => {
-  await requireStaff();
+  const { userId, profile } = await requireStaff();
   const id = uuidSchema.parse((await ctx.params).id);
 
   const supabase = await createClient();
-  const course = unwrapOne(await supabase.from('courses').select('*').eq('id', id).maybeSingle());
+
+  // Same reason as the list route: the courses SELECT policy also admits any
+  // *published* course, so without this a teacher could open the edit screen
+  // of someone else's course — and only find out on save, when RLS refuses.
+  // Filtering here makes it a 404, which the admin screens already render as
+  // "not found or not yours".
+  let q = supabase.from('courses').select('*').eq('id', id);
+  if (profile.role === 'teacher') q = q.eq('owner_id', userId);
+
+  const course = unwrapOne(await q.maybeSingle());
 
   return NextResponse.json({ data: course });
 });

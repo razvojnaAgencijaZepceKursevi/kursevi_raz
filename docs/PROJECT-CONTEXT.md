@@ -528,6 +528,23 @@ but must still handle a 403 on an individual resource.
   three need it. It does **not** check the sequential unlock: that needs the whole
   course's progress, which the client components already fetch.
 
+- **The owning teacher previews their course like an admin, on both halves.**
+  `checkModulePageAccess` (server) and `useCourseAccess(courseId, ownerId)` (client)
+  both used to admit only admins and purchasers — the same `role !== 'admin' → require
+  purchase` shape `assertCourseAccess` exists to prevent — so a teacher clicking
+  "Pregledaj" on their own course was told to buy it. The module page also carried its
+  own copy of the guard instead of calling the shared one, which is how it drifted.
+  `useCourseAccess` now exposes `isStaff` (admin or owner); use it, not `isAdmin`, for
+  "previewing, not studying" decisions (sequence bypass, no certificate lookup, no
+  "Završi modul"). The owner test also checks `role === 'teacher'`, because `owner_id`
+  survives a demotion.
+
+- **`GET /api/admin/courses/:id` filters by `owner_id` for teachers**, like the list
+  route, for the same reason: the SELECT policy admits any published course, so another
+  teacher could open the edit form and only learn on save that RLS refuses. It is a 404
+  now, which the course overview, edit and modules screens render as "ne postoji ili
+  nemate pristup njemu".
+
 - **`GET /api/tasks/:taskId/submissions` was missing and is now added.** `POST` created
   a submission but nothing listed one, so a student who navigated away could never find
   their thread or learn the outcome. It is scoped to `student_id = caller` **explicitly**
