@@ -10,6 +10,8 @@ import ContentCard from '@/components/layout/ContentCard';
 import EmptyState from '@/components/feedback/EmptyState';
 import { BLOG_POSTS } from '@/lib/blog';
 import { formatDate } from '@/lib/format';
+import Image from 'next/image';
+import Box from '@mui/material/Box';
 
 export const metadata = {
   title: 'Blog — Kursevi',
@@ -53,13 +55,29 @@ export default function BlogIndexPage() {
         </ContentCard>
       ) : (
         <Grid container spacing={3}>
-          {posts.map((post) => (
+          {posts.map((post, index) => (
             <Grid key={post.slug} size={{ xs: 12, sm: 6, md: 4 }}>
-              <Card variant="outlined" sx={{ height: '100%' }}>
+              <Card variant="outlined" sx={{ height: '100%', display: 'flex', flexDirection: 'column' }}>
                 {/* CardActionArea resolves to a real anchor through the theme's
-                    LinkComponent — no `component` prop needed. */}
-                <CardActionArea href={`/blog/${post.slug}`} sx={{ height: '100%', p: 3 }}>
-                  <Stack spacing={1}>
+                LinkComponent - no `component` prop needed. */}
+                <CardActionArea
+                href={`/blog/${post.slug}`}
+                sx={{ height: '100%', display: 'flex', flexDirection: 'column', alignItems: 'stretch' }}
+                >
+                  {post.image ? (
+                    <Box sx={{ position: 'relative', width: '100%', aspectRatio: '16 / 9' }}>
+                      <Image
+                      src={post.image.src}
+                      alt={post.image.alt}
+                      fill
+                      style={{ objectFit: 'cover' }}
+                      sizes="(max-width: 600px) 100vw, (max-width: 900px) 50vw, 33vw"
+                      priority={index < 3} // first row of images is eagerly-loaded
+                      />
+                    </Box>
+                  ) : null}
+
+                  <Stack spacing={1} sx={{ p: 3 }}>
                     <Typography variant="overline" color="text.secondary">
                       {formatDate(post.publishedAt)}
                     </Typography>

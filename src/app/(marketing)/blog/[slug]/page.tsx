@@ -8,6 +8,8 @@ import ContentCard from '@/components/layout/ContentCard';
 import MarkdownContent from '@/components/markdown/MarkdownContent';
 import { BLOG_POSTS, findBlogPost } from '@/lib/blog';
 import { formatDate } from '@/lib/format';
+import Box from '@mui/material/Box';
+import Image from 'next/image';
 
 /**
  * One blog post.
@@ -51,6 +53,27 @@ export default async function BlogPostPage(props: PageProps<'/blog/[slug]'>) {
         title={post.title}
         description={formatDate(post.publishedAt)}
       />
+
+      {post.image ? (
+      <Box 
+      sx={{
+        position: 'relative',
+        width: '100%',
+        aspectRatio: '16 / 9',
+        borderRadius: 2,
+        overflow: 'hidden',
+      }}
+      >
+        <Image 
+        src={post.image.src}
+        alt={post.image.alt}
+        fill
+        style={{ objectFit: 'cover' }}
+        sizes="(max-width: 900px) 100vw, 800px"
+        priority
+        />
+      </Box>
+      ) : null}
 
       <ContentCard>
         {/*
