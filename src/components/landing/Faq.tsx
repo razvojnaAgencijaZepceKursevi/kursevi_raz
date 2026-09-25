@@ -59,7 +59,7 @@ const FAQS = [
 
 export default function Faq() {
   return (
-    <Section tone="plain">
+    <Section id="cesta-pitanja" tone="plain">
       <Grid container spacing={{ xs: 4, md: 6 }}>
         <Grid size={{ xs: 12, md: 4 }}>
           <Reveal>

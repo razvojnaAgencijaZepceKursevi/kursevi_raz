@@ -531,7 +531,7 @@ but must still handle a 403 on an individual resource.
 - **The owning teacher previews their course like an admin, on both halves.**
   `checkModulePageAccess` (server) and `useCourseAccess(courseId, ownerId)` (client)
   both used to admit only admins and purchasers — the same `role !== 'admin' → require
-  purchase` shape `assertCourseAccess` exists to prevent — so a teacher clicking
+purchase` shape `assertCourseAccess` exists to prevent — so a teacher clicking
   "Pregledaj" on their own course was told to buy it. The module page also carried its
   own copy of the guard instead of calling the shared one, which is how it drifted.
   `useCourseAccess` now exposes `isStaff` (admin or owner); use it, not `isAdmin`, for
