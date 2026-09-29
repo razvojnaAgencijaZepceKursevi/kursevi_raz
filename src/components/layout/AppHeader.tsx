@@ -2,7 +2,6 @@
 
 import * as React from 'react';
 import NextLink from 'next/link';
-import { usePathname } from 'next/navigation';
 import LogoutIcon from '@mui/icons-material/Logout';
 import SettingsOutlinedIcon from '@mui/icons-material/SettingsOutlined';
 import AppBar from '@mui/material/AppBar';
@@ -10,15 +9,12 @@ import Box from '@mui/material/Box';
 import Button from '@mui/material/Button';
 import Chip from '@mui/material/Chip';
 import Divider from '@mui/material/Divider';
-import Link from '@mui/material/Link';
 import ListItemIcon from '@mui/material/ListItemIcon';
 import Menu from '@mui/material/Menu';
 import MenuItem from '@mui/material/MenuItem';
 import Stack from '@mui/material/Stack';
 import Toolbar from '@mui/material/Toolbar';
 import Typography from '@mui/material/Typography';
-import { NavPending } from '@/components/feedback/NavProgress';
-import { FEATURES } from '@/lib/features';
 import NotificationBell from '@/components/notifications/NotificationBell';
 import { useLogout } from '@/hooks/useLogout';
 import { useAuthStore } from '@/store/useAuthStore';
@@ -55,39 +51,6 @@ import type { UserRole } from '@/lib/auth/routes';
  * the full page. A separate "Obavještenja" link beside it would be a second
  * route to the same place with less information on it.
  */
-type NavLink = { label: string; href: string };
-
-function navForRole(role: UserRole): NavLink[] {
-  if (role === 'student') {
-    // Two links, deliberately. The dashboard is a hub — purchases, certificates
-    // and issues are reached from it, each with its own page — so putting them
-    // in the bar as well would be the same destinations twice.
-    return [
-      { label: 'Kontrolna tabla', href: '/dashboard' },
-      { label: 'Moji kursevi', href: '/dashboard/courses' },
-    ];
-  }
-
-  return [
-    { label: 'Kontrolna tabla', href: '/admin' },
-    { label: 'Kursevi', href: '/admin/courses' },
-    // An admin gets the queue of everybody's issues; a teacher only their own,
-    // because `issues` grants them nothing else — one may be about them.
-    //
-    // Dropped rather than relocated when support is switched off: it has no
-    // other entry point in the staff shell, so there is nowhere else for it to
-    // live.
-    ...(FEATURES.support
-      ? [{ label: 'Podrška', href: role === 'admin' ? '/admin/issues' : '/issues' }]
-      : []),
-  ];
-}
-
-/** Highlights the section you are in, so the bar says where you are. */
-function isActive(href: string, pathname: string) {
-  if (href === '/admin' || href === '/dashboard') return pathname === href;
-  return pathname === href || pathname.startsWith(`${href}/`);
-}
 
 export default function AppHeader({
   profile,
@@ -100,7 +63,6 @@ export default function AppHeader({
   profile?: { full_name: string; email: string; role: UserRole };
 }) {
   const storeProfile = useAuthStore((s) => s.profile);
-  const pathname = usePathname();
   const { logout, pending } = useLogout();
 
   const [anchorEl, setAnchorEl] = React.useState<HTMLElement | null>(null);
@@ -110,45 +72,12 @@ export default function AppHeader({
   if (!current) return null;
 
   const role = current.role as UserRole;
-  const links = navForRole(role);
 
   return (
     <AppBar position="sticky" color="inherit" sx={{ bgcolor: 'background.paper' }}>
       <Toolbar sx={{ gap: { xs: 1, md: 2 }, minHeight: { xs: 64, sm: 64 } }}>
-        <Link
-          href={links[0].href}
-          variant="h5"
-          underline="none"
-          color="text.primary"
-          sx={{ flexShrink: 0 }}
-        >
-          Kursevi
-        </Link>
-
-        {/* Collapsed on small screens; the same links live in the user menu
-            below, so nothing becomes unreachable on a phone. */}
-        <Stack direction="row" spacing={2.5} sx={{ ml: 2, display: { xs: 'none', md: 'flex' } }}>
-          {links.map((link) => (
-            <Link
-              key={link.href}
-              href={link.href}
-              variant="body2"
-              underline="hover"
-              color={isActive(link.href, pathname) ? 'text.primary' : 'text.secondary'}
-              sx={{ fontWeight: isActive(link.href, pathname) ? 600 : 400 }}
-            >
-              {link.label}
-              {/* Feeds the top progress bar; renders nothing. Must sit inside
-                  the link — see `<NavPending>`. */}
-              <NavPending />
-            </Link>
-          ))}
-        </Stack>
-
         <Box sx={{ flex: 1 }} />
-
         <NotificationBell />
-
         <Button
           onClick={(event) => setAnchorEl(event.currentTarget)}
           color="inherit"
@@ -190,23 +119,6 @@ export default function AppHeader({
           </Stack>
 
           <Divider />
-
-          {/* Mobile only — on desktop these are already in the bar. */}
-          {links.map((link) => (
-            <MenuItem
-              key={link.href}
-              // `component={NextLink}` is mandatory on MenuItem and only on
-              // MenuItem: it overrides ButtonBase's root to 'li', so a bare
-              // `href` renders a dead `<li href>`. Every other MUI link
-              // component picks NextLink up from the theme by itself.
-              component={NextLink}
-              href={link.href}
-              onClick={close}
-              sx={{ display: { xs: 'flex', md: 'none' } }}
-            >
-              <Typography variant="body2">{link.label}</Typography>
-            </MenuItem>
-          ))}
 
           {/*
             One entry for one screen. There were two — appearance and
