@@ -35,7 +35,7 @@ export default function PublicHeader() {
   const profile = useAuthStore((s) => s.profile);
   const loading = useAuthStore((s) => s.loading);
 
-  if (profile) return <AppHeader />;
+  if (profile) return <AppHeader showNav />;
 
   return (
     <AppBar position="sticky" color="inherit" sx={{ bgcolor: 'background.paper' }}>
