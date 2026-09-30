@@ -83,9 +83,18 @@ export type BlogPost = {
    */
   image?: { src: string; alt: string };
 
+  /**
+ * Best-guess category per post - used for the filter pills on the blog
+ * index. Not part of the original schema; assigned when the filter UI
+ * was added. Review/adjust per post as needed.
+ */
+category?: string;
+
   /** The article body, in Markdown. See the fence trap above. */
   content: string;
 };
+
+
 
 /**
  * The posts, newest first.
@@ -119,6 +128,7 @@ export const BLOG_POSTS: BlogPost[] = [
   {
     slug: 'sta-je-projekt-menadzment',
     title: 'Šta je projekt menadžment? Vodič za početnike',
+    category: 'Poslovanje',
     excerpt:
       'Saznajte šta je projekt menadžment, koje su njegove osnovne faze i zašto je ova vještina danas tražena u gotovo svakoj industriji.',
     publishedAt: '2026-06-01',
@@ -155,6 +165,7 @@ Za početak nije potreban formalni certifikat. Dovoljno je razumjeti osnovne poj
   {
     slug: 'tehnike-upravljanja-vremenom',
     title: 'Tehnike upravljanja vremenom koje zaista djeluju',
+    category: 'Lični razvoj',
     excerpt:
       'Pregled provjerenih tehnika za upravljanje vremenom – od Pomodoro tehnike do metode "pojedi žabu" – koje pomažu u borbi protiv prokrastinacije.',
     publishedAt: '2026-06-07',
@@ -190,6 +201,7 @@ Ne postoji univerzalno rješenje – neki ljudi bolje funkcionišu uz kratke int
   {
     slug: 'kako-napisati-biznis-plan',
     title: 'Kako napisati biznis plan: osnove za početnike',
+    category: 'Poslovanje',
     excerpt:
       'Jednostavan vodič kroz ključne dijelove biznis plana – od analize tržišta do finansijske projekcije – za sve koji planiraju pokrenuti posao.',
     publishedAt: '2026-06-13',
@@ -227,6 +239,7 @@ Biznis plan ne mora biti dugačak da bi bio efikasan – bitno je da jasno odgov
   {
     slug: 'liderstvo-vs-menadzment',
     title: 'Liderstvo vs menadžment: koja je razlika?',
+    category: 'Poslovanje',
     excerpt:
       'Iako se često koriste kao sinonimi, liderstvo i menadžment nisu isto. Otkrijte ključne razlike i zašto je oboje bitno za uspješan tim.',
     publishedAt: '2026-06-19',
@@ -259,6 +272,7 @@ Uspješan tim rijetko funkcioniše samo uz dobru organizaciju ili samo uz motiva
   {
     slug: 'uvod-u-agile-i-scrum',
     title: 'Uvod u agilnu metodologiju i Scrum',
+    category: 'IT & tehnologija',
     excerpt:
       'Osnove Agile metodologije i Scrum okvira – kako timovi rade u sprintovima, ko su ključne uloge i zašto je ovaj pristup toliko popularan u IT industriji.',
     publishedAt: '2026-06-25',
@@ -291,6 +305,7 @@ Ovaj pristup omogućava timovima da brzo reaguju na promjene, redovno dobijaju p
   {
     slug: 'sta-je-git',
     title: 'Šta je Git i zašto ga svaki programer treba znati',
+    category: 'Programiranje',
     excerpt:
       'Git je alat koji koristi gotovo svaki programer na svijetu. Saznajte šta je verzionisanje koda, kako Git funkcioniše i zašto je nezaobilazan u IT industriji.',
     publishedAt: '2026-07-01',
@@ -324,6 +339,7 @@ Bez obzira na to da li neko uči web razvoj, mobilne aplikacije ili rad sa podac
   {
     slug: 'html-css-javascript-osnove',
     title: 'HTML vs CSS vs JavaScript: osnove web razvoja',
+    category: 'Programiranje',
     excerpt:
       'Tri osnovna gradivna elementa svake web stranice – HTML, CSS i JavaScript. Jednostavno objašnjenje razlika i uloge svakog od njih.',
     publishedAt: '2026-07-07',
@@ -358,6 +374,7 @@ Za početnike se preporučuje učenje ovim redoslijedom – prvo HTML, zatim CSS
   {
     slug: 'sta-je-cloud-computing',
     title: 'Šta je cloud computing? Jednostavno objašnjenje',
+    category: 'IT & tehnologija',
     excerpt:
       'Cloud computing je promijenio način na koji koristimo tehnologiju. Saznajte šta znači "rad u oblaku" i koje su njegove najveće prednosti.',
     publishedAt: '2026-07-13',
@@ -390,6 +407,7 @@ Cloud computing je osnova modernih poslovnih sistema, pa razumijevanje ovih konc
   {
     slug: 'osnove-kiberneticke-sigurnosti',
     title: 'Osnove kibernetičke sigurnosti: kako se zaštititi online',
+    category: 'IT & tehnologija',
     excerpt:
       'Jednostavan vodič kroz osnovne pojmove kibernetičke sigurnosti i praktični savjeti kako zaštititi svoje podatke i naloge na internetu.',
     publishedAt: '2026-07-19',
@@ -422,6 +440,7 @@ Kibernetička sigurnost ne zahtijeva tehničko obrazovanje – dovoljno je usvoj
   {
     slug: 'sta-je-api',
     title: 'Šta je API? Objašnjeno za početnike',
+    category: 'Programiranje',
     excerpt:
       'API je pojam koji se često spominje u IT svijetu. Saznajte šta zapravo znači, kako funkcioniše i zašto je ključan dio moderne tehnologije.',
     publishedAt: '2026-07-25',
@@ -452,6 +471,7 @@ Razumijevanje API-ja je koristan korak za svakog ko želi da uči programiranje,
   {
     slug: 'kako-brze-nauciti-novu-vjestinu',
     title: 'Kako brže naučiti bilo koju novu vještinu',
+    category: 'Lični razvoj',
     excerpt:
       'Provjerene tehnike učenja koje ubrzavaju usvajanje novih vještina – od aktivnog ponavljanja do metode podučavanja drugih.',
     publishedAt: '2026-07-31',
@@ -482,6 +502,7 @@ Teorija bez prakse rijetko ostaje trajno usvojena. Najbrži napredak se ostvaruj
   {
     slug: 'savjeti-za-javni-govor',
     title: 'Savjeti za javni govor za početnike',
+    category: 'Lični razvoj',
     excerpt:
       'Javni govor je vještina koja se uči i vježba. Evo praktičnih savjeta za savladavanje treme i pripremu uspješnog nastupa pred publikom.',
     publishedAt: '2026-08-06',
@@ -512,6 +533,7 @@ Kao i svaka druga vještina, javni govor se poboljšava isključivo kroz praksu.
   {
     slug: 'kako-izgraditi-licni-brend',
     title: 'Kako izgraditi lični brend online',
+    category: 'Poslovanje',
     excerpt:
       'Lični brend nije rezervisan samo za influensere. Saznajte kako izgraditi prepoznatljivo online prisustvo koje otvara poslovne prilike.',
     publishedAt: '2026-08-12',
@@ -545,6 +567,7 @@ Izgradnja ličnog brenda nije proces koji se dešava preko noći. Potrebno je vr
   {
     slug: 'freelancing-101-kako-poceti',
     title: 'Freelancing 101: kako početi',
+    category: 'Poslovanje',
     excerpt:
       'Sve što trebate znati za početak freelance karijere – od izbora niše i platformi do prvih klijenata i postavljanja cijena.',
     publishedAt: '2026-08-18',
@@ -575,6 +598,7 @@ Bez fiksnog radnog vremena, samodisciplina postaje ključna. Uspješni freelance
   {
     slug: 'osnove-excela',
     title: 'Osnove Excela koje bi svako trebao znati',
+    category: 'IT & tehnologija',
     excerpt:
       'Excel je jedan od najkorisnijih alata u poslovnom svijetu. Pregled osnovnih funkcija i formula koje olakšavaju svakodnevni rad sa podacima.',
     publishedAt: '2026-08-24',
@@ -606,6 +630,21 @@ Pivot tabele omogućavaju brzo sažimanje i analizu velikih setova podataka bez 
 Bez obzira na industriju, poznavanje Excela olakšava svakodnevne zadatke – od vođenja budžeta do analize prodaje. To je vještina koja se traži na gotovo svakom radnom mjestu koje uključuje rad sa podacima, brojevima ili izvještajima.`,
   },
 ];
+
+/**
+ * Rough reading time from word count (200 wpm), used for the "X MIN"
+ * badge. Not stored per post - computed on the fly so it never drifts
+ * out of sync with edits to `content`.
+ */
+export function estimateReadingMinutes(content: string): number {
+  const words = content.trim().split(/\s+/).length;
+  return Math.max(1, Math.round(words / 200));
+}
+
+/** Unique categories in use, for the filter pills - "Sve teme" is added by the UI */
+export const BLOG_CATEGORIES = Array.from(
+  new Set(BLOG_POSTS.map((post) => post.category).filter((c): c is string => Boolean(c))),
+);
 
 /** One post by slug, or undefined so the page can render its 404. */
 export function findBlogPost(slug: string): BlogPost | undefined {
