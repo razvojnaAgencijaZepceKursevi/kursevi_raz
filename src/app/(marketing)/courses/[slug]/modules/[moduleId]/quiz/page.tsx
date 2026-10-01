@@ -2,8 +2,10 @@ import ModuleAccessDenied from '@/components/student/ModuleAccessDenied';
 import QuizTaker from '@/components/student/QuizTaker';
 import { checkModulePageAccess } from '@/lib/auth/modulePageAccess';
 import { createClient } from '@/lib/supabase/server';
+import { NO_INDEX } from '@/lib/seo';
 
-export const metadata = { title: 'Kviz' };
+// Gated course content: never indexed, even though the URL sits under the public /courses.
+export const metadata = { title: 'Kviz', robots: NO_INDEX };
 
 /**
  * Taking a module's quiz.

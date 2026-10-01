@@ -10,6 +10,7 @@ import NextLink from 'next/link';
 import Stack from '@mui/material/Stack';
 import Typography from '@mui/material/Typography';
 import { toast } from '@/store/useToastStore';
+import { SITE } from '@/lib/siteConfig';
 import TextField from '@mui/material/TextField';
 
 /**
@@ -103,9 +104,7 @@ export default function ContactForm() {
         />
 
         <FormControlLabel
-          control={
-            <Checkbox checked={consent} onChange={(e) => setConsent(e.target.checked)} required />
-          }
+          control={<Checkbox checked={consent} onChange={(e) => setConsent(e.target.checked)} />}
           label={
             <Typography variant="body2">
               Pročitao/la sam{' '}
@@ -122,7 +121,7 @@ export default function ContactForm() {
             {submitting ? 'Slanje…' : 'Pošalji upit'}
           </Button>
           <Link
-            href="mailto:info@katedra.ba"
+            href={`mailto:${SITE.contact.email}`}
             underline="hover"
             color="primary"
             sx={{ fontWeight: 600 }}

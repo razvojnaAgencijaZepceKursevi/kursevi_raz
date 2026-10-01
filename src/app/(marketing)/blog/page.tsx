@@ -5,11 +5,14 @@ import ContentCard from '@/components/layout/ContentCard';
 import EmptyState from '@/components/feedback/EmptyState';
 import BlogList from '@/components/blog/BlogList';
 import { BLOG_POSTS, BLOG_CATEGORIES } from '@/lib/blog';
+import { pageMetadata } from '@/lib/seo';
 
-export const metadata = {
-  title: 'Blog - Kursevi',
-  description: 'Savjeti za učenje i teme iz struke.',
-};
+export const metadata = pageMetadata({
+  title: 'Blog — savjeti za učenje i teme iz struke',
+  description:
+    'Kratki tekstovi o tome kako učiti, šta se traži na tržištu rada i kako izgleda posao u IT-u, menadžmentu, marketingu i drugim oblastima.',
+  path: '/blog',
+});
 
 /**
  * The blog index - filter pills + search, a featured post, then a 

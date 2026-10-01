@@ -1,4 +1,5 @@
 import 'server-only';
+import { SITE } from '@/lib/siteConfig';
 
 /**
  * The one email layout, rendered to HTML and plain text together.
@@ -54,7 +55,7 @@ export type EmailContent = {
   footer?: { lines: string[]; link?: { label: string; href: string } };
 };
 
-const BRAND = 'Kursevi';
+const BRAND = SITE.name;
 
 /**
  * Escapes the four characters that can break out of HTML text or an attribute.

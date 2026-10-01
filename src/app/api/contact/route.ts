@@ -2,6 +2,7 @@ import { NextResponse } from 'next/server';
 import { badRequest, parseBody, withRoute } from '@/lib/api/errors';
 import { sendEmail } from '@/lib/email/client';
 import { contactRequestSchema } from '@/lib/schemas/contact.schema';
+import { SITE } from '@/lib/siteConfig';
 
 export const dynamic = 'force-dynamic';
 
@@ -10,8 +11,8 @@ export const dynamic = 'force-dynamic';
  *
  * No auth guard: this is meant to be reachable by a signed-out visitor.
  * Not tied to any table - this only ever becomes one outbound email via
- * sendEmail(), sent to CONTACT_EMAIL_TO (falling back to info@katedra.ba
- * if that env var isn't set).
+ * sendEmail(), sent to CONTACT_EMAIL_TO (falling back to the public
+ * SITE.contact.email if that env var isn't set).
  *
  * sendEmail() never throws (see src/lib/email/client.ts) - it returns a
  * status instead. 'sent' is the only success case reported to the
@@ -37,7 +38,7 @@ function escapeHtml(value: string): string {
 export const POST = withRoute(async (req) => {
   const body = await parseBody(req, contactRequestSchema);
 
-  const to = process.env.CONTACT_EMAIL_TO?.trim() || 'info@katedra.ba';
+  const to = process.env.CONTACT_EMAIL_TO?.trim() || SITE.contact.email;
 
   const result = await sendEmail({
     to,

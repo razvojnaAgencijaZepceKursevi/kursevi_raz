@@ -2,6 +2,10 @@ import { redirect } from 'next/navigation';
 import Box from '@mui/material/Box';
 import AppHeader from '@/components/layout/AppHeader';
 import { getAuthContext } from '@/lib/auth/guards';
+import { NO_INDEX } from '@/lib/seo';
+
+/** Behind sign-in: nothing here belongs in search results. Inherited by every page in the group. */
+export const metadata = { robots: NO_INDEX };
 
 /**
  * Second guard beneath the proxy: the proxy is an optimistic check that runs

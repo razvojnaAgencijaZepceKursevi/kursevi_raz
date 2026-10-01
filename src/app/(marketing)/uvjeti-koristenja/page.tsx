@@ -1,9 +1,12 @@
 import LegalDocumentPage from '@/components/layout/LegalDocumentPage';
+import { SITE } from '@/lib/siteConfig';
+import { pageMetadata } from '@/lib/seo';
 
-export const metadata = {
-  title: 'Uvjeti korištenja — Kursevi',
-  description: 'Uvjeti korištenja platforme Kursevi.',
-};
+export const metadata = pageMetadata({
+  title: 'Uvjeti korištenja',
+  description: `Uvjeti korištenja platforme ${SITE.name}: upis na kurs, plaćanje, pristup materijalima, certifikati i prava i obaveze korisnika.`,
+  path: '/uvjeti-koristenja',
+});
 
 /**
  * Terms of service.

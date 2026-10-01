@@ -3,6 +3,7 @@ import { requireUser } from '@/lib/auth/guards';
 import { createClient } from '@/lib/supabase/server';
 import { renderCertificatePdf } from '@/lib/pdf/certificate';
 import { formatDate } from '@/lib/format';
+import { publicEnv } from '@/lib/env';
 import { z } from '@/lib/openapi/zod';
 
 export const dynamic = 'force-dynamic';
@@ -50,7 +51,7 @@ export const GET = withRoute(async (req, ctx: Ctx) => {
 
   if (!certificate) throw notFound('No certificate found for that identifier');
 
-  const base = (process.env.NEXT_PUBLIC_SITE_URL ?? 'http://localhost:3000').replace(/\/$/, '');
+  const base = publicEnv.siteUrl;
 
   const pdf = await renderCertificatePdf({
     readableId: certificate.readable_id,

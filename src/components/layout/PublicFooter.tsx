@@ -6,7 +6,7 @@ import Stack from '@mui/material/Stack';
 import Typography from '@mui/material/Typography';
 import { FEATURES } from '@/lib/features';
 
-import { SITE_NAME } from '@/lib/siteConfig';
+import { SITE } from '@/lib/siteConfig';
 import Logo from '@/components/layout/Logo';
 
 /**
@@ -48,17 +48,24 @@ const SECTIONS: { title: string; links: { label: string; href: string }[] }[] = 
     ],
   },
   {
-    // TODO: replace with real contact details / social URLs
+    // Contact details and social URLs live in siteConfig.ts.
     title: 'Kontakt',
     links: [
-      { label: 'info@katedra.ba', href: 'mailto:info@katedra.ba' },
-      { label: '+387 33 000 000', href: 'tel:+38733000000' },
-      { label: 'Instagram', href: 'https://instagram.com' },
-      { label: 'LinkedIn', href: 'https://linkedin.com' },
-      { label: 'Facebook', href: 'https://facebook.com' },
+      { label: SITE.contact.email, href: `mailto:${SITE.contact.email}` },
+      { label: SITE.contact.phone.display, href: `tel:${SITE.contact.phone.tel}` },
+      ...SITE.social.filter((profile) => profile.href !== ''),
     ],
   },
 ];
+
+/** "Katedra d.o.o. · Adresa · ID: …" — only the parts that are filled in. */
+const companyLine = [
+  SITE.company.legalName,
+  SITE.company.address,
+  SITE.company.idNumber && `ID: ${SITE.company.idNumber}`,
+]
+  .filter(Boolean)
+  .join(' · ');
 
 export default function PublicFooter() {
   return (
@@ -74,7 +81,7 @@ export default function PublicFooter() {
               <Logo />
             </Typography>
             <Typography variant="body2" color="text.secondary">
-              Platforma za online kurseve s pregledom zadataka i certifikatom po završetku.
+              {SITE.description}
             </Typography>
           </Stack>
 
@@ -103,8 +110,8 @@ export default function PublicFooter() {
         <Divider sx={{ my: 3 }} />
 
         <Typography variant="caption" color="text.secondary">
-          © {new Date().getFullYear()} {SITE_NAME}. Sva prava zadržana. Placeholder podaci o firmi i
-          registraciji.
+          © {new Date().getFullYear()} {SITE.name}. Sva prava zadržana.
+          {companyLine && ` ${companyLine}`}
         </Typography>
       </Container>
     </Box>

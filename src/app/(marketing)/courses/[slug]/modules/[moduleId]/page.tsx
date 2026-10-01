@@ -1,8 +1,10 @@
 import ModuleAccessDenied from '@/components/student/ModuleAccessDenied';
 import ModuleViewer from '@/components/student/ModuleViewer';
 import { checkModulePageAccess } from '@/lib/auth/modulePageAccess';
+import { NO_INDEX } from '@/lib/seo';
 
-export const metadata = { title: 'Modul' };
+// Gated course content: never indexed, even though the URL sits under the public /courses.
+export const metadata = { title: 'Modul', robots: NO_INDEX };
 
 /**
  * One module, as a student works through it.

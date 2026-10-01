@@ -6,19 +6,21 @@ import Link from '@mui/material/Link';
 import Stack from '@mui/material/Stack';
 import Typography from '@mui/material/Typography';
 import ContactForm from '@/components/contact/ContactForm';
+import { SITE } from '@/lib/siteConfig';
+import { pageMetadata } from '@/lib/seo';
 
-export const metadata = {
-  title: 'Kontakt - Kursevi',
-  description: 'Kako da stupite u kontakt sa timom platforme Kursevi.',
-};
+export const metadata = pageMetadata({
+  title: 'Kontakt',
+  description: `Pitanja o kursevima, upisu, plaćanju ili certifikatu? Piši timu platforme ${SITE.name} ili nazovi radnim danima — u pravilu odgovaramo istog dana.`,
+  path: '/kontakt',
+});
 
 /**
  * Contact page - form on the left, direct contact details and a few
  * "read this first" links on the right.
  *
- * Phone number and support email below are placeholders (same
- * placeholder as used in PublicFooter) - swap both once real
- * details are confirmed.
+ * Every contact detail comes from `SITE.contact` in siteConfig.ts,
+ * shared with PublicFooter, so the two can't disagree.
  *
  * The form itself lives in <ContactForm> (a Client Component, for its
  * local state); this page stays a Server Component around it.
@@ -57,8 +59,8 @@ export default function ContactPage() {
                 <Typography variant="body2" color="text.secondary">
                   Opšti upiti
                 </Typography>
-                <Link href="mailto:info@katedra.ba" variant="h6" underline="hover">
-                  info@katedra.ba
+                <Link href={`mailto:${SITE.contact.email}`} variant="h6" underline="hover">
+                  {SITE.contact.email}
                 </Link>
               </Stack>
 
@@ -66,8 +68,8 @@ export default function ContactPage() {
                 <Typography variant="body2" color="text.secondary">
                   Podrška studentima
                 </Typography>
-                <Link href="mailto:podrska@katedra.ba" variant="h6" underline="hover">
-                  podrska@katedra.ba
+                <Link href={`mailto:${SITE.contact.supportEmail}`} variant="h6" underline="hover">
+                  {SITE.contact.supportEmail}
                 </Link>
               </Stack>
 
@@ -75,11 +77,11 @@ export default function ContactPage() {
                 <Typography variant="body2" color="text.secondary">
                   Telefon
                 </Typography>
-                <Link href="tel:+38733000000" variant="h6" underline="hover">
-                  +387 33 000 000
+                <Link href={`tel:${SITE.contact.phone.tel}`} variant="h6" underline="hover">
+                  {SITE.contact.phone.display}
                 </Link>
                 <Typography variant="body2" color="text.secondary">
-                  Ponedjeljak – petak, 09:00 – 17:00
+                  {SITE.contact.hours}
                 </Typography>
               </Stack>
             </Stack>

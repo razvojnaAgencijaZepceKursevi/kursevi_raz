@@ -1,109 +1,21 @@
-'use client';
+import CourseCatalogue from '@/components/courses/CourseCatalogue';
+import { pageMetadata } from '@/lib/seo';
+import { SITE } from '@/lib/siteConfig';
 
-import Grid from '@mui/material/Grid';
-import Stack from '@mui/material/Stack';
-import PageContainer from '@/components/layout/PageContainer';
-import PageHeader from '@/components/layout/PageHeader';
-import QueryState from '@/components/feedback/QueryState';
-import EmptyState from '@/components/feedback/EmptyState';
-import SearchField from '@/components/data/SearchField';
-import FilterSelect from '@/components/data/FilterSelect';
-import PaginationBar from '@/components/data/PaginationBar';
-import CourseCard from '@/components/courses/CourseCard';
-import { useCourses } from '@/hooks/useCourses';
-import { useCategoryOptions } from '@/hooks/useCategories';
-import { useListParams } from '@/hooks/useListParams';
+/*
+ * The canonical is `/courses` for every search, filter and page of the list,
+ * so `?categoryId=…&page=3` is never indexed as a page of its own.
+ */
+export const metadata = pageMetadata({
+  title: 'Online kursevi',
+  description: `Pregled svih kurseva na platformi ${SITE.name}: video lekcije, materijali, zadaci s povratnom informacijom predavača i certifikat po završetku.`,
+  path: '/courses',
+});
 
 /**
- * The public course catalogue.
- *
- * `GET /api/courses` returns published courses only — that is enforced in the
- * route and by RLS, not by a filter here — so this page is safe to render for
- * anyone, signed in or not.
- *
- * ## Why it doesn't reuse `<CourseGrid>`
- *
- * That component is the *admin* grid: it hardcodes an `/admin/courses/{id}/edit`
- * href and renders `<CourseActions>` in each footer. `<CourseCard>` underneath it
- * was written to serve both audiences, and it already takes `href` and
- * `showStatus` as props, so the catalogue composes the card directly rather than
- * teaching the grid a second mode.
- *
- * `showStatus` stays off here on purpose — "Nacrt" is an editorial state, and
- * every course on this page is published by definition.
+ * `/courses` — a Server Component shell, so the route can export metadata. The
+ * interactive catalogue is `<CourseCatalogue>`.
  */
 export default function CourseCataloguePage() {
-  const list = useListParams({ categoryId: '' }, { pageSize: 12 });
-  const courses = useCourses(list.queryParams);
-  const categories = useCategoryOptions();
-
-  return (
-    <PageContainer>
-      <PageHeader title="Kursevi" description="Izaberite kurs i pošaljite zahtjev za pristup." />
-
-      <Stack
-        direction={{ xs: 'column', md: 'row' }}
-        spacing={2}
-        sx={{ alignItems: { md: 'center' } }}
-      >
-        <Stack sx={{ flex: 1, minWidth: 0, maxWidth: { md: 360 } }}>
-          <SearchField
-            value={list.search}
-            onChange={list.setSearch}
-            placeholder="Pretraži kurseve…"
-          />
-        </Stack>
-
-        <FilterSelect
-          label="Kategorija"
-          value={list.filters.categoryId}
-          onChange={(value) => list.setFilter('categoryId', value)}
-          disabled={categories.isPending}
-          allLabel="Sve kategorije"
-          options={categories.options}
-        />
-      </Stack>
-
-      <QueryState
-        skeleton="grid"
-        query={courses}
-        errorTitle="Kurseve nije moguće učitati"
-        isEmpty={(page) => page.data.length === 0}
-        empty={
-          list.hasActiveFilters ? (
-            <EmptyState
-              title="Nema rezultata"
-              description="Nijedan kurs ne odgovara zadatoj pretrazi. Pokušajte sa drugim pojmom ili kategorijom."
-            />
-          ) : (
-            <EmptyState
-              title="Još nema objavljenih kurseva"
-              description="Uskoro dodajemo sadržaj — svratite ponovo."
-            />
-          )
-        }
-      >
-        {(page) => (
-          <>
-            <Grid container spacing={2}>
-              {page.data.map((course) => (
-                <Grid key={course.id} size={{ xs: 12, sm: 6, lg: 4 }}>
-                  <CourseCard
-                    course={course}
-                    // Slug, not id: this is the canonical public address.
-                    href={`/courses/${course.slug}`}
-                    categoryName={
-                      course.category_id ? categories.names.get(course.category_id) : undefined
-                    }
-                  />
-                </Grid>
-              ))}
-            </Grid>
-
-            <PaginationBar meta={page.meta} onChange={list.setPage} />
-          </>
-        )}
-      </QueryState>
-    </PageContainer>
-  );
+  return <CourseCatalogue />;
 }

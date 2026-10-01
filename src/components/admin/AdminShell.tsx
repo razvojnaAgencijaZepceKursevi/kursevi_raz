@@ -11,6 +11,7 @@ import Typography from '@mui/material/Typography';
 import AdminNavList from './AdminNavList';
 import type { StaffRole } from './adminNav';
 import AppHeader from '@/components/layout/AppHeader';
+import { SITE } from '@/lib/siteConfig';
 
 const SIDEBAR_WIDTH = 264;
 
@@ -49,7 +50,7 @@ export default function AdminShell({
       }}
     >
       <Typography variant="h5" component="span">
-        Kursevi
+        {SITE.name}
       </Typography>
       <Typography
         variant="overline"

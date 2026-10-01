@@ -2,8 +2,10 @@ import ModuleAccessDenied from '@/components/student/ModuleAccessDenied';
 import TaskWorkspace from '@/components/student/TaskWorkspace';
 import { checkModulePageAccess } from '@/lib/auth/modulePageAccess';
 import { createClient } from '@/lib/supabase/server';
+import { NO_INDEX } from '@/lib/seo';
 
-export const metadata = { title: 'Zadatak' };
+// Gated course content: never indexed, even though the URL sits under the public /courses.
+export const metadata = { title: 'Zadatak', robots: NO_INDEX };
 
 /**
  * A student's task screen: the brief, and the thread about their solution.

@@ -5,11 +5,35 @@ import HowItWorks from '@/components/landing/HowItWorks';
 import WhyUs from '@/components/landing/WhyUs';
 import Faq from '@/components/landing/Faq';
 import CtaBanner from '@/components/landing/CtaBanner';
+import { SITE } from '@/lib/siteConfig';
+import JsonLd from '@/components/seo/JsonLd';
+import { absoluteUrl, organizationJsonLd, pageMetadata } from '@/lib/seo';
 
-export const metadata = {
-  title: 'Kursevi — online kursevi sa certifikatom',
+export const metadata = pageMetadata({
+  title: `${SITE.name} — ${SITE.tagline}`,
+  absoluteTitle: true,
   description:
-    'Online kursevi sa video lekcijama, materijalima, zadacima i certifikatom po završetku.',
+    'Online kursevi s video lekcijama, materijalima i zadacima koje pregleda predavač. Uči svojim tempom i dobij certifikat po završetku.',
+  path: '/',
+});
+
+/*
+ * Who runs the site, and what the site is. Google uses the pair for the name
+ * and logo it shows beside results; it lives on the home page only, which is
+ * where search engines look for it.
+ */
+const SITE_JSON_LD = {
+  '@graph': [
+    organizationJsonLd(),
+    {
+      '@type': 'WebSite',
+      '@id': absoluteUrl('/#website'),
+      name: SITE.name,
+      url: absoluteUrl('/'),
+      inLanguage: 'bs',
+      publisher: { '@id': absoluteUrl('/#organization') },
+    },
+  ],
 };
 
 /**
@@ -50,6 +74,7 @@ export const metadata = {
 export default function LandingPage() {
   return (
     <>
+      <JsonLd data={SITE_JSON_LD} />
       <Hero />
       <StatsBar />
       <FeaturedCourses />

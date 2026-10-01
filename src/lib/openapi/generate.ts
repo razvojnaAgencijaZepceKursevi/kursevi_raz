@@ -1,6 +1,7 @@
 import { OpenApiGeneratorV3 } from '@asteasolutions/zod-to-openapi';
 import { registry } from './registry';
 import { publicEnv } from '@/lib/env';
+import { SITE } from '@/lib/siteConfig';
 
 /**
  * Builds the OpenAPI document from the same Zod schemas the route handlers use
@@ -13,7 +14,7 @@ export function generateOpenApiDocument() {
   return generator.generateDocument({
     openapi: '3.0.0',
     info: {
-      title: 'Kursevi API',
+      title: `${SITE.name} API`,
       version: '1.0.0',
       description:
         'Backend API for the online courses platform. Every schema below is the exact object ' +

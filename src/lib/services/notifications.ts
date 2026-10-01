@@ -3,6 +3,7 @@ import 'server-only';
 import { after } from 'next/server';
 import { createServiceRoleClient } from '@/lib/supabase/service-role';
 import { sendEmail } from '@/lib/email/client';
+import { publicEnv } from '@/lib/env';
 import { renderEmail } from '@/lib/email/template';
 import type { NotificationType } from '@/lib/notifications/catalog';
 
@@ -63,7 +64,7 @@ export type NotifyInput = {
 
 /** Absolute URL for an email button. Relative links are meaningless in mail. */
 function absoluteUrl(path: string): string {
-  const base = (process.env.NEXT_PUBLIC_SITE_URL ?? 'http://localhost:3000').replace(/\/$/, '');
+  const base = publicEnv.siteUrl;
   return path.startsWith('http') ? path : `${base}${path.startsWith('/') ? path : `/${path}`}`;
 }
 

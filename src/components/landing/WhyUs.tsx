@@ -9,7 +9,7 @@ import Stack from '@mui/material/Stack';
 import Typography from '@mui/material/Typography';
 import Reveal from '@/components/landing/Reveal';
 import Section from '@/components/landing/Section';
-import { SITE_NAME } from '@/lib/siteConfig';
+import { SITE } from '@/lib/siteConfig';
 
 /**
  * "Zašto Katedra" — the credibility section. A brand-coloured statement panel
@@ -81,7 +81,7 @@ export default function WhyUs() {
                     variant="overline"
                     sx={{ letterSpacing: 1.2, color: 'inherit', opacity: 0.85 }}
                   >
-                    Zašto {SITE_NAME}
+                    Zašto {SITE.name}
                   </Typography>
                   <Typography variant="h3" sx={{ fontSize: { xs: 28, md: 38 } }}>
                     Znanje koje se provjerava, ne samo gleda

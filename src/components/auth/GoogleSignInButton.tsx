@@ -7,6 +7,7 @@ import Divider from '@mui/material/Divider';
 import Stack from '@mui/material/Stack';
 import Typography from '@mui/material/Typography';
 import { createClient } from '@/lib/supabase/client';
+import { FEATURES } from '@/lib/features';
 
 /**
  * "Continue with Google".
@@ -47,7 +48,7 @@ export default function GoogleSignInButton({
 
   // Rendering a provider button that cannot work is worse than not offering it,
   // so the whole block is opt-in.
-  if (process.env.NEXT_PUBLIC_GOOGLE_AUTH_ENABLED !== 'true') return null;
+  if (!FEATURES.googleAuth) return null;
 
   async function signIn() {
     setPending(true);

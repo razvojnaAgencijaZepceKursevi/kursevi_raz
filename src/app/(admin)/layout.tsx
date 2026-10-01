@@ -1,6 +1,10 @@
 import { redirect } from 'next/navigation';
 import AdminShell from '@/components/admin/AdminShell';
 import { getAuthContext } from '@/lib/auth/guards';
+import { NO_INDEX } from '@/lib/seo';
+
+/** Behind sign-in: nothing here belongs in search results. Inherited by every page in the group. */
+export const metadata = { robots: NO_INDEX };
 
 /**
  * The admin group's guard and chrome.

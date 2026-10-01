@@ -1731,8 +1731,9 @@ course-scoped page, add it there or it is URL-only.
 ### Google sign-in is wired but off
 
 - Supabase performs the OAuth exchange itself, so the client id and secret go in the
-  **Supabase dashboard**, not `.env.local`. `GOOGLE_OAUTH_CLIENT_ID` / `_SECRET` are
-  recorded in `.env.example` for reference and nothing reads them at runtime.
+  **Supabase dashboard**, not `.env.local`. They used to sit in `.env.example` "for
+  reference"; they were removed because nothing reads them, and an unread variable on
+  Vercel looks like configuration that matters.
 
 - `NEXT_PUBLIC_GOOGLE_AUTH_ENABLED` is the switch the UI reads, and `<GoogleSignInButton>`
   renders `null` unless it is `"true"`. A visible provider button that 400s is worse than no
@@ -1946,6 +1947,76 @@ course-scoped page, add it there or it is URL-only.
   support, blog, newsletter, teachers, themeSwitch, googleAuth. `FEATURE_ROUTES` maps the
   ones that own URLs; `themeSwitch` and `googleAuth` are absent from it because they are
   controls inside pages that stay reachable.
+
+### Env vars versus `siteConfig.ts`
+
+- **The test: is it secret, or does it differ between local, preview and production?**
+  Then it is an env var (`.env.example`, which also says which Vercel environment needs
+  each one). Otherwise it is config in `src/lib/siteConfig.ts` (`SITE`): brand name,
+  tagline, public contact emails, phone, hours, social links, company legal details.
+  Those are the same everywhere and public. As env vars they would be untyped strings
+  copied by hand into three Vercel environments, edited with no review, and still need a
+  redeploy (`NEXT_PUBLIC_*` is inlined at build time).
+
+- **Payment details and legal texts are neither:** they live in the database because an
+  admin must be able to correct them without a deploy.
+
+- **`SITE.name` is the only spelling of the brand.** Page titles, email, the certificate
+  PDF, the admin shell and the API docs had drifted to the old name "Kursevi" while the
+  logo said "Katedra". The root layout's `title.template` appends the brand, so a page
+  declares only its own name (`title: 'Kontakt'`); the landing page uses
+  `title.absolute`. Note "Kursevi" is still correct as the *nav label* for the courses
+  list — only the brand moved.
+
+- **`CONTACT_EMAIL_TO` is env even though `SITE.contact.email` exists**, because it is
+  the one contact value that should differ per environment: a preview's test messages
+  must not land in the real inbox. Unset, it falls back to the public address.
+
+- **`publicEnv.siteUrl` is the only reader of `NEXT_PUBLIC_SITE_URL`.** Three call sites
+  had their own `?? 'http://localhost:3000'`. It falls back to Vercel's
+  `NEXT_PUBLIC_VERCEL_URL`, so leave `NEXT_PUBLIC_SITE_URL` unset for **Preview** and
+  each preview links to itself; set it only for Production.
+
+### SEO: every public page goes through `pageMetadata()`
+
+- **`src/lib/seo.ts` builds the whole set** — title, description, canonical, Open Graph,
+  Twitter — from `{ title, description, path, image? }`. Next merges metadata
+  *shallowly*: a page without its own `openGraph` inherits the layout's, `og:title`
+  included, so every share preview read "Katedra". A new public page uses the helper;
+  hand-writing `metadata` brings that bug back. Descriptions are 120–160 characters,
+  ijekavian, and use the informal "ti" like the rest of the marketing copy.
+
+- **A Client Component page cannot export metadata, and there are two ways round it.**
+  The course pages are split: `page.tsx` is a Server Component owning metadata and
+  JSON-LD, the body moved to `<CourseCatalogue>` / `<CoursePageView>`. The auth pages
+  instead got a metadata-only `layout.tsx` each — enough for a static title, and no
+  structured data to render. Pick the split when the page needs data or JSON-LD.
+
+- **Course metadata reads through `createPublicClient()`** (anon key, no cookies), via
+  `src/lib/server/courses.ts`. The cookie client runs as the viewer, so an admin
+  previewing a draft would have given it public metadata — and reading cookies would
+  make the sitemap dynamic. RLS still applies; it bypasses nothing.
+
+- **The default share image is the `/og` route, not an `opengraph-image.tsx` file.**
+  File-based metadata outranks the `metadata` object, so a root `opengraph-image` would
+  replace every blog cover and course thumbnail with the generic card.
+
+- **Indexing is off on Vercel previews** (`publicEnv.isIndexable`, from Vercel's own
+  `NEXT_PUBLIC_VERCEL_ENV`): `robots.txt` disallows everything and the root layout emits
+  `noindex`. `pageMetadata()` omits `robots` rather than setting it, so no page can turn
+  indexing back on. Signed-in groups, module/quiz/task pages and the password flow are
+  `noindex` everywhere.
+
+- **`/blog/[slug]` has `dynamicParams = false`.** With a `loading.tsx` the response is
+  committed as 200 before `notFound()` runs, so Next falls back to injecting `noindex` —
+  a "soft 404". The blog is a fixed array, so unknown slugs are now a real 404 status.
+  `/courses/[slug]` cannot do the same (drafts must stay previewable) and keeps the
+  `noindex` fallback. Note `dynamicParams` is only honoured by a production build;
+  `next dev` still answers 200.
+
+- **The sitemap follows the feature flags** and revalidates hourly, so a newly published
+  course appears without a deploy. `priority`/`changefreq` are omitted (Google ignores
+  them); `lastModified` is given only where it is real.
 
 ### Signing out lives in the user menu
 

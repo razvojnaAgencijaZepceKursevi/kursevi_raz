@@ -21,8 +21,36 @@ export const publicEnv = {
   get supabaseAnonKey() {
     return required(process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY, 'NEXT_PUBLIC_SUPABASE_ANON_KEY');
   },
+  /**
+   * The app's own origin, without a trailing slash: auth redirects, links in
+   * emails and notifications, the certificate's verification line.
+   *
+   * Resolution order, so each environment needs as little as possible:
+   * 1. `NEXT_PUBLIC_SITE_URL` — set it for **Production** (the custom domain).
+   * 2. `NEXT_PUBLIC_VERCEL_URL` — Vercel provides this per deployment, so a
+   *    **Preview** deployment links to itself rather than to production. Leave
+   *    `NEXT_PUBLIC_SITE_URL` unset for Preview to get this.
+   * 3. `http://localhost:3000` — local development.
+   */
   get siteUrl() {
-    return process.env.NEXT_PUBLIC_SITE_URL ?? 'http://localhost:3000';
+    const vercelUrl = process.env.NEXT_PUBLIC_VERCEL_URL;
+    const url =
+      process.env.NEXT_PUBLIC_SITE_URL ||
+      (vercelUrl ? `https://${vercelUrl}` : 'http://localhost:3000');
+    return url.replace(/\/$/, '');
+  },
+  /**
+   * Whether search engines may index this deployment.
+   *
+   * False on Vercel Preview and Development deployments, which serve the same
+   * pages at throwaway `*.vercel.app` addresses — indexed, they would compete
+   * with the real site as duplicate content. `NEXT_PUBLIC_VERCEL_ENV` is set by
+   * Vercel itself, so nothing needs configuring; anywhere else (local, another
+   * host) it is absent and indexing is allowed.
+   */
+  get isIndexable() {
+    const vercelEnv = process.env.NEXT_PUBLIC_VERCEL_ENV;
+    return vercelEnv === undefined || vercelEnv === 'production';
   },
 };
 

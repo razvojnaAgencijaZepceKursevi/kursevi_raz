@@ -4,6 +4,7 @@ import fs from 'node:fs/promises';
 import path from 'node:path';
 import { PDFDocument, rgb, type PDFFont, type PDFPage } from 'pdf-lib';
 import fontkit from '@pdf-lib/fontkit';
+import { SITE } from '@/lib/siteConfig';
 
 /**
  * Draws the certificate as a real A4 PDF.
@@ -145,10 +146,10 @@ export async function renderCertificatePdf(input: CertificateDocument): Promise<
   const display = await doc.embedFont(semibold, { subset: false, features });
 
   doc.setTitle(`Certifikat ${input.readableId} — ${input.courseName}`);
-  doc.setAuthor('Kursevi');
+  doc.setAuthor(SITE.name);
   doc.setSubject(`Certifikat o završenom kursu za ${input.studentName}`);
-  doc.setCreator('Kursevi');
-  doc.setProducer('Kursevi');
+  doc.setCreator(SITE.name);
+  doc.setProducer(SITE.name);
 
   const page = doc.addPage([PAGE_WIDTH, PAGE_HEIGHT]);
 
@@ -255,7 +256,7 @@ export async function renderCertificatePdf(input: CertificateDocument): Promise<
     thickness: 0.75,
     color: rgb(0.8, 0.78, 0.74),
   });
-  drawCentred(page, 'Kursevi', { y: 176, size: 14, font: display, color: INK });
+  drawCentred(page, SITE.name, { y: 176, size: 14, font: display, color: INK });
   drawCentred(page, 'Izdavalac certifikata', { y: 161, size: 9, font: body, color: MUTED });
 
   /*

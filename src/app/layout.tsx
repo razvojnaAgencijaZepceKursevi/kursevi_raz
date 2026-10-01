@@ -10,6 +10,9 @@ import QueryProvider from '@/lib/query/QueryProvider';
 import AuthProvider from '@/components/AuthProvider';
 import ToastHost from '@/components/feedback/ToastHost';
 import { NavProgressBar } from '@/components/feedback/NavProgress';
+import { SITE } from '@/lib/siteConfig';
+import { publicEnv } from '@/lib/env';
+import { DEFAULT_OG_IMAGE, NO_INDEX } from '@/lib/seo';
 
 const geistSans = Geist({
   variable: '--font-geist-sans',
@@ -21,9 +24,29 @@ const geistMono = Geist_Mono({
   subsets: ['latin'],
 });
 
+/*
+ * Defaults for every page. Public pages override all of this through
+ * `pageMetadata()` in `src/lib/seo.ts`; these cover the rest.
+ *
+ * - `template` appends the brand to every title, so a page declares only its
+ *   own name (`title: 'Kontakt'` → "Kontakt — Katedra").
+ * - `metadataBase` turns relative canonical and image paths into absolute URLs,
+ *   which both require.
+ * - `robots` blocks indexing on Vercel preview deployments. A page cannot turn
+ *   it back on: `pageMetadata()` never emits `robots` unless it is blocking too.
+ */
 export const metadata: Metadata = {
-  title: 'Kursevi',
-  description: 'Online courses platform',
+  metadataBase: new URL(publicEnv.siteUrl),
+  applicationName: SITE.name,
+  title: { default: SITE.name, template: `%s — ${SITE.name}` },
+  description: SITE.description,
+  openGraph: {
+    type: 'website',
+    siteName: SITE.name,
+    locale: 'bs_BA',
+    images: [DEFAULT_OG_IMAGE],
+  },
+  ...(!publicEnv.isIndexable && { robots: NO_INDEX }),
 };
 
 export default function RootLayout({

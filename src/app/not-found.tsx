@@ -5,7 +5,7 @@ import PageContainer from '@/components/layout/PageContainer';
 import ContentCard from '@/components/layout/ContentCard';
 import EmptyState from '@/components/feedback/EmptyState';
 
-export const metadata = { title: 'Stranica nije pronađena — Kursevi' };
+export const metadata = { title: 'Stranica nije pronađena' };
 
 /**
  * 404, for an unmatched URL anywhere and for any `notFound()` without a nearer
