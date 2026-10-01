@@ -1,5 +1,7 @@
 'use client';
 
+import * as React from 'react';
+import { useSearchParams } from 'next/navigation';
 import Grid from '@mui/material/Grid';
 import Stack from '@mui/material/Stack';
 import PageContainer from '@/components/layout/PageContainer';
@@ -37,7 +39,18 @@ import { useListParams } from '@/hooks/useListParams';
  * every course on this page is published by definition.
  */
 export default function CourseCatalogue() {
-  const list = useListParams({ categoryId: '' }, { pageSize: 12 });
+  /*
+   * `?categoryId=` is how the footer's category links land here pre-filtered.
+   * Read for the initial state, and synced afterwards: a footer click while
+   * already on /courses changes the URL without remounting this component.
+   */
+  const urlCategoryId = useSearchParams().get('categoryId') ?? '';
+  const list = useListParams({ categoryId: urlCategoryId }, { pageSize: 12 });
+  const { setFilter } = list;
+  React.useEffect(() => {
+    setFilter('categoryId', urlCategoryId);
+  }, [urlCategoryId, setFilter]);
+
   const courses = useCourses(list.queryParams);
   const categories = useCategoryOptions();
 

@@ -3,12 +3,14 @@ import Stack from '@mui/material/Stack';
 import Typography from '@mui/material/Typography';
 import AnimatedNumber from '@/components/landing/AnimatedNumber';
 import Section from '@/components/landing/Section';
+import { SITE } from '@/lib/siteConfig';
 
 /**
  * Row of headline stats, shown directly under the hero.
  *
- * Numbers are hardcoded placeholders (see STATS below) — swap them for real
- * figures, or a hook pulling actual data, once that exists.
+ * The figures come from `SITE.stats` in `src/lib/siteConfig.ts`. An empty
+ * list renders nothing, which is how to hide the band until there are real
+ * numbers to show.
  *
  * ## It used to be invisible
  *
@@ -22,19 +24,17 @@ import Section from '@/components/landing/Section';
  *
  * Used once, directly after `<Hero />` in `(marketing)/page.tsx`.
  */
-const STATS = [
-  { target: 42, suffix: '', thousands: false, label: 'OBJAVLJENA KURSA U PET OBLASTI' },
-  { target: 6800, suffix: '', thousands: true, label: 'REGISTROVANIH STUDENATA' },
-  { target: 48, suffix: 'h', thousands: false, label: 'ROK ZA PREGLED PREDANOG ZADATKA' },
-  { target: 91, suffix: '%', thousands: false, label: 'STUDENATA ZAVRŠI UPISANI KURS' },
-];
-
 export default function StatsBar() {
+  if (SITE.stats.length === 0) return null;
+
+  // Four figures share a desktop row; fewer spread to fill it.
+  const mdSize = 12 / Math.min(SITE.stats.length, 4);
+
   return (
     <Section tone="tint" py={{ xs: 5, md: 6 }}>
       <Grid container spacing={{ xs: 4, sm: 3 }}>
-        {STATS.map((stat, index) => (
-          <Grid key={stat.label} size={{ xs: 6, md: 3 }}>
+        {SITE.stats.map((stat, index) => (
+          <Grid key={stat.label} size={{ xs: 6, md: mdSize }}>
             <Stack
               spacing={0.75}
               sx={{
@@ -56,9 +56,9 @@ export default function StatsBar() {
                 sx={{ fontWeight: 700, fontSize: { xs: 34, md: 44 }, lineHeight: 1 }}
               >
                 <AnimatedNumber
-                  target={stat.target}
-                  suffix={stat.suffix}
-                  thousands={stat.thousands}
+                  target={stat.value}
+                  suffix={stat.suffix ?? ''}
+                  thousands={stat.value >= 1000}
                 />
               </Typography>
               <Typography

@@ -1961,6 +1961,22 @@ course-scoped page, add it there or it is URL-only.
 - **Payment details and legal texts are neither:** they live in the database because an
   admin must be able to correct them without a deploy.
 
+- **`SITE` holds the facts copy *quotes*, not the copy itself.** Besides identity and
+  contact details it carries `service` (reply time, review hours) and `stats`, because
+  each of those appeared in several sentences that had already drifted apart (three
+  wordings of "how fast we reply"). Section prose stays in its component. The test for
+  adding a field: is it a fact that more than one sentence states, or that the client
+  will predictably change? A sentence that quotes one interpolates it, e.g.
+  `odgovaramo {SITE.service.replyTime}` — so a `replyTime` value must read as the end
+  of a sentence. `stats: []` hides the band.
+
+- **Footer categories come from the database, not config** (`listFooterCategories`,
+  only categories with a published course). A footer link filters by category **id**, and
+  ids differ per database, so no hand-written list can be right in both staging and
+  production. The old list linked to `?category=slug`, which the catalogue never read;
+  `<CourseCatalogue>` now takes `?categoryId=` from the URL and re-syncs on change,
+  because a footer click while already on `/courses` does not remount it.
+
 - **`SITE.name` is the only spelling of the brand.** Page titles, email, the certificate
   PDF, the admin shell and the API docs had drifted to the old name "Kursevi" while the
   logo said "Katedra". The root layout's `title.template` appends the brand, so a page

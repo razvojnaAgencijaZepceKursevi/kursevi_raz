@@ -22,8 +22,11 @@
  *   able to correct an account number without a deploy.
  * - **Terms and privacy policy** — also the database (`/admin/settings/legal`),
  *   for the same reason.
- * - **Course categories in the footer** — those should come from the
- *   `categories` table, not from a list maintained by hand.
+ * - **Course categories in the footer** come from the `categories` table, so
+ *   adding a category in `/admin/categories` is all it takes.
+ * - **Section copy** (hero, how it works, FAQ answers…) stays in its
+ *   component under `src/components/landing/`. This file holds the *facts* that
+ *   copy quotes, so a fact quoted in several places changes once.
  *
  * Values marked `PLACEHOLDER` must be replaced before launch.
  */
@@ -37,9 +40,20 @@ type SiteConfig = {
     phone: { display: string; tel: string };
     hours: string;
   };
+  service: {
+    replyTime: string;
+    reviewHours: number;
+  };
+  stats: { value: number; suffix?: string; label: string }[];
   social: { label: string; href: string }[];
   company: { legalName: string; address: string; idNumber: string };
 };
+
+/**
+ * Hours within which a submitted task gets feedback. A constant of its own
+ * because two entries below quote it: the service promise and a stat.
+ */
+const REVIEW_HOURS = 48;
 
 export const SITE: SiteConfig = {
   /** The brand. Used in page titles, the logo, emails and the certificate PDF. */
@@ -65,6 +79,35 @@ export const SITE: SiteConfig = {
     /** When the phone is answered. */
     hours: 'Ponedjeljak – petak, 09:00 – 17:00',
   },
+
+  /**
+   * What the site promises about response times. Each is quoted in more than
+   * one sentence, so a promise the team cannot keep is corrected here once.
+   */
+  service: {
+    /**
+     * How fast a message gets an answer. Read as the end of a sentence —
+     * "Odgovaramo radnim danima, u pravilu {replyTime}." — on /kontakt, in its
+     * search snippet, and under the FAQ.
+     */
+    replyTime: 'u toku istog dana',
+    /** Task feedback, in hours. The FAQ answer and the stats band. */
+    reviewHours: REVIEW_HOURS,
+  },
+
+  /**
+   * The figures under the hero, in order. An empty list hides the band, which
+   * is the right state until real numbers exist: invented ones are worse than
+   * none. `suffix` follows the number ("h", "%"); thousands are grouped
+   * automatically.
+   * PLACEHOLDER — all four figures are invented.
+   */
+  stats: [
+    { value: 42, label: 'OBJAVLJENA KURSA U PET OBLASTI' },
+    { value: 6800, label: 'REGISTROVANIH STUDENATA' },
+    { value: REVIEW_HOURS, suffix: 'h', label: 'ROK ZA PREGLED PREDANOG ZADATKA' },
+    { value: 91, suffix: '%', label: 'STUDENATA ZAVRŠI UPISANI KURS' },
+  ],
 
   /**
    * Profiles linked from the footer. An entry with an empty `href` is not

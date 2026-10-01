@@ -8,7 +8,7 @@ refer to commit `17c2da2`; if a line has moved, search the file for the quoted t
 | Kind | Where | Change takes effect |
 |---|---|---|
 | Page copy | the `.tsx` file listed | code change + deploy |
-| Brand, contact, company facts | `src/lib/siteConfig.ts` | code change + deploy |
+| Brand, contact, company facts, promises (reply/review time), stats | `src/lib/siteConfig.ts` | code change + deploy |
 | Secrets, per-environment settings | Vercel env vars (`.env.example`) | Vercel setting + redeploy |
 | Payment details, legal texts, courses, categories | database, edited in `/admin` | immediately, no deploy |
 
@@ -20,18 +20,17 @@ Review these before anything else. Publishing them would mislead students.
 
 | Claim | Where | Reality |
 |---|---|---|
-| "Kartično plaćanje ili uplatnica… izdajemo fakturu — placeholder" | `src/components/landing/Faq.tsx:56` | Only bank transfer with a payment reference exists. No card payment, no invoicing. |
+| "Kartično plaćanje ili uplatnica… izdajemo fakturu — placeholder" | `src/components/landing/Faq.tsx:57` | Only bank transfer with a payment reference exists. No card payment, no invoicing. |
 | "Certifikat s provjerom" | `src/components/landing/Hero.tsx:43` | Certificates are private now. Only the student, admins and the course's teacher can open one. Nobody else can check it. |
 | "Svaki certifikat nosi jedinstveni broj i stranicu za provjeru, tako da ga poslodavac može potvrditi." | `src/components/landing/WhyUs.tsx:39` | Same: there is no public verification page. |
 | "certifikat je odmah dostupan za preuzimanje i dijeljenje" | `src/components/landing/HowItWorks.tsx:54` | Students can download it, but there's no way to share it. |
-| "završni ispit" (final exam) | `HowItWorks.tsx:54`, `WhyUs.tsx:56`, `Faq.tsx:51` | No final exam exists. Modules have quizzes and tasks; the certificate is issued when the last module is completed. |
+| "završni ispit" (final exam) | `HowItWorks.tsx:54`, `WhyUs.tsx:56`, `Faq.tsx:52` | No final exam exists. Modules have quizzes and tasks; the certificate is issued when the last module is completed. |
 | "Kratki kvizovi nakon lekcija… završni ispit koji se ocjenjuje ručno" | `WhyUs.tsx:56` | Quizzes are graded automatically; tasks are reviewed by hand. |
 | "dobijaš pristup pregledu… uvodnih lekcija" | `HowItWorks.tsx:36` | Visitors see only module titles. There are no free introductory lessons. |
 | "Akreditacije i partneri — Programi su rađeni s partnerskim firmama i institucijama" | `WhyUs.tsx:49–50` | Only keep this if accreditations and partners actually exist. If they do, name them. |
-| "Povratnu informaciju… u roku od 48 sati" / "48h rok za pregled" | `Faq.tsx:46`, `StatsBar.tsx:28` | A promise teachers must keep. Confirm the number; both places must agree. |
-| All four figures in the stats band (42 kursa, 6.800 studenata, 48h, 91%) | `src/components/landing/StatsBar.tsx:26–29` | Invented placeholders. Supply real figures or remove the band. |
-| Footer course categories (IT / programiranje, Marketing, …) | `src/components/layout/PublicFooter.tsx:29–35` | Hard-coded and don't match the real categories. The client should confirm the final category list. |
-| Footer link "O nama" → `/o-nama` | `PublicFooter.tsx:43` | The page doesn't exist (404). Either supply About-us copy or remove the link. |
+| "Povratnu informaciju… u roku od 48 sati" / "48h rok za pregled" | `SITE.service.reviewHours` in `siteConfig.ts` | A promise teachers must keep. Confirm the number; the FAQ and the stats band both follow it. |
+| All four figures in the stats band (42 kursa, 6.800 studenata, 48h, 91%) | `SITE.stats` in `siteConfig.ts` | Invented placeholders. Supply real figures, or empty the list and the band disappears. |
+| Footer link "O nama" → `/o-nama` | `PublicFooter.tsx:63` | The page doesn't exist (404). Either supply About-us copy or remove the link. |
 
 **Untranslated pages.** `/register`, `/forgot-password` and `/reset-password` are still
 **in English** (§1.9). That's a code fix rather than content work, but the Bosnian
@@ -47,14 +46,16 @@ but the course pages, purchase panel, blog excerpts and auth pages use the forma
 
 ### 1.1 Site-wide facts — `src/lib/siteConfig.ts`
 
-Used in the header logo, footer, page titles, emails, the certificate PDF and search
-results.
+Everything adjustable that the pages *quote* (names, contact details, promises,
+figures) is in this one file, and the pages read it from there. The full list is in §2.2;
+these three are the brand itself. They're used in the header logo, footer, page titles,
+emails, the certificate PDF, the share image and search results.
 
-| Field | Current value | Line |
-|---|---|---|
-| Brand name | Katedra | 46 |
-| Tagline (home page title, share image) | online kursevi sa certifikatom | 49 |
-| One-line description (footer, default search snippet, share image) | Platforma za online kurseve s pregledom zadataka i certifikatom po završetku. | 52 |
+| Field | Current value |
+|---|---|
+| `name` | Katedra |
+| `tagline` (home page title, share image) | online kursevi sa certifikatom |
+| `description` (footer, default search snippet, share image) | Platforma za online kurseve s pregledom zadataka i certifikatom po završetku. |
 
 ### 1.2 Header — `src/components/layout/PublicHeader.tsx`
 
@@ -68,10 +69,10 @@ results.
 
 | Text | Line |
 |---|---|
-| Column "Kursevi": IT / programiranje · Poslovanje i menadžment · Marketing · Finansije i računovodstvo · Zanati i praktične vještine | 27–35 |
-| Column "Platforma": O nama · Blog · Kontakt · Uvjeti korištenja · Politika privatnosti | 41–47 |
+| Column "Kursevi": categories with at least one published course, read from the database, plus "Svi kursevi". Add or rename categories at `/admin/categories`. Hidden while the catalog flag is off. | 45–58 |
+| Column "Platforma": O nama · Blog (hidden while the blog flag is off) · Kontakt · Uvjeti korištenja · Politika privatnosti | 59–69 |
 | Column "Kontakt": email, phone, social links | from `siteConfig.ts` |
-| © {godina} Katedra. Sva prava zadržana. + company line | 113 (company line from `siteConfig.ts`) |
+| © {godina} Katedra. Sva prava zadržana. + company line | 123 (company line from `siteConfig.ts`) |
 
 ### 1.4 Home page `/`
 
@@ -86,7 +87,7 @@ results.
 | Badges: Trajan pristup materijalima · Bez fiksnih rokova · Certifikat s provjerom | 41–43 |
 | Image alt text: Učenici u učionici podižu ruke | 67 |
 
-**Stats band — `src/components/landing/StatsBar.tsx:26–29`.** See §0.
+**Stats band:** the figures and labels are `SITE.stats` in `siteConfig.ts`. See §0.
 
 **Featured courses — `src/components/landing/FeaturedCourses.tsx`**
 
@@ -122,14 +123,16 @@ results.
 
 | Question — answer | Line |
 |---|---|
-| Česta pitanja / Pitanja koja dobijamo najčešće | 70, 73 |
-| Koliko traje pristup materijalima? — Pristup je trajan. Nakon što upišeš kurs, lekcije i materijali ostaju u tvom računu i poslije završetka. | 35–37 |
-| Da li postoje fiksni rokovi i predavanja u realnom vremenu? — Ne. Kursevi su asinhroni — učiš kada možeš. Jedini rokovi su oni koje sam postaviš. | 40–41 |
-| Ko pregleda moje zadatke? — Predavač kursa ili njegov asistent. Povratnu informaciju u pravilu dobijaš u roku od 48 sati od predaje. | 44–46 |
-| Šta je potrebno da dobijem certifikat? — Pregledani i prihvaćeni svi praktični zadaci i položen završni ispit. Certifikat se generiše automatski. | 49–51 |
-| Kako se plaća? — Kartično plaćanje ili uplatnica, po kursu. Za firme i grupne upise izdajemo fakturu — placeholder, uvjeti se dopunjuju. | 54–56 |
-| Nema odgovora na tvoje pitanje? Javi nam se — odgovaramo u toku radnog dana. | 78 |
-| Button: Kontaktiraj nas | 87 |
+| Česta pitanja / Pitanja koja dobijamo najčešće | 71, 74 |
+| Koliko traje pristup materijalima? — Pristup je trajan. Nakon što upišeš kurs, lekcije i materijali ostaju u tvom računu i poslije završetka. | 37–39 |
+| Da li postoje fiksni rokovi i predavanja u realnom vremenu? — Ne. Kursevi su asinhroni — učiš kada možeš. Jedini rokovi su oni koje sam postaviš. | 42–43 |
+| Ko pregleda moje zadatke? — Predavač kursa ili njegov asistent. Povratnu informaciju u pravilu dobijaš u roku od **{reviewHours}** sati od predaje. | 46–48 |
+| Šta je potrebno da dobijem certifikat? — Pregledani i prihvaćeni svi praktični zadaci i položen završni ispit. Certifikat se generiše automatski. | 50–52 |
+| Kako se plaća? — Kartično plaćanje ili uplatnica, po kursu. Za firme i grupne upise izdajemo fakturu — placeholder, uvjeti se dopunjuju. | 55–57 |
+| Nema odgovora na tvoje pitanje? Javi nam se — odgovaramo **{replyTime}**. | 79 |
+| Button: Kontaktiraj nas | 88 |
+
+Values in **{braces}** come from `SITE.service` in `siteConfig.ts`.
 
 **Closing banner — `src/components/landing/CtaBanner.tsx`**
 
@@ -148,10 +151,10 @@ Static interface text:
 
 | Text | File:line |
 |---|---|
-| Kursevi — Izaberite kurs i pošaljite zahtjev za pristup. | `src/components/courses/CourseCatalogue.tsx:46` |
-| Pretraži kurseve… · Kategorija · Sve kategorije | `CourseCatalogue.tsx:57, 62, 66` |
-| Nema rezultata — Nijedan kurs ne odgovara zadatoj pretrazi. Pokušajte sa drugim pojmom ili kategorijom. | `CourseCatalogue.tsx:79–80` |
-| Još nema objavljenih kurseva — Uskoro dodajemo sadržaj — svratite ponovo. | `CourseCatalogue.tsx:84–85` |
+| Kursevi — Izaberite kurs i pošaljite zahtjev za pristup. | `src/components/courses/CourseCatalogue.tsx:59` |
+| Pretraži kurseve… · Kategorija · Sve kategorije | `CourseCatalogue.tsx:70, 75, 79` |
+| Nema rezultata — Nijedan kurs ne odgovara zadatoj pretrazi. Pokušajte sa drugim pojmom ili kategorijom. | `CourseCatalogue.tsx:92–93` |
+| Još nema objavljenih kurseva — Uskoro dodajemo sadržaj — svratite ponovo. | `CourseCatalogue.tsx:97–98` |
 | Sadržaj kursa — Pregled modula. Sadržaj postaje dostupan nakon odobrenog pristupa. / Moduli se otključavaju redom, kako ih završavate. | `src/components/courses/CoursePageView.tsx:280–284` |
 | Kurs još nema module — Sadržaj se uskoro dodaje. | `CoursePageView.tsx:295–296` |
 | Kurs nije pronađen — Kurs ne postoji ili trenutno nije objavljen. | `CoursePageView.tsx:158–159` |
@@ -204,7 +207,7 @@ Page: `src/app/(marketing)/kontakt/page.tsx`. Form: `src/components/contact/Cont
 | Text | File:line |
 |---|---|
 | Kontakt / Pitaj nas prije nego se upišeš | page `33, 36` |
-| Odgovaramo radnim danima, u pravilu u toku istog dana. Za pitanja o pojedinom kursu navedi njegov naziv da odgovor stigne od predavača. | page `39–40` |
+| Odgovaramo radnim danima, u pravilu **{replyTime}**. Za pitanja o pojedinom kursu navedi njegov naziv da odgovor stigne od predavača. | page `39–40` |
 | Direktan kontakt · Opšti upiti · Podrška studentima · Telefon | page `55, 60, 69, 78` |
 | Emails, phone, working hours | `siteConfig.ts` (§2.2) |
 | Prije nego pišeš: Kako funkcioniše upis i učenje · Pregled objavljenih kurseva · Česta pitanja o certifikatu · Uslovi korištenja i plaćanje · Politika privatnosti | page `93–110` |
@@ -308,19 +311,25 @@ Also needed, though not env vars:
 
 ### 2.2 Site facts — `src/lib/siteConfig.ts`
 
-| Field | Current (placeholder) | Line |
+Change a value here and every page that quotes it follows. Fields are named, not
+numbered, because line numbers in this file move whenever a field is added.
+
+| Field | Current (placeholder) | Shown on |
 |---|---|---|
-| Brand name | Katedra (confirm) | 46 |
-| Tagline | online kursevi sa certifikatom | 49 |
-| One-line description | Platforma za online kurseve s pregledom zadataka i certifikatom po završetku. | 52 |
-| General email | info@katedra.ba | 56 |
-| Student support email | podrska@katedra.ba | 58 |
-| Phone (display + dialable form) | +387 33 000 000 | 64 |
-| Working hours | Ponedjeljak – petak, 09:00 – 17:00 | 66 |
-| Instagram / LinkedIn / Facebook profile URLs (or "none") | network home pages | 75–77 |
-| Registered company name | *(empty)* | 87 |
-| Registered address | *(empty)* | 89 |
-| ID number (JIB) | *(empty)* | 91 |
+| `name` | Katedra (confirm) | logo, every page title, emails, certificate, share image |
+| `tagline` | online kursevi sa certifikatom | home page title, share image |
+| `description` | Platforma za online kurseve s pregledom zadataka i certifikatom po završetku. | footer, default search snippet, share image |
+| `contact.email` | info@katedra.ba | footer, /kontakt, contact-form fallback |
+| `contact.supportEmail` | podrska@katedra.ba | /kontakt |
+| `contact.phone` (display + dialable form) | +387 33 000 000 | footer, /kontakt |
+| `contact.hours` | Ponedjeljak – petak, 09:00 – 17:00 | /kontakt |
+| `service.replyTime` | u toku istog dana | /kontakt (text and search snippet), FAQ |
+| `service.reviewHours` | 48 | FAQ answer, stats band |
+| `stats` (value, suffix, label; an empty list hides the band) | 42 · 6.800 · 48h · 91% (invented) | home page stats band |
+| `social` (Instagram / LinkedIn / Facebook URLs; an empty `href` hides one) | the networks' home pages | footer, organisation data for search engines |
+| `company.legalName` | *(empty)* | footer, organisation data for search engines |
+| `company.address` | *(empty)* | footer, organisation data for search engines |
+| `company.idNumber` (JIB) | *(empty)* | footer |
 
 ### 2.3 Payment details — entered at `/admin/settings/payment` (database)
 
@@ -346,14 +355,14 @@ References look like `UPL-2026-0001`. If it doesn't, the format is a one-line ch
 | Item | Where it goes |
 |---|---|
 | Terms of use and privacy policy texts | `/admin/settings/legal` |
-| Final list of course categories | `/admin/categories` (and the footer list, §1.3) |
+| Final list of course categories | `/admin/categories`; the footer follows automatically |
 | Each course: name, description (first 160 characters double as the search snippet), price in KM, thumbnail, modules (title, Vimeo link, PDF materials), quizzes, tasks | `/admin/courses` |
 | Vimeo account and video privacy settings (unlisted links) | Vimeo |
 | Names and emails of admins and teachers | `/admin/users` after they register |
-| "O nama" page copy, or a decision to drop the link | new page / `PublicFooter.tsx:43` |
-| Real statistics for the stats band, or a decision to remove it | `StatsBar.tsx:26–29` |
-| Confirmed review-time promise (currently 48 h) | `Faq.tsx:46`, `StatsBar.tsx:28` |
-| Wording on the certificate PDF ("Izdavalac certifikata", issuer name) | `src/lib/pdf/certificate.ts:259–260` |
+| "O nama" page copy, or a decision to drop the link | new page / `PublicFooter.tsx:63` |
+| Real statistics for the stats band, or a decision to remove it | `SITE.stats` |
+| Confirmed reply-time and review-time promises | `SITE.service` |
+| Wording on the certificate PDF ("Izdavalac certifikata", issuer name) | `src/lib/pdf/certificate.ts:266` (the name above it is `SITE.name`) |
 | Who posts printed certificates, and from what address | process decision |
 | Who answers support requests and reviews purchases, and the response time | process decision |
 | Bosnian wording for Supabase's confirmation and password-reset emails | Supabase dashboard |

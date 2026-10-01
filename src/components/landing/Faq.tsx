@@ -8,6 +8,8 @@ import Stack from '@mui/material/Stack';
 import Typography from '@mui/material/Typography';
 import Reveal from '@/components/landing/Reveal';
 import Section from '@/components/landing/Section';
+import { pluralBs } from '@/lib/format';
+import { SITE } from '@/lib/siteConfig';
 
 /**
  * "Pitanja koja dobijamo najčešće" — the FAQ.
@@ -42,8 +44,7 @@ const FAQS = [
   },
   {
     question: 'Ko pregleda moje zadatke?',
-    answer:
-      'Predavač kursa ili njegov asistent. Povratnu informaciju u pravilu dobijaš u roku od 48 sati od predaje.',
+    answer: `Predavač kursa ili njegov asistent. Povratnu informaciju u pravilu dobijaš u roku od ${SITE.service.reviewHours} ${pluralBs(SITE.service.reviewHours, 'sat', 'sata', 'sati')} od predaje.`,
   },
   {
     question: 'Šta je potrebno da dobijem certifikat?',
@@ -75,7 +76,7 @@ export default function Faq() {
                 </Stack>
 
                 <Typography variant="body1" color="text.secondary">
-                  Nema odgovora na tvoje pitanje? Javi nam se — odgovaramo u toku radnog dana.
+                  Nema odgovora na tvoje pitanje? Javi nam se — odgovaramo {SITE.service.replyTime}.
                 </Typography>
 
                 <Button

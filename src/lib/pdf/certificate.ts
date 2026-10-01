@@ -185,7 +185,13 @@ export async function renderCertificatePdf(input: CertificateDocument): Promise<
    * hung everything off the top and left a dead band across the lower third —
    * a certificate should fill its page.
    */
-  drawCentred(page, 'KURSEVI', { y: PAGE_HEIGHT - 90, size: 13, font: display, color: MUTED });
+  // The brand as a wordmark; follows SITE.name like the issuer line below.
+  drawCentred(page, SITE.name.toUpperCase(), {
+    y: PAGE_HEIGHT - 90,
+    size: 13,
+    font: display,
+    color: MUTED,
+  });
 
   drawCentred(page, 'CERTIFIKAT', { y: PAGE_HEIGHT - 150, size: 40, font: display, color: INK });
   drawCentred(page, 'o završenom kursu', {

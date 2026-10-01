@@ -5,7 +5,7 @@ import Link from '@mui/material/Link';
 import Stack from '@mui/material/Stack';
 import Typography from '@mui/material/Typography';
 import { FEATURES } from '@/lib/features';
-
+import { listFooterCategories } from '@/lib/server/categories';
 import { SITE } from '@/lib/siteConfig';
 import Logo from '@/components/layout/Logo';
 
@@ -21,43 +21,6 @@ import Logo from '@/components/layout/Logo';
  * deliberately absent from the signed-in shells, which have their own
  * navigation and no use for a marketing footer.
  */
-const SECTIONS: { title: string; links: { label: string; href: string }[] }[] = [
-  {
-    // TODO: when we define all categories they need to be added here with appropriate paths
-    title: 'Kursevi',
-    links: [
-      { label: 'IT / programiranje', href: '/courses?category=it-programiranje' },
-      { label: 'Poslovanje i menadžment', href: '/courses?category=poslovanje-i-menadzment' },
-      { label: 'Marketing', href: '/courses?category=marketing' },
-      { label: 'Finansije i računovodstvo', href: '/courses?category=finansije-i-racunovodstvo' },
-      {
-        label: 'Zanati i praktične vještine',
-        href: '/courses?category=zanati-i-prakticne-vjestine',
-      },
-    ],
-  },
-  {
-    // TODO: o-nama page doesn't exist yet
-    title: 'Platforma',
-    links: [
-      { label: 'O nama', href: '/o-nama' },
-      { label: 'Blog', href: '/blog' },
-      { label: 'Kontakt', href: '/kontakt' },
-      { label: 'Uvjeti korištenja', href: '/uvjeti-koristenja' },
-      { label: 'Politika privatnosti', href: '/politika-privatnosti' },
-    ],
-  },
-  {
-    // Contact details and social URLs live in siteConfig.ts.
-    title: 'Kontakt',
-    links: [
-      { label: SITE.contact.email, href: `mailto:${SITE.contact.email}` },
-      { label: SITE.contact.phone.display, href: `tel:${SITE.contact.phone.tel}` },
-      ...SITE.social.filter((profile) => profile.href !== ''),
-    ],
-  },
-];
-
 /** "Katedra d.o.o. · Adresa · ID: …" — only the parts that are filled in. */
 const companyLine = [
   SITE.company.legalName,
@@ -67,7 +30,54 @@ const companyLine = [
   .filter(Boolean)
   .join(' · ');
 
-export default function PublicFooter() {
+type FooterSection = { title: string; links: { label: string; href: string }[] };
+
+/*
+ * Async because the course column is read from the database (see
+ * `listFooterCategories`). Every other link comes from `siteConfig.ts` or is a
+ * fixed route. Sections for switched-off features are left out, so the footer
+ * never links to a page that 404s.
+ */
+export default async function PublicFooter() {
+  const categories = FEATURES.catalog ? await listFooterCategories() : [];
+
+  const sections: FooterSection[] = [
+    ...(FEATURES.catalog
+      ? [
+          {
+            title: 'Kursevi',
+            links: [
+              ...categories.map((category) => ({
+                label: category.name,
+                href: `/courses?categoryId=${category.id}`,
+              })),
+              { label: 'Svi kursevi', href: '/courses' },
+            ],
+          },
+        ]
+      : []),
+    {
+      // TODO: the /o-nama page doesn't exist yet — write it or drop this link.
+      title: 'Platforma',
+      links: [
+        { label: 'O nama', href: '/o-nama' },
+        ...(FEATURES.blog ? [{ label: 'Blog', href: '/blog' }] : []),
+        { label: 'Kontakt', href: '/kontakt' },
+        { label: 'Uvjeti korištenja', href: '/uvjeti-koristenja' },
+        { label: 'Politika privatnosti', href: '/politika-privatnosti' },
+      ],
+    },
+    {
+      // Contact details and social URLs live in siteConfig.ts.
+      title: 'Kontakt',
+      links: [
+        { label: SITE.contact.email, href: `mailto:${SITE.contact.email}` },
+        { label: SITE.contact.phone.display, href: `tel:${SITE.contact.phone.tel}` },
+        ...SITE.social.filter((profile) => profile.href !== ''),
+      ],
+    },
+  ];
+
   return (
     <Box component="footer" sx={{ mt: 8, borderTop: 1, borderColor: 'divider' }}>
       <Container maxWidth="lg" sx={{ py: 5 }}>
@@ -85,7 +95,7 @@ export default function PublicFooter() {
             </Typography>
           </Stack>
 
-          {SECTIONS.map((section) => (
+          {sections.map((section) => (
             <Stack key={section.title} spacing={1}>
               <Typography variant="subtitle2">{section.title}</Typography>
               {section.links.map((link) => (
