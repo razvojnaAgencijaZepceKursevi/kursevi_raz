@@ -2,6 +2,7 @@ import type { SvgIconComponent } from '@mui/icons-material';
 import AccountBalanceOutlinedIcon from '@mui/icons-material/AccountBalanceOutlined';
 import CategoryOutlinedIcon from '@mui/icons-material/CategoryOutlined';
 import GavelOutlinedIcon from '@mui/icons-material/GavelOutlined';
+import InfoOutlinedIcon from '@mui/icons-material/InfoOutlined';
 import MarkEmailReadOutlinedIcon from '@mui/icons-material/MarkEmailReadOutlined';
 import DashboardOutlinedIcon from '@mui/icons-material/DashboardOutlined';
 import LibraryBooksOutlinedIcon from '@mui/icons-material/LibraryBooksOutlined';
@@ -134,6 +135,14 @@ export const ADMIN_NAV: AdminNavSection[] = [
         href: '/admin/settings/newsletter',
         feature: 'newsletter',
         icon: MarkEmailReadOutlinedIcon,
+        roles: ['admin'],
+      },
+      {
+        // Versions and release info. The page checks the role itself too, since
+        // the /admin shell also admits teachers.
+        label: 'O aplikaciji',
+        href: '/admin/about',
+        icon: InfoOutlinedIcon,
         roles: ['admin'],
       },
     ],

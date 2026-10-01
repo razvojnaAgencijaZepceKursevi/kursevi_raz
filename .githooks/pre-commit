@@ -1,0 +1,5 @@
+#!/bin/sh
+# Bumps per-section versions for the staged files. Never blocks the commit;
+# see scripts/versions.mjs. Skip once with SKIP_VERSIONS=1.
+node scripts/versions.mjs precommit
+exit 0

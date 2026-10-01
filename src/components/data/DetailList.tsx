@@ -1,3 +1,12 @@
+'use client';
+
+// A Client Component even though it has no state: MUI's <Stack> clones its
+// `divider` element, and an element created in a Server Component cannot be
+// cloned there — SSR fails with "Element type is invalid … got: undefined" and
+// React falls back to client rendering. Marking the boundary here keeps the
+// component safe to use from either kind of page (/admin/about is a Server
+// Component; every other caller is a client page). `items` stays serialisable:
+// labels are strings and values are plain JSX.
 import * as React from 'react';
 import Divider from '@mui/material/Divider';
 import Stack from '@mui/material/Stack';

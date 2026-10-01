@@ -2034,6 +2034,45 @@ course-scoped page, add it there or it is URL-only.
   course appears without a deploy. `priority`/`changefreq` are omitted (Google ignores
   them); `lastModified` is given only where it is real.
 
+### Per-section versions and `/admin/about`
+
+- **Every section has a frontend and a backend version**, kept in
+  `src/lib/appVersions.json` by a pre-commit hook (`.githooks/pre-commit` →
+  `scripts/versions.mjs precommit`). Per commit, a section/layer that gained a file bumps
+  **minor**, one that only changed or lost files bumps **patch**; major is manual
+  (`npm run versions:bump -- <section> <frontend|backend> major`). One bump per
+  section/layer per commit, however many files.
+
+- **`scripts/version-sections.mjs` is the whole configuration**: an ordered list of path
+  patterns, first match wins, so specific features (`quiz`, `module`, `issue`…) sit above
+  broad ones (`course`, then the `core` catch-all). Support precedes tasks because both
+  have `messages` routes. Backend vs frontend is a separate pattern (`BACKEND`). Keys are
+  persisted — rename a label freely, never a key.
+
+- **Lenient by design.** The hook never fails a commit (errors become a warning),
+  `SKIP_VERSIONS=1` skips it, `--no-verify` bypasses it. It is bookkeeping, not a gate.
+  `core.hooksPath` is set by npm's `prepare` (`versions.mjs install-hook`), written in
+  Node rather than shell because `prepare` also runs under `cmd` on Windows and on
+  Vercel, where there may be no git checkout — it fails silently there.
+
+- **`npm run versions:init` rebuilds the file by replaying git history** (non-merge
+  commits, oldest first) under the same rule, so versions and dates are real rather than
+  a uniform `1.0.0`. Re-run it after changing the section map to re-derive everything.
+  Expect merge conflicts in the JSON if two branches bump the same section: keep the
+  higher version, or re-run init after the merge.
+
+- **The page is admin-only by its own check.** The `/admin` shell admits teachers, so
+  `page.tsx` reads the role and `notFound()`s anyone else; the nav entry is also
+  `roles: ['admin']`. Build info comes from Vercel's `VERCEL_GIT_COMMIT_SHA` /
+  `VERCEL_GIT_COMMIT_REF` / `VERCEL_ENV` and reads "lokalno" without them.
+
+- **`<DetailList>` is a Client Component, and that is load-bearing.** MUI's `<Stack>`
+  clones its `divider` element; when the element was created in a Server Component the
+  clone fails during SSR with *"Element type is invalid … got: undefined"* and React
+  silently falls back to client rendering. `/admin/about` was the first Server Component
+  to use `DetailList`, which is how it surfaced. The same applies to any MUI component
+  that clones an element prop — pass such props only from client code.
+
 ### Signing out lives in the user menu
 
 - It used to be both a button in the bar and an item in the menu, on the reasoning that

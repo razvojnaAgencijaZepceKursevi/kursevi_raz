@@ -5,3 +5,4 @@ build
 package-lock.json
 src/types/database.types.ts
 supabase/.temp
+src/lib/appVersions.json

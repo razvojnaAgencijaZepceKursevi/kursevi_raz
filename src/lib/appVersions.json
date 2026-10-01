@@ -1,0 +1,984 @@
+{
+  "updatedAt": "2026-10-01T18:18:07.618Z",
+  "sections": {
+    "database": {
+      "label": "Baza podataka",
+      "description": "Shema, RLS politike, okidači i migracije",
+      "frontend": null,
+      "backend": {
+        "version": "1.6.0",
+        "updatedAt": "2026-08-28T22:22:18+02:00"
+      }
+    },
+    "quizzes": {
+      "label": "Kvizovi",
+      "description": "Izrada kvizova i polaganje",
+      "frontend": {
+        "version": "1.1.2",
+        "updatedAt": "2026-10-01T18:38:49+02:00"
+      },
+      "backend": {
+        "version": "1.1.1",
+        "updatedAt": "2026-08-28T09:26:30+02:00"
+      }
+    },
+    "modules": {
+      "label": "Moduli i materijali",
+      "description": "Moduli, video, PDF materijali i završavanje modula",
+      "frontend": {
+        "version": "1.6.2",
+        "updatedAt": "2026-10-01T18:38:49+02:00"
+      },
+      "backend": {
+        "version": "1.2.2",
+        "updatedAt": "2026-09-22T15:23:55+02:00"
+      }
+    },
+    "support": {
+      "label": "Podrška",
+      "description": "Zahtjevi za podršku",
+      "frontend": {
+        "version": "1.1.0",
+        "updatedAt": "2026-08-28T22:22:18+02:00"
+      },
+      "backend": {
+        "version": "1.0.1",
+        "updatedAt": "2026-08-28T09:26:30+02:00"
+      }
+    },
+    "tasks": {
+      "label": "Zadaci i pregled",
+      "description": "Zadaci, predaje, poruke i ocjenjivanje",
+      "frontend": {
+        "version": "1.3.0",
+        "updatedAt": "2026-08-28T22:22:18+02:00"
+      },
+      "backend": {
+        "version": "1.2.1",
+        "updatedAt": "2026-08-28T09:26:30+02:00"
+      }
+    },
+    "purchases": {
+      "label": "Kupovine i plaćanje",
+      "description": "Zahtjevi za pristup, odobravanje i podaci za uplatu",
+      "frontend": {
+        "version": "1.6.0",
+        "updatedAt": "2026-08-28T22:22:18+02:00"
+      },
+      "backend": {
+        "version": "1.1.0",
+        "updatedAt": "2026-08-28T17:30:42+02:00"
+      }
+    },
+    "certificates": {
+      "label": "Certifikati",
+      "description": "Izdavanje, stranica certifikata, PDF i dostava",
+      "frontend": {
+        "version": "1.5.0",
+        "updatedAt": "2026-08-28T22:22:18+02:00"
+      },
+      "backend": {
+        "version": "1.2.4",
+        "updatedAt": "2026-10-01T20:07:29+02:00"
+      }
+    },
+    "notifications": {
+      "label": "Obavještenja",
+      "description": "Obavještenja u aplikaciji i email",
+      "frontend": {
+        "version": "1.1.0",
+        "updatedAt": "2026-08-28T22:22:18+02:00"
+      },
+      "backend": {
+        "version": "1.1.1",
+        "updatedAt": "2026-10-01T18:38:49+02:00"
+      }
+    },
+    "users": {
+      "label": "Korisnici i uloge",
+      "description": "Upravljanje korisnicima, ulogama i aktivacijom",
+      "frontend": {
+        "version": "1.4.0",
+        "updatedAt": "2026-08-28T22:22:18+02:00"
+      },
+      "backend": {
+        "version": "1.0.4",
+        "updatedAt": "2026-08-28T09:26:30+02:00"
+      }
+    },
+    "categories": {
+      "label": "Kategorije",
+      "description": "Kategorije kurseva",
+      "frontend": {
+        "version": "1.3.0",
+        "updatedAt": "2026-08-28T22:22:18+02:00"
+      },
+      "backend": {
+        "version": "1.2.0",
+        "updatedAt": "2026-10-01T20:07:29+02:00"
+      }
+    },
+    "settings": {
+      "label": "Postavke",
+      "description": "Pravni dokumenti, newsletter, izgled i korisničke postavke",
+      "frontend": {
+        "version": "1.2.0",
+        "updatedAt": "2026-09-02T15:39:12+02:00"
+      },
+      "backend": {
+        "version": "1.0.1",
+        "updatedAt": "2026-08-28T22:22:18+02:00"
+      }
+    },
+    "auth": {
+      "label": "Prijava i nalozi",
+      "description": "Registracija, prijava, lozinke i zaštita ruta",
+      "frontend": {
+        "version": "1.3.0",
+        "updatedAt": "2026-10-01T18:38:49+02:00"
+      },
+      "backend": {
+        "version": "1.3.0",
+        "updatedAt": "2026-10-01T18:38:49+02:00"
+      }
+    },
+    "public": {
+      "label": "Javni sajt",
+      "description": "Naslovna, blog, kontakt, SEO i javno zaglavlje",
+      "frontend": {
+        "version": "1.20.1",
+        "updatedAt": "2026-10-01T20:07:29+02:00"
+      },
+      "backend": {
+        "version": "1.1.0",
+        "updatedAt": "2026-10-01T18:38:49+02:00"
+      }
+    },
+    "courses": {
+      "label": "Kursevi",
+      "description": "Katalog, stranica kursa, izrada i pregled kurseva",
+      "frontend": {
+        "version": "1.7.1",
+        "updatedAt": "2026-10-01T20:07:29+02:00"
+      },
+      "backend": {
+        "version": "1.4.0",
+        "updatedAt": "2026-10-01T18:38:49+02:00"
+      }
+    },
+    "core": {
+      "label": "Jezgro",
+      "description": "Zajedničke komponente, tema, rasporedi i infrastruktura",
+      "frontend": {
+        "version": "1.11.0",
+        "updatedAt": "2026-10-01T18:18:07.618Z"
+      },
+      "backend": {
+        "version": "1.4.2",
+        "updatedAt": "2026-10-01T18:18:07.618Z"
+      }
+    }
+  },
+  "history": [
+    {
+      "at": "2026-10-01T18:18:07.618Z",
+      "section": "core",
+      "layer": "backend",
+      "from": "1.4.1",
+      "to": "1.4.2",
+      "files": 1
+    },
+    {
+      "at": "2026-10-01T18:18:07.618Z",
+      "section": "core",
+      "layer": "frontend",
+      "from": "1.10.3",
+      "to": "1.11.0",
+      "files": 4
+    },
+    {
+      "at": "2026-10-01T20:07:29+02:00",
+      "section": "public",
+      "layer": "frontend",
+      "from": "1.20.0",
+      "to": "1.20.1",
+      "files": 5
+    },
+    {
+      "at": "2026-10-01T20:07:29+02:00",
+      "section": "courses",
+      "layer": "frontend",
+      "from": "1.7.0",
+      "to": "1.7.1",
+      "files": 1
+    },
+    {
+      "at": "2026-10-01T20:07:29+02:00",
+      "section": "certificates",
+      "layer": "backend",
+      "from": "1.2.3",
+      "to": "1.2.4",
+      "files": 1
+    },
+    {
+      "at": "2026-10-01T20:07:29+02:00",
+      "section": "categories",
+      "layer": "backend",
+      "from": "1.1.0",
+      "to": "1.2.0",
+      "files": 1
+    },
+    {
+      "at": "2026-10-01T18:38:49+02:00",
+      "section": "core",
+      "layer": "frontend",
+      "from": "1.10.2",
+      "to": "1.10.3",
+      "files": 6
+    },
+    {
+      "at": "2026-10-01T18:38:49+02:00",
+      "section": "auth",
+      "layer": "frontend",
+      "from": "1.2.0",
+      "to": "1.3.0",
+      "files": 5
+    },
+    {
+      "at": "2026-10-01T18:38:49+02:00",
+      "section": "public",
+      "layer": "frontend",
+      "from": "1.19.0",
+      "to": "1.20.0",
+      "files": 13
+    },
+    {
+      "at": "2026-10-01T18:38:49+02:00",
+      "section": "modules",
+      "layer": "frontend",
+      "from": "1.6.1",
+      "to": "1.6.2",
+      "files": 2
+    },
+    {
+      "at": "2026-10-01T18:38:49+02:00",
+      "section": "quizzes",
+      "layer": "frontend",
+      "from": "1.1.1",
+      "to": "1.1.2",
+      "files": 1
+    },
+    {
+      "at": "2026-10-01T18:38:49+02:00",
+      "section": "courses",
+      "layer": "frontend",
+      "from": "1.6.2",
+      "to": "1.7.0",
+      "files": 4
+    },
+    {
+      "at": "2026-10-01T18:38:49+02:00",
+      "section": "certificates",
+      "layer": "backend",
+      "from": "1.2.2",
+      "to": "1.2.3",
+      "files": 2
+    },
+    {
+      "at": "2026-10-01T18:38:49+02:00",
+      "section": "public",
+      "layer": "backend",
+      "from": "1.0.0",
+      "to": "1.1.0",
+      "files": 4
+    },
+    {
+      "at": "2026-10-01T18:38:49+02:00",
+      "section": "notifications",
+      "layer": "backend",
+      "from": "1.1.0",
+      "to": "1.1.1",
+      "files": 2
+    },
+    {
+      "at": "2026-10-01T18:38:49+02:00",
+      "section": "core",
+      "layer": "backend",
+      "from": "1.4.0",
+      "to": "1.4.1",
+      "files": 2
+    },
+    {
+      "at": "2026-10-01T18:38:49+02:00",
+      "section": "courses",
+      "layer": "backend",
+      "from": "1.3.2",
+      "to": "1.4.0",
+      "files": 1
+    },
+    {
+      "at": "2026-10-01T18:38:49+02:00",
+      "section": "auth",
+      "layer": "backend",
+      "from": "1.2.2",
+      "to": "1.3.0",
+      "files": 1
+    },
+    {
+      "at": "2026-09-29T21:30:59+02:00",
+      "section": "public",
+      "layer": "frontend",
+      "from": "1.18.1",
+      "to": "1.19.0",
+      "files": 4
+    },
+    {
+      "at": "2026-09-29T20:20:12+02:00",
+      "section": "core",
+      "layer": "frontend",
+      "from": "1.10.1",
+      "to": "1.10.2",
+      "files": 1
+    },
+    {
+      "at": "2026-09-29T20:20:12+02:00",
+      "section": "public",
+      "layer": "frontend",
+      "from": "1.18.0",
+      "to": "1.18.1",
+      "files": 1
+    },
+    {
+      "at": "2026-09-29T20:13:23+02:00",
+      "section": "core",
+      "layer": "frontend",
+      "from": "1.10.0",
+      "to": "1.10.1",
+      "files": 1
+    },
+    {
+      "at": "2026-09-25T22:55:08+02:00",
+      "section": "public",
+      "layer": "frontend",
+      "from": "1.17.0",
+      "to": "1.18.0",
+      "files": 17
+    },
+    {
+      "at": "2026-09-25T20:48:44+02:00",
+      "section": "public",
+      "layer": "frontend",
+      "from": "1.16.0",
+      "to": "1.17.0",
+      "files": 3
+    },
+    {
+      "at": "2026-09-25T20:48:44+02:00",
+      "section": "public",
+      "layer": "backend",
+      "from": null,
+      "to": "1.0.0",
+      "files": 1
+    },
+    {
+      "at": "2026-09-25T20:48:44+02:00",
+      "section": "core",
+      "layer": "backend",
+      "from": "1.3.5",
+      "to": "1.4.0",
+      "files": 1
+    },
+    {
+      "at": "2026-09-22T15:23:55+02:00",
+      "section": "modules",
+      "layer": "frontend",
+      "from": "1.6.0",
+      "to": "1.6.1",
+      "files": 3
+    },
+    {
+      "at": "2026-09-22T15:23:55+02:00",
+      "section": "courses",
+      "layer": "frontend",
+      "from": "1.6.1",
+      "to": "1.6.2",
+      "files": 3
+    },
+    {
+      "at": "2026-09-22T15:23:55+02:00",
+      "section": "courses",
+      "layer": "backend",
+      "from": "1.3.1",
+      "to": "1.3.2",
+      "files": 1
+    },
+    {
+      "at": "2026-09-22T15:23:55+02:00",
+      "section": "modules",
+      "layer": "backend",
+      "from": "1.2.1",
+      "to": "1.2.2",
+      "files": 1
+    },
+    {
+      "at": "2026-09-08T14:08:16+02:00",
+      "section": "public",
+      "layer": "frontend",
+      "from": "1.15.0",
+      "to": "1.16.0",
+      "files": 11
+    },
+    {
+      "at": "2026-09-08T14:08:16+02:00",
+      "section": "courses",
+      "layer": "frontend",
+      "from": "1.6.0",
+      "to": "1.6.1",
+      "files": 1
+    },
+    {
+      "at": "2026-09-08T14:08:16+02:00",
+      "section": "core",
+      "layer": "frontend",
+      "from": "1.9.1",
+      "to": "1.10.0",
+      "files": 1
+    },
+    {
+      "at": "2026-09-04T23:36:34+02:00",
+      "section": "public",
+      "layer": "frontend",
+      "from": "1.14.0",
+      "to": "1.15.0",
+      "files": 5
+    },
+    {
+      "at": "2026-09-04T00:13:01+02:00",
+      "section": "public",
+      "layer": "frontend",
+      "from": "1.13.1",
+      "to": "1.14.0",
+      "files": 5
+    },
+    {
+      "at": "2026-09-02T15:39:12+02:00",
+      "section": "core",
+      "layer": "frontend",
+      "from": "1.9.0",
+      "to": "1.9.1",
+      "files": 1
+    },
+    {
+      "at": "2026-09-02T15:39:12+02:00",
+      "section": "settings",
+      "layer": "frontend",
+      "from": "1.1.0",
+      "to": "1.2.0",
+      "files": 2
+    },
+    {
+      "at": "2026-09-02T12:49:19+02:00",
+      "section": "public",
+      "layer": "frontend",
+      "from": "1.13.0",
+      "to": "1.13.1",
+      "files": 12
+    },
+    {
+      "at": "2026-08-31T23:55:05+02:00",
+      "section": "public",
+      "layer": "frontend",
+      "from": "1.12.0",
+      "to": "1.13.0",
+      "files": 2
+    },
+    {
+      "at": "2026-08-31T23:43:27+02:00",
+      "section": "public",
+      "layer": "frontend",
+      "from": "1.11.0",
+      "to": "1.12.0",
+      "files": 2
+    },
+    {
+      "at": "2026-08-29T23:58:58+02:00",
+      "section": "public",
+      "layer": "frontend",
+      "from": "1.10.0",
+      "to": "1.11.0",
+      "files": 2
+    },
+    {
+      "at": "2026-08-29T22:51:09+02:00",
+      "section": "public",
+      "layer": "frontend",
+      "from": "1.9.0",
+      "to": "1.10.0",
+      "files": 3
+    },
+    {
+      "at": "2026-08-29T01:21:18+02:00",
+      "section": "public",
+      "layer": "frontend",
+      "from": "1.8.0",
+      "to": "1.9.0",
+      "files": 2
+    },
+    {
+      "at": "2026-08-29T00:35:51+02:00",
+      "section": "core",
+      "layer": "backend",
+      "from": "1.3.4",
+      "to": "1.3.5",
+      "files": 1
+    },
+    {
+      "at": "2026-08-29T00:35:51+02:00",
+      "section": "public",
+      "layer": "frontend",
+      "from": "1.7.0",
+      "to": "1.8.0",
+      "files": 2
+    },
+    {
+      "at": "2026-08-29T00:12:06+02:00",
+      "section": "public",
+      "layer": "frontend",
+      "from": "1.6.0",
+      "to": "1.7.0",
+      "files": 2
+    },
+    {
+      "at": "2026-08-28T23:16:15+02:00",
+      "section": "public",
+      "layer": "frontend",
+      "from": "1.5.0",
+      "to": "1.6.0",
+      "files": 4
+    },
+    {
+      "at": "2026-08-28T22:22:18+02:00",
+      "section": "core",
+      "layer": "backend",
+      "from": "1.3.3",
+      "to": "1.3.4",
+      "files": 3
+    },
+    {
+      "at": "2026-08-28T22:22:18+02:00",
+      "section": "certificates",
+      "layer": "frontend",
+      "from": "1.4.1",
+      "to": "1.5.0",
+      "files": 7
+    },
+    {
+      "at": "2026-08-28T22:22:18+02:00",
+      "section": "support",
+      "layer": "frontend",
+      "from": "1.0.2",
+      "to": "1.1.0",
+      "files": 7
+    },
+    {
+      "at": "2026-08-28T22:22:18+02:00",
+      "section": "notifications",
+      "layer": "frontend",
+      "from": "1.0.2",
+      "to": "1.1.0",
+      "files": 3
+    },
+    {
+      "at": "2026-08-28T22:22:18+02:00",
+      "section": "categories",
+      "layer": "frontend",
+      "from": "1.2.1",
+      "to": "1.3.0",
+      "files": 2
+    },
+    {
+      "at": "2026-08-28T22:22:18+02:00",
+      "section": "courses",
+      "layer": "frontend",
+      "from": "1.5.1",
+      "to": "1.6.0",
+      "files": 9
+    },
+    {
+      "at": "2026-08-28T22:22:18+02:00",
+      "section": "modules",
+      "layer": "frontend",
+      "from": "1.5.2",
+      "to": "1.6.0",
+      "files": 2
+    },
+    {
+      "at": "2026-08-28T22:22:18+02:00",
+      "section": "core",
+      "layer": "frontend",
+      "from": "1.8.0",
+      "to": "1.9.0",
+      "files": 14
+    },
+    {
+      "at": "2026-08-28T22:22:18+02:00",
+      "section": "purchases",
+      "layer": "frontend",
+      "from": "1.5.0",
+      "to": "1.6.0",
+      "files": 7
+    },
+    {
+      "at": "2026-08-28T22:22:18+02:00",
+      "section": "settings",
+      "layer": "frontend",
+      "from": "1.0.0",
+      "to": "1.1.0",
+      "files": 4
+    },
+    {
+      "at": "2026-08-28T22:22:18+02:00",
+      "section": "tasks",
+      "layer": "frontend",
+      "from": "1.2.2",
+      "to": "1.3.0",
+      "files": 4
+    },
+    {
+      "at": "2026-08-28T22:22:18+02:00",
+      "section": "users",
+      "layer": "frontend",
+      "from": "1.3.1",
+      "to": "1.4.0",
+      "files": 4
+    },
+    {
+      "at": "2026-08-28T22:22:18+02:00",
+      "section": "public",
+      "layer": "frontend",
+      "from": "1.4.0",
+      "to": "1.5.0",
+      "files": 6
+    },
+    {
+      "at": "2026-08-28T22:22:18+02:00",
+      "section": "settings",
+      "layer": "backend",
+      "from": "1.0.0",
+      "to": "1.0.1",
+      "files": 2
+    },
+    {
+      "at": "2026-08-28T22:22:18+02:00",
+      "section": "notifications",
+      "layer": "backend",
+      "from": "1.0.2",
+      "to": "1.1.0",
+      "files": 2
+    },
+    {
+      "at": "2026-08-28T22:22:18+02:00",
+      "section": "auth",
+      "layer": "backend",
+      "from": "1.2.1",
+      "to": "1.2.2",
+      "files": 1
+    },
+    {
+      "at": "2026-08-28T22:22:18+02:00",
+      "section": "database",
+      "layer": "backend",
+      "from": "1.5.0",
+      "to": "1.6.0",
+      "files": 1
+    },
+    {
+      "at": "2026-08-28T17:30:42+02:00",
+      "section": "core",
+      "layer": "backend",
+      "from": "1.3.2",
+      "to": "1.3.3",
+      "files": 3
+    },
+    {
+      "at": "2026-08-28T17:30:42+02:00",
+      "section": "settings",
+      "layer": "frontend",
+      "from": null,
+      "to": "1.0.0",
+      "files": 12
+    },
+    {
+      "at": "2026-08-28T17:30:42+02:00",
+      "section": "notifications",
+      "layer": "frontend",
+      "from": "1.0.1",
+      "to": "1.0.2",
+      "files": 1
+    },
+    {
+      "at": "2026-08-28T17:30:42+02:00",
+      "section": "certificates",
+      "layer": "frontend",
+      "from": "1.4.0",
+      "to": "1.4.1",
+      "files": 2
+    },
+    {
+      "at": "2026-08-28T17:30:42+02:00",
+      "section": "core",
+      "layer": "frontend",
+      "from": "1.7.0",
+      "to": "1.8.0",
+      "files": 14
+    },
+    {
+      "at": "2026-08-28T17:30:42+02:00",
+      "section": "purchases",
+      "layer": "frontend",
+      "from": "1.4.0",
+      "to": "1.5.0",
+      "files": 3
+    },
+    {
+      "at": "2026-08-28T17:30:42+02:00",
+      "section": "auth",
+      "layer": "frontend",
+      "from": "1.1.0",
+      "to": "1.2.0",
+      "files": 4
+    },
+    {
+      "at": "2026-08-28T17:30:42+02:00",
+      "section": "public",
+      "layer": "frontend",
+      "from": "1.3.1",
+      "to": "1.4.0",
+      "files": 5
+    },
+    {
+      "at": "2026-08-28T17:30:42+02:00",
+      "section": "courses",
+      "layer": "frontend",
+      "from": "1.5.0",
+      "to": "1.5.1",
+      "files": 3
+    },
+    {
+      "at": "2026-08-28T17:30:42+02:00",
+      "section": "settings",
+      "layer": "backend",
+      "from": null,
+      "to": "1.0.0",
+      "files": 7
+    },
+    {
+      "at": "2026-08-28T17:30:42+02:00",
+      "section": "purchases",
+      "layer": "backend",
+      "from": "1.0.4",
+      "to": "1.1.0",
+      "files": 3
+    },
+    {
+      "at": "2026-08-28T17:30:42+02:00",
+      "section": "modules",
+      "layer": "frontend",
+      "from": "1.5.1",
+      "to": "1.5.2",
+      "files": 1
+    },
+    {
+      "at": "2026-08-28T17:30:42+02:00",
+      "section": "support",
+      "layer": "frontend",
+      "from": "1.0.1",
+      "to": "1.0.2",
+      "files": 1
+    },
+    {
+      "at": "2026-08-28T17:30:42+02:00",
+      "section": "database",
+      "layer": "backend",
+      "from": "1.4.0",
+      "to": "1.5.0",
+      "files": 4
+    },
+    {
+      "at": "2026-08-28T09:26:30+02:00",
+      "section": "certificates",
+      "layer": "frontend",
+      "from": "1.3.1",
+      "to": "1.4.0",
+      "files": 6
+    },
+    {
+      "at": "2026-08-28T09:26:30+02:00",
+      "section": "support",
+      "layer": "frontend",
+      "from": "1.0.0",
+      "to": "1.0.1",
+      "files": 5
+    },
+    {
+      "at": "2026-08-28T09:26:30+02:00",
+      "section": "core",
+      "layer": "frontend",
+      "from": "1.6.0",
+      "to": "1.7.0",
+      "files": 23
+    },
+    {
+      "at": "2026-08-28T09:26:30+02:00",
+      "section": "notifications",
+      "layer": "frontend",
+      "from": "1.0.0",
+      "to": "1.0.1",
+      "files": 3
+    },
+    {
+      "at": "2026-08-28T09:26:30+02:00",
+      "section": "courses",
+      "layer": "frontend",
+      "from": "1.4.0",
+      "to": "1.5.0",
+      "files": 15
+    },
+    {
+      "at": "2026-08-28T09:26:30+02:00",
+      "section": "modules",
+      "layer": "frontend",
+      "from": "1.5.0",
+      "to": "1.5.1",
+      "files": 12
+    },
+    {
+      "at": "2026-08-28T09:26:30+02:00",
+      "section": "purchases",
+      "layer": "frontend",
+      "from": "1.3.2",
+      "to": "1.4.0",
+      "files": 6
+    },
+    {
+      "at": "2026-08-28T09:26:30+02:00",
+      "section": "tasks",
+      "layer": "frontend",
+      "from": "1.2.1",
+      "to": "1.2.2",
+      "files": 8
+    },
+    {
+      "at": "2026-08-28T09:26:30+02:00",
+      "section": "users",
+      "layer": "frontend",
+      "from": "1.3.0",
+      "to": "1.3.1",
+      "files": 4
+    },
+    {
+      "at": "2026-08-28T09:26:30+02:00",
+      "section": "public",
+      "layer": "frontend",
+      "from": "1.3.0",
+      "to": "1.3.1",
+      "files": 9
+    },
+    {
+      "at": "2026-08-28T09:26:30+02:00",
+      "section": "certificates",
+      "layer": "backend",
+      "from": "1.2.1",
+      "to": "1.2.2",
+      "files": 3
+    },
+    {
+      "at": "2026-08-28T09:26:30+02:00",
+      "section": "purchases",
+      "layer": "backend",
+      "from": "1.0.3",
+      "to": "1.0.4",
+      "files": 4
+    },
+    {
+      "at": "2026-08-28T09:26:30+02:00",
+      "section": "users",
+      "layer": "backend",
+      "from": "1.0.3",
+      "to": "1.0.4",
+      "files": 1
+    },
+    {
+      "at": "2026-08-28T09:26:30+02:00",
+      "section": "support",
+      "layer": "backend",
+      "from": "1.0.0",
+      "to": "1.0.1",
+      "files": 2
+    },
+    {
+      "at": "2026-08-28T09:26:30+02:00",
+      "section": "tasks",
+      "layer": "backend",
+      "from": "1.2.0",
+      "to": "1.2.1",
+      "files": 2
+    },
+    {
+      "at": "2026-08-28T09:26:30+02:00",
+      "section": "categories",
+      "layer": "frontend",
+      "from": "1.2.0",
+      "to": "1.2.1",
+      "files": 2
+    },
+    {
+      "at": "2026-08-28T09:26:30+02:00",
+      "section": "quizzes",
+      "layer": "frontend",
+      "from": "1.1.0",
+      "to": "1.1.1",
+      "files": 2
+    },
+    {
+      "at": "2026-08-28T09:26:30+02:00",
+      "section": "notifications",
+      "layer": "backend",
+      "from": "1.0.1",
+      "to": "1.0.2",
+      "files": 2
+    },
+    {
+      "at": "2026-08-28T09:26:30+02:00",
+      "section": "courses",
+      "layer": "backend",
+      "from": "1.3.0",
+      "to": "1.3.1",
+      "files": 1
+    },
+    {
+      "at": "2026-08-28T09:26:30+02:00",
+      "section": "modules",
+      "layer": "backend",
+      "from": "1.2.0",
+      "to": "1.2.1",
+      "files": 1
+    },
+    {
+      "at": "2026-08-28T09:26:30+02:00",
+      "section": "quizzes",
+      "layer": "backend",
+      "from": "1.1.0",
+      "to": "1.1.1",
+      "files": 1
+    },
+    {
+      "at": "2026-08-28T09:26:30+02:00",
+      "section": "core",
+      "layer": "backend",
+      "from": "1.3.1",
+      "to": "1.3.2",
+      "files": 2
+    }
+  ]
+}
