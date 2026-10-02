@@ -2095,6 +2095,13 @@ course-scoped page, add it there or it is URL-only.
   have `messages` routes. Backend vs frontend is a separate pattern (`BACKEND`). Keys are
   persisted — rename a label freely, never a key.
 
+- **The app version (`package.json`) follows the same rule one level up.** A commit that
+  bumped any section's minor bumps the app's minor; patches only → app patch; nothing
+  versioned → unchanged. Major is manual (`npm run versions:bump -- app major`). The hook
+  writes it to `package.json` and the two own-version fields of `package-lock.json` and
+  stages both. It replaced the `0.1.0` placeholder, which sat below every section's
+  `1.x`; `versions:init` derives it from history (1.31.0 when introduced).
+
 - **Lenient by design.** The hook never fails a commit (errors become a warning),
   `SKIP_VERSIONS=1` skips it, `--no-verify` bypasses it. It is bookkeeping, not a gate.
   `core.hooksPath` is set by npm's `prepare` (`versions.mjs install-hook`), written in

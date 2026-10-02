@@ -5,6 +5,7 @@
  *   node scripts/versions.mjs precommit       bump what the staged files touch (the git hook runs this)
  *   node scripts/versions.mjs init            rebuild every version by replaying git history
  *   node scripts/versions.mjs bump <section> <frontend|backend> <major|minor|patch>
+ *   node scripts/versions.mjs bump app <major|minor|patch>
  *   node scripts/versions.mjs install-hook    point git at .githooks/ (npm's `prepare` runs this)
  *
  * ## The rule
@@ -14,6 +15,18 @@
  * one that only changes or deletes files bumps the patch. Major bumps are a
  * human decision and only happen through the `bump` command. Which files belong
  * to which section is decided in `version-sections.mjs`.
+ *
+ * ## The app version follows the sections
+ *
+ * `package.json`'s `version` is the release number, and it moves by the same
+ * rule one level up: a commit that bumped any section's minor bumps the app's
+ * minor, one that only bumped patches bumps the app's patch, and a commit that
+ * touched nothing versioned leaves it alone. Major is manual here too
+ * (`bump app major`). It is written to `package.json` and to the two matching
+ * fields in `package-lock.json`, so npm never sees them disagree.
+ *
+ * It lives in `package.json` rather than in `appVersions.json` because that is
+ * where tooling — npm, Vercel, anything that reads a release number — looks.
  *
  * ## Deliberately lenient
  *
@@ -28,6 +41,7 @@ import { SECTIONS, classify } from './version-sections.mjs';
 const VERSIONS_FILE = 'src/lib/appVersions.json';
 const HISTORY_LIMIT = 100;
 const START_VERSION = '1.0.0';
+const PACKAGE_FILES = ['package.json', 'package-lock.json'];
 
 const git = (...args) => execFileSync('git', args, { encoding: 'utf8' }).trim();
 
@@ -81,6 +95,47 @@ function load() {
 
 function save(state) {
   writeFileSync(VERSIONS_FILE, `${JSON.stringify(state, null, 2)}\n`);
+}
+
+// ---------------------------------------------------------------------------
+// The app version (package.json)
+// ---------------------------------------------------------------------------
+
+/**
+ * The project's own `"version"` sits straight after its `"name"` — once in
+ * `package.json`, twice in the lockfile (top level and `packages[""]`).
+ * Matching that pair rewrites exactly those fields, never a dependency's
+ * version, and leaves the rest of each file byte-for-byte as it was.
+ */
+const OWN_VERSION = /("name":\s*"[^"]+",\s*"version":\s*")([^"]+)(")/g;
+
+function readAppVersion() {
+  return JSON.parse(readFileSync('package.json', 'utf8')).version;
+}
+
+function writeAppVersion(version) {
+  for (const file of PACKAGE_FILES) {
+    if (!existsSync(file)) continue;
+    const text = readFileSync(file, 'utf8');
+    writeFileSync(file, text.replace(OWN_VERSION, `$1${version}$3`));
+  }
+}
+
+/**
+ * The app-level bump one commit's section bumps imply: minor if any section
+ * moved its minor (or appeared for the first time), else patch, else nothing.
+ * Section majors never propagate — the app's major is its own decision.
+ */
+function appBumpLevel(bumps) {
+  if (bumps.length === 0) return null;
+  const grew = bumps.some((b) => b.from === null || b.to.endsWith('.0'));
+  return grew ? 'minor' : 'patch';
+}
+
+/** Below 1.0.0 the old `0.1.0` placeholder is replaced rather than bumped. */
+function nextAppVersion(current, level) {
+  if (!current || current.startsWith('0.')) return START_VERSION;
+  return bumpVersion(current, level);
 }
 
 /**
@@ -157,7 +212,13 @@ function precommit() {
 
   save(state);
   git('add', VERSIONS_FILE);
-  console.log(`versions: ${describe(bumps, state)}`);
+
+  const from = readAppVersion();
+  const to = nextAppVersion(from, appBumpLevel(bumps));
+  writeAppVersion(to);
+  git('add', ...PACKAGE_FILES.filter((file) => existsSync(file)));
+
+  console.log(`versions: app ${from}→${to} · ${describe(bumps, state)}`);
 }
 
 /**
@@ -171,15 +232,35 @@ function init() {
 
   const state = emptyState();
   let total = 0;
+  let app = null;
   for (const block of log.split(SEP).filter(Boolean)) {
     const [date, ...rest] = block.split('\n');
-    total += applyChanges(state, parseNameStatus(rest.join('\n')), date.trim()).length;
+    const bumps = applyChanges(state, parseNameStatus(rest.join('\n')), date.trim());
+    total += bumps.length;
+    const level = appBumpLevel(bumps);
+    if (level) app = nextAppVersion(app, level);
   }
   save(state);
-  console.log(`versions: rebuilt from git history (${total} bumps) → ${VERSIONS_FILE}`);
+  if (app) writeAppVersion(app);
+  console.log(
+    `versions: rebuilt from git history (${total} bumps, app ${app ?? 'unchanged'}) → ${VERSIONS_FILE}`,
+  );
 }
 
 function manualBump(section, layer, level) {
+  if (section === 'app') {
+    // `bump app <level>` — the level arrives in the second position.
+    const appLevel = layer;
+    if (!['major', 'minor', 'patch'].includes(appLevel)) {
+      throw new Error('usage: bump app <major|minor|patch>');
+    }
+    const from = readAppVersion();
+    const to = bumpVersion(from, appLevel);
+    writeAppVersion(to);
+    console.log(`versions: app ${from}→${to}`);
+    return;
+  }
+
   const state = load();
   const slot = state.sections[section]?.[layer];
   if (!slot || !['major', 'minor', 'patch'].includes(level)) {

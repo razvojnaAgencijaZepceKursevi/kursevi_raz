@@ -1,5 +1,5 @@
 {
-  "updatedAt": "2026-10-02T09:17:22.638Z",
+  "updatedAt": "2026-10-02T11:04:58.705Z",
   "sections": {
     "database": {
       "label": "Baza podataka",
@@ -174,12 +174,20 @@
         "updatedAt": "2026-10-02T09:17:22.638Z"
       },
       "backend": {
-        "version": "1.4.2",
-        "updatedAt": "2026-10-01T18:18:07.618Z"
+        "version": "1.4.3",
+        "updatedAt": "2026-10-02T11:04:58.705Z"
       }
     }
   },
   "history": [
+    {
+      "at": "2026-10-02T11:04:58.705Z",
+      "section": "core",
+      "layer": "backend",
+      "from": "1.4.2",
+      "to": "1.4.3",
+      "files": 1
+    },
     {
       "at": "2026-10-02T09:17:22.638Z",
       "section": "core",
@@ -971,14 +979,6 @@
       "from": "1.6.0",
       "to": "1.7.0",
       "files": 23
-    },
-    {
-      "at": "2026-08-28T09:26:30+02:00",
-      "section": "notifications",
-      "layer": "frontend",
-      "from": "1.0.0",
-      "to": "1.0.1",
-      "files": 3
     }
   ]
 }
