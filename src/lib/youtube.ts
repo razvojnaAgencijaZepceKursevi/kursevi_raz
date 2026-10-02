@@ -120,14 +120,34 @@ function parseStartTime(raw: string | null): number | undefined {
  * - `youtube-nocookie.com`: privacy-enhanced mode, no cookies until play.
  * - `rel=0`: end-of-video suggestions stay on the same channel rather than
  *   leading off into YouTube.
- * - `modestbranding=1`, `playsinline=1`: less YouTube chrome; iOS plays inline
- *   instead of jumping to the native fullscreen player.
+ * - `playsinline=1`: iOS plays inline instead of jumping to the native
+ *   fullscreen player.
+ * - `controls=0`, `fs=0`, `disablekb=1`, `iv_load_policy=3`: none of YouTube's
+ *   own controls, keyboard shortcuts or annotations. `<ModuleVideo>` lays a
+ *   click-catching overlay over the iframe and supplies its own controls, so
+ *   YouTube's would be unreachable anyway.
+ * - `enablejsapi=1` + `origin`: lets the IFrame Player API drive the embed, and
+ *   tells YouTube which page may do so.
  *
- * Controls are left on. Hiding them would not stop anyone opening the video on
- * YouTube — the id is in the src — and would only make it harder to watch.
+ * This keeps a student from *clicking* through to YouTube. It does not hide
+ * the video: the id is in this src, readable by anyone who opens devtools.
  */
-export function youtubeEmbedUrl(video: YouTubeVideo): string {
-  const params = new URLSearchParams({ rel: '0', modestbranding: '1', playsinline: '1' });
+export function youtubeEmbedUrl(video: YouTubeVideo, origin: string): string {
+  const params = new URLSearchParams({
+    rel: '0',
+    playsinline: '1',
+    controls: '0',
+    fs: '0',
+    disablekb: '1',
+    iv_load_policy: '3',
+    enablejsapi: '1',
+    origin,
+  });
   if (video.start) params.set('start', String(video.start));
   return `https://www.youtube-nocookie.com/embed/${video.id}?${params.toString()}`;
+}
+
+/** The poster shown over the player before the first play and after the end. */
+export function youtubeThumbnailUrl(video: YouTubeVideo): string {
+  return `https://i.ytimg.com/vi/${video.id}/hqdefault.jpg`;
 }

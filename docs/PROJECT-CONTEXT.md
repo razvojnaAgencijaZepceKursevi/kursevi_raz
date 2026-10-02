@@ -522,11 +522,23 @@ but must still handle a 403 on an individual resource.
   `www.youtube-nocookie.com` is **not** on the list, so a pasted embed URL is refused.
 
   The iframe `src` is rebuilt from the parsed id (plus `start`), never from the stored
-  string, on `youtube-nocookie.com` with `rel=0&modestbranding=1&playsinline=1`. Controls
-  stay on and fullscreen is allowed: neither leads out of the app, and the id is in the
-  src anyway, so anyone determined can open the video on YouTube — an embed cannot
-  prevent that. A stored link that fails to parse (pre-YouTube rows) renders a notice,
-  not the player.
+  string, on `youtube-nocookie.com`. A stored link that fails to parse (pre-YouTube rows)
+  renders a notice, not the player.
+
+  **YouTube's chrome is covered, and that breaks YouTube's API terms — knowingly.** The
+  project owner wanted students unable to click through to YouTube. `<ModuleVideo>` lays
+  a transparent layer over the iframe (`controls=0`, `enablejsapi=1`) and drives playback
+  from its own bar through the IFrame Player API (`src/lib/youtubeIframeApi.ts`). The
+  thumbnail covers the start and end screens; a top band hides the title on pause.
+  YouTube's developer policies forbid overlays in front of the player, so the accepted
+  risk is YouTube restricting embeds on this domain. If that happens, or if real
+  protection is ever wanted, the answer is a host with a custom player (Bunny Stream,
+  Mux, paid Vimeo), not more cleverness here. It is **not** protection: the id is still
+  in the iframe src.
+
+  Mobile browsers may refuse a script-started first play from another frame. After 2s
+  without playback the layer steps aside and asks for a tap on the video — the one
+  moment YouTube's chrome is reachable.
 
   `video_url` reaches a student only through `GET /api/courses/:id/modules`, after
   `assertCourseAccess`; the outline endpoint never carries it. Sequentially locked
