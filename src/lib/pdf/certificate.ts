@@ -4,6 +4,7 @@ import fs from 'node:fs/promises';
 import path from 'node:path';
 import { PDFDocument, rgb, type PDFFont, type PDFPage } from 'pdf-lib';
 import fontkit from '@pdf-lib/fontkit';
+import QRCode from 'qrcode';
 import { SITE } from '@/lib/siteConfig';
 
 /**
@@ -50,7 +51,10 @@ export type CertificateDocument = {
   studentName: string;
   courseName: string;
   issuedAt: string;
-  /** Absolute URL where this certificate can be checked. */
+  /**
+   * Absolute URL of the public check, with number and surname filled in
+   * (`verificationHref`). Encoded in the QR code; printed without its query.
+   */
   verifyUrl: string;
 };
 
@@ -105,6 +109,48 @@ function fitSize(text: string, font: PDFFont, preferred: number, maxWidth: numbe
   let size = preferred;
   while (size > floor && font.widthOfTextAtSize(text, size) > maxWidth) size -= 1;
   return size;
+}
+
+/**
+ * Draws a QR code as vector squares, its bottom-left corner at (x, y).
+ *
+ * Vector rather than an embedded PNG: it stays sharp at any print size and
+ * needs no image pipeline. Each row's dark run is one rectangle, which keeps a
+ * version-6 code to a few hundred draw calls instead of one per module.
+ *
+ * No text is involved, so none of the font traps above apply — but the code
+ * must sit on light paper with clear space around it (the "quiet zone"), or
+ * scanners cannot find its edges. The layout keeps four modules clear.
+ */
+function drawQrCode(
+  page: PDFPage,
+  text: string,
+  { x, y, size, color }: { x: number; y: number; size: number; color: ReturnType<typeof rgb> },
+) {
+  const { modules } = QRCode.create(text, { errorCorrectionLevel: 'M' });
+  const count = modules.size;
+  const cell = size / count;
+
+  for (let row = 0; row < count; row++) {
+    let runStart = -1;
+    for (let col = 0; col <= count; col++) {
+      const dark = col < count && modules.get(row, col) === 1;
+      if (dark && runStart < 0) runStart = col;
+      if (!dark && runStart >= 0) {
+        page.drawRectangle({
+          x: x + runStart * cell,
+          // PDF y grows upwards; QR rows are counted from the top.
+          y: y + size - (row + 1) * cell,
+          width: (col - runStart) * cell,
+          // A hair of overlap so adjacent rows do not show hairline seams
+          // in viewers that anti-alias each rectangle separately.
+          height: cell + 0.05,
+          color,
+        });
+        runStart = -1;
+      }
+    }
+  }
 }
 
 export async function renderCertificatePdf(input: CertificateDocument): Promise<Uint8Array> {
@@ -276,7 +322,12 @@ export async function renderCertificatePdf(input: CertificateDocument): Promise<
   const footer: { label: string; value: string }[] = [
     { label: 'DATUM IZDAVANJA', value: input.issuedAt },
     { label: 'BROJ CERTIFIKATA', value: input.readableId },
-    { label: 'PROVJERA', value: input.verifyUrl.replace(/^https?:\/\//, '') },
+    // Printed without the query: a person types the short form and enters the
+    // number and surname themselves; the QR above carries the full link.
+    {
+      label: 'PROVJERA',
+      value: input.verifyUrl.replace(/^https?:\/\//, '').replace(/\?.*$/, ''),
+    },
   ];
 
   footer.forEach((entry, index) => {
@@ -302,6 +353,20 @@ export async function renderCertificatePdf(input: CertificateDocument): Promise<
       font: display,
       color: INK,
     });
+  });
+
+  /*
+   * The QR code, above the PROVJERA column it belongs to. That band — right of
+   * the issuer block, below the course name, above the footer rule — is
+   * otherwise empty. 64pt is about 23mm: small enough to stay out of the way,
+   * large enough for a phone at arm's length (modules come out around 0.6mm).
+   */
+  const qrSize = 64;
+  drawQrCode(page, input.verifyUrl, {
+    x: column * 2 + column / 2 - qrSize / 2,
+    y: footerY + 54,
+    size: qrSize,
+    color: INK,
   });
 
   page.drawLine({

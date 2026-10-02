@@ -1,6 +1,6 @@
 {
   "name": "kursevi-raz",
-  "version": "1.32.1",
+  "version": "1.33.0",
   "private": true,
   "scripts": {
     "dev": "next dev",
@@ -36,6 +36,7 @@
     "next": "16.2.12",
     "pdf-lib": "^1.17.1",
     "pdfjs-dist": "^6.2.108",
+    "qrcode": "^1.5.4",
     "react": "19.2.4",
     "react-dom": "19.2.4",
     "react-hook-form": "^7.84.0",
@@ -51,6 +52,7 @@
   },
   "devDependencies": {
     "@types/node": "^20",
+    "@types/qrcode": "^1.5.6",
     "@types/react": "^19",
     "@types/react-dom": "^19",
     "@types/swagger-ui-react": "^5.18.0",

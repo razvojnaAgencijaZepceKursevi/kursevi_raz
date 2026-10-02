@@ -38,6 +38,8 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
     );
   }
 
+  if (FEATURES.certificates) pages.push({ url: absoluteUrl('/provjera-certifikata') });
+
   if (FEATURES.blog) {
     pages.push(
       { url: absoluteUrl('/blog') },

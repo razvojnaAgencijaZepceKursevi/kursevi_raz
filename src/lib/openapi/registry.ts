@@ -116,6 +116,7 @@ import {
   certificateListResponseSchema,
   certificateResponseSchema,
   certificateVerificationResponseSchema,
+  verifyCertificateRequestSchema,
   listCertificatesQuerySchema,
   markDeliveredSchema,
   requestDeliverySchema,
@@ -821,13 +822,29 @@ registry.registerPath({
   method: 'get',
   path: '/api/certificates/{certificateId}',
   tags: ['Certificates'],
-  summary: 'Public certificate verification',
+  summary: 'One certificate',
   description:
-    'Unauthenticated. Accepts the readable id (CERT-YYYY-NNNN) or the uuid, and returns a minimal verification payload.',
+    'Signed in. Accepts the readable id (CERT-YYYY-NNNN) or the uuid. RLS admits the student it belongs to, admins and the owning teacher; anyone else gets 404.',
+  security,
   request: { params: z.object({ certificateId: z.string() }) },
+  responses: { 200: json(certificateResponseSchema, 'The certificate'), ...errors },
+});
+
+registry.registerPath({
+  method: 'post',
+  path: '/api/certificates/verify',
+  tags: ['Certificates'],
+  summary: 'Public certificate check',
+  description:
+    'Unauthenticated. Confirms a certificate only when both the number and the holder surname match; an unknown number and a wrong surname both return the same 404. At most 10 misses per IP per 15 minutes (429).',
+  request: {
+    body: { content: { 'application/json': { schema: verifyCertificateRequestSchema } } },
+  },
   responses: {
     200: json(certificateVerificationResponseSchema, 'Verified certificate'),
+    400: errors[400],
     404: errors[404],
+    429: json(errorResponseSchema, 'Too many failed attempts'),
   },
 });
 

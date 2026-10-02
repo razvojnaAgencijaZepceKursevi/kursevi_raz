@@ -1087,6 +1087,49 @@ purchase` shape `assertCourseAccess` exists to prevent — so a teacher clicking
   verification means a _separate_, deliberately minimal public endpoint — not loosening
   this one.
 
+### Public certificate check (`/provjera-certifikata`) — number **and** surname
+
+- **Verification is back, as the separate endpoint the note above called for.**
+  `POST /api/certificates/verify` returns four facts (number, name, course, date) and
+  nothing else; `/certificates/[id]` and its GET stay private and unchanged.
+
+- **The number alone is not enough, because numbers are sequential.** `CERT-YYYY-NNNN`
+  comes from a sequence, so a number-only lookup would let anyone walk the range and
+  harvest every graduate's name and course. A match needs the holder's surname too —
+  what an employer reading a CV already has. Chosen over adding a random suffix to new
+  numbers, which would have left every already-issued (possibly printed) certificate
+  enumerable or forced a renumbering.
+
+- **Matching rules live in `src/lib/certificateVerification.ts`**, shared by the route,
+  the form and the share link. Diacritics fold (`Jovanovic` matches `Jovanović`, `đ` ↔
+  `dj`), hyphens are word breaks, and any run of words _after the first_ counts as a
+  surname — so both halves of a double-barrelled name work. The first word alone (a given
+  name) never matches.
+
+- **A miss is one answer.** Unknown number, wrong surname and malformed number all return
+  the same 404 text, so a probe cannot learn that a number exists. Ten misses per IP per
+  15 minutes, then 429; successful checks are not counted. The limiter
+  (`src/lib/api/rateLimit.ts`) is **in-memory, so best effort** on serverless — per
+  instance, reset on cold start. Move it to shared storage if it ever needs to be a
+  guarantee.
+
+- **POST, not GET**, so a surname does not end up in access logs. The page itself accepts
+  `?broj=…&prezime=…`, prefills and auto-runs — that is the link the student copies from
+  their own certificate page ("Provjera za poslodavce") to put on a CV. Publishing it is
+  their choice.
+
+- Service-role client, because `certificates` grants `anon` nothing — the route _is_ the
+  access control, per the §6 rule. Behind the `certificates` flag like the rest of the
+  feature (page, footer link, sitemap); the API stays reachable, as flags never gate APIs.
+
+- **The certificate PDF carries a QR code to the check**, prefilled with number and
+  surname, drawn as vector squares (`qrcode` for the matrix, pdf-lib rectangles) above the
+  PROVJERA footer column; the column prints the short `…/provjera-certifikata`. Before this
+  the footer linked to `/certificates/{id}` — private since the reversal, so a stranger
+  following it met a login form. Verified by rasterising with pdfjs + `@napi-rs/canvas` and
+  decoding the QR from the image with `jsqr`, at 2× and 1× scale, including a long
+  hyphenated name with `Đ ć Š`.
+
 ### Task-brief attachments are downloadable (`/api/task-files/:id/content`)
 
 - The near-twin of `/api/module-files/:id/content` with the opposite ending. Same private

@@ -1,11 +1,20 @@
 'use client';
 
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
-import { apiGet, apiPatch, toSearchParams, type Envelope, type Paginated } from '@/lib/api/client';
+import {
+  apiGet,
+  apiPatch,
+  apiPost,
+  toSearchParams,
+  type Envelope,
+  type Paginated,
+} from '@/lib/api/client';
 import type {
   AdminCertificate,
   Certificate,
+  CertificateVerification,
   ListCertificatesQuery,
+  VerifyCertificateRequest,
 } from '@/lib/schemas/certificates.schema';
 
 export type CertificateListParams = Partial<ListCertificatesQuery>;
@@ -137,5 +146,21 @@ export function useMarkCertificateDelivered() {
         queryClient.invalidateQueries({ queryKey: adminCertificateKeys.all }),
         queryClient.invalidateQueries({ queryKey: certificateKeys.all }),
       ]),
+  });
+}
+
+/**
+ * POST /api/certificates/verify — the public check, number + surname.
+ *
+ * A mutation rather than a query: it is an explicit "check this" action, and
+ * a miss is a 404 the screen shows as an answer, not something to retry or
+ * cache. Usable signed out.
+ */
+export function useVerifyCertificate() {
+  return useMutation({
+    mutationFn: (body: VerifyCertificateRequest) =>
+      apiPost<Envelope<CertificateVerification>>('/api/certificates/verify', body).then(
+        (res) => res.data,
+      ),
   });
 }

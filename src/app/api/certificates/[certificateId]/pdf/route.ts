@@ -4,6 +4,7 @@ import { createClient } from '@/lib/supabase/server';
 import { renderCertificatePdf } from '@/lib/pdf/certificate';
 import { formatDate } from '@/lib/format';
 import { publicEnv } from '@/lib/env';
+import { surnameOf, verificationHref } from '@/lib/certificateVerification';
 import { z } from '@/lib/openapi/zod';
 
 export const dynamic = 'force-dynamic';
@@ -13,18 +14,15 @@ type Ctx = { params: Promise<{ certificateId: string }> };
 /**
  * GET /api/certificates/:id/pdf — the certificate as an A4 PDF.
  *
- * ## Public, matching the page it belongs to
+ * ## Private, matching the page it belongs to
  *
- * Same access model as `GET /api/certificates/:id`: unauthenticated, service
- * role, and a fixed projection. It carries exactly what the verification page
- * already shows — name, course, date, number — so it discloses nothing new. A
- * certificate is a thing you hand to someone; a copy nobody but its owner could
- * fetch would defeat the point of having one.
+ * Same access model as `GET /api/certificates/:id`: signed in, on the caller's
+ * own client, so RLS admits only the student, admins and the owning teacher.
+ * (It was briefly public; see "Certificates are private" in PROJECT-CONTEXT.)
  *
- * Note what this means and does not mean: anyone with the number can download a
- * PDF of *that* certificate. They cannot make it say anything else, and the
- * number on it points back at the verification page. The identifier is
- * sequential and therefore guessable — see the note in PROJECT-CONTEXT.
+ * The document carries a QR code and a printed link to the **public** check,
+ * `/provjera-certifikata`, with number and surname filled in — that is how a
+ * stranger holding a printed copy confirms it without an account.
  *
  * ## Inline by default, attachment on request
  *
@@ -51,14 +49,16 @@ export const GET = withRoute(async (req, ctx: Ctx) => {
 
   if (!certificate) throw notFound('No certificate found for that identifier');
 
-  const base = publicEnv.siteUrl;
+  const studentName = certificate.profiles?.full_name ?? '—';
 
   const pdf = await renderCertificatePdf({
     readableId: certificate.readable_id,
-    studentName: certificate.profiles?.full_name ?? '—',
+    studentName,
     courseName: certificate.courses?.name ?? '—',
     issuedAt: formatDate(certificate.created_at),
-    verifyUrl: `${base}/certificates/${certificate.readable_id}`,
+    // The public check, not `/certificates/…`: that page is private, so a
+    // stranger scanning the code would only have met a login form.
+    verifyUrl: `${publicEnv.siteUrl}${verificationHref(certificate.readable_id, surnameOf(studentName))}`,
   });
 
   const download = new URL(req.url).searchParams.get('download') !== null;

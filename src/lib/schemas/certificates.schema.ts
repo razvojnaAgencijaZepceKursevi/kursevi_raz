@@ -9,10 +9,11 @@ import {
   timestampSchema,
   uuidSchema,
 } from './common.schema';
+import { CERTIFICATE_NUMBER_PATTERN } from '@/lib/certificateVerification';
 
 export const readableIdSchema = z
   .string()
-  .regex(/^CERT-\d{4}-\d{4,}$/)
+  .regex(CERTIFICATE_NUMBER_PATTERN)
   .openapi({ example: 'CERT-2026-0001' });
 
 export const certificateSchema = z
@@ -78,6 +79,19 @@ export const certificateResponseSchema = z
   .openapi('CertificateResponse');
 
 /**
+ * `POST /api/certificates/verify` — the public check. Both fields are needed;
+ * see `src/lib/certificateVerification.ts` for why the number alone is not.
+ * The number is only length-checked here: a malformed one simply fails to
+ * match, and answering it differently would tell a prober something.
+ */
+export const verifyCertificateRequestSchema = z
+  .object({
+    number: z.string().trim().min(1).max(40).openapi({ example: 'CERT-2026-0001' }),
+    surname: z.string().trim().min(2).max(100).openapi({ example: 'Jovanović' }),
+  })
+  .openapi('VerifyCertificateRequest');
+
+/**
  * Public verification payload. Deliberately minimal: enough to confirm a
  * certificate is genuine, without exposing the certificates table or any
  * identifier that could be enumerated back into student data.
@@ -119,4 +133,5 @@ export type Certificate = z.infer<typeof certificateSchema>;
 export type AdminCertificate = z.infer<typeof adminCertificateSchema>;
 export type ListCertificatesQuery = z.infer<typeof listCertificatesQuerySchema>;
 export type CertificateVerification = z.infer<typeof certificateVerificationSchema>;
+export type VerifyCertificateRequest = z.infer<typeof verifyCertificateRequestSchema>;
 export type MarkCertificateDeliveredRequest = z.infer<typeof markDeliveredSchema>;

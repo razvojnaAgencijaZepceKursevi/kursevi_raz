@@ -63,6 +63,9 @@ export default async function PublicFooter() {
         { label: 'O nama', href: '/o-nama' },
         ...(FEATURES.blog ? [{ label: 'Blog', href: '/blog' }] : []),
         { label: 'Kontakt', href: '/kontakt' },
+        ...(FEATURES.certificates
+          ? [{ label: 'Provjera certifikata', href: '/provjera-certifikata' }]
+          : []),
         { label: 'Uvjeti korištenja', href: '/uvjeti-koristenja' },
         { label: 'Politika privatnosti', href: '/politika-privatnosti' },
       ],

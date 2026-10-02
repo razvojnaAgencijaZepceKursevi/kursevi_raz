@@ -2,6 +2,7 @@
 
 import * as React from 'react';
 import CheckCircleIcon from '@mui/icons-material/CheckCircle';
+import ContentCopyOutlinedIcon from '@mui/icons-material/ContentCopyOutlined';
 import DownloadOutlinedIcon from '@mui/icons-material/DownloadOutlined';
 import SchoolOutlinedIcon from '@mui/icons-material/SchoolOutlined';
 import WorkspacePremiumOutlinedIcon from '@mui/icons-material/WorkspacePremiumOutlined';
@@ -22,6 +23,8 @@ import { useAuthStore } from '@/store/useAuthStore';
 import { formatDate } from '@/lib/format';
 import { isStatus } from '@/lib/api/errorMessage';
 import { FEATURES } from '@/lib/features';
+import { surnameOf, verificationHref } from '@/lib/certificateVerification';
+import { toast } from '@/store/useToastStore';
 
 /**
  * One certificate — the page a student is sent to when they finish a course,
@@ -42,9 +45,12 @@ import { FEATURES } from '@/lib/features';
  * addressed by slug: it is the form a person reads out. The endpoint accepts
  * the uuid too, so older links keep working.
  *
- * ## The owner sees one thing more
+ * ## The owner sees two things more
  *
  * Only the student may ask for a printed copy, so only they get that panel.
+ * They also get the public check link (`/provjera-certifikata?broj=…&prezime=…`)
+ * to put on a CV — this page stays private, the link is how someone else
+ * confirms the certificate without an account.
  * Staff looking at the same page see the document and nothing to act on.
  * `request-delivery` checks ownership itself; hiding the panel is presentation.
  */
@@ -188,6 +194,40 @@ export default function CertificatePage(props: PageProps<'/certificates/[certifi
                 title={`Certifikat ${certificate.readable_id}`}
               />
             </ContentCard>
+
+            {/* Only the holder shares the check link; staff have no use for it. */}
+            {FEATURES.certificates &&
+            certificate.student_id === myId &&
+            certificate.profiles?.full_name ? (
+              <ContentCard
+                title="Provjera za poslodavce"
+                description="Ova stranica je privatna. Podijeli link ispod — svako ko ga otvori vidi da je certifikat važeći, bez prijave."
+                actions={
+                  <Button
+                    startIcon={<ContentCopyOutlinedIcon />}
+                    variant="outlined"
+                    size="small"
+                    onClick={() => {
+                      const href = verificationHref(
+                        certificate.readable_id,
+                        surnameOf(certificate.profiles!.full_name),
+                      );
+                      navigator.clipboard
+                        .writeText(`${window.location.origin}${href}`)
+                        .then(() => toast.success('Link za provjeru je kopiran.'))
+                        .catch(() => toast.error('Kopiranje nije uspjelo.'));
+                    }}
+                  >
+                    Kopiraj link
+                  </Button>
+                }
+              >
+                <Typography variant="body2" color="text.secondary">
+                  Link sadrži broj certifikata i tvoje prezime. Bez oba podatka provjera ne
+                  prikazuje ništa.
+                </Typography>
+              </ContentCard>
+            ) : null}
 
             {/* Only the student may request a printed copy. */}
             {certificate.student_id === myId ? (

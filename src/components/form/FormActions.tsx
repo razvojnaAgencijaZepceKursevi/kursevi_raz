@@ -22,6 +22,8 @@ import Stack from '@mui/material/Stack';
  */
 export default function FormActions({
   submitLabel = 'Sačuvaj',
+  /** Shown on the submit button while submitting. Not every form saves. */
+  pendingLabel = 'Čuvanje…',
   cancelLabel = 'Otkaži',
   /** Renders the cancel button as a link. Omit both cancel props to hide it. */
   cancelHref,
@@ -30,6 +32,7 @@ export default function FormActions({
   secondaryActions,
 }: {
   submitLabel?: string;
+  pendingLabel?: string;
   cancelLabel?: string;
   cancelHref?: string;
   onCancel?: () => void;
@@ -66,7 +69,7 @@ export default function FormActions({
         ) : null}
 
         <Button type="submit" variant="contained" size="large" disabled={isSubmitting}>
-          {isSubmitting ? 'Čuvanje…' : submitLabel}
+          {isSubmitting ? pendingLabel : submitLabel}
         </Button>
       </Stack>
     </Stack>

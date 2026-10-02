@@ -144,7 +144,12 @@ export function isEnabled(feature: FeatureName): boolean {
 export const FEATURE_ROUTES: Partial<Record<FeatureName, readonly string[]>> = {
   purchases: ['/dashboard/purchases', '/admin/purchases', '/admin/settings/payment'],
   tasks: ['/admin/submissions'],
-  certificates: ['/certificates', '/dashboard/certificates', '/admin/certificates'],
+  certificates: [
+    '/certificates',
+    '/dashboard/certificates',
+    '/admin/certificates',
+    '/provjera-certifikata',
+  ],
   notifications: ['/notifications', '/settings/notifications'],
   support: ['/issues', '/admin/issues'],
   blog: ['/blog'],
