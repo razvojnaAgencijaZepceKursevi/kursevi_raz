@@ -1,5 +1,5 @@
 {
-  "updatedAt": "2026-10-02T08:54:35.515Z",
+  "updatedAt": "2026-10-02T09:17:22.638Z",
   "sections": {
     "database": {
       "label": "Baza podataka",
@@ -170,8 +170,8 @@
       "label": "Jezgro",
       "description": "Zajedničke komponente, tema, rasporedi i infrastruktura",
       "frontend": {
-        "version": "1.11.3",
-        "updatedAt": "2026-10-02T08:54:35.515Z"
+        "version": "1.12.0",
+        "updatedAt": "2026-10-02T09:17:22.638Z"
       },
       "backend": {
         "version": "1.4.2",
@@ -180,6 +180,14 @@
     }
   },
   "history": [
+    {
+      "at": "2026-10-02T09:17:22.638Z",
+      "section": "core",
+      "layer": "frontend",
+      "from": "1.11.3",
+      "to": "1.12.0",
+      "files": 2
+    },
     {
       "at": "2026-10-02T08:54:35.515Z",
       "section": "core",
@@ -971,14 +979,6 @@
       "from": "1.0.0",
       "to": "1.0.1",
       "files": 3
-    },
-    {
-      "at": "2026-08-28T09:26:30+02:00",
-      "section": "courses",
-      "layer": "frontend",
-      "from": "1.4.0",
-      "to": "1.5.0",
-      "files": 15
     }
   ]
 }

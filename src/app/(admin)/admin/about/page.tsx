@@ -12,6 +12,7 @@ import TableHead from '@mui/material/TableHead';
 import TableRow from '@mui/material/TableRow';
 import Typography from '@mui/material/Typography';
 import ContentCard from '@/components/layout/ContentCard';
+import CollapsibleCard from '@/components/layout/CollapsibleCard';
 import PageContainer from '@/components/layout/PageContainer';
 import PageHeader from '@/components/layout/PageHeader';
 import DetailList from '@/components/data/DetailList';
@@ -49,9 +50,6 @@ type Section = { label: string; description: string; frontend: Slot; backend: Sl
 const sections = Object.entries(versions.sections as Record<string, Section>);
 const LAYER_LABEL = { frontend: 'Frontend', backend: 'Backend' } as const;
 
-/** How many history entries "Nedavne promjene" shows. */
-const RECENT_LIMIT = 5;
-
 /**
  * Display names for the feature flags, in the order they are listed.
  *
@@ -73,6 +71,9 @@ const FEATURE_LABELS: Record<FeatureName, string> = {
   themeSwitch: 'Tamni način',
   googleAuth: 'Prijava putem Google naloga',
 };
+
+/** How many history entries "Nedavne promjene" shows. */
+const RECENT_LIMIT = 20;
 
 /** Declared range → plain version: `^9.2.0` → `9.2.0`. */
 function dependencyVersion(name: keyof typeof packageJson.dependencies): string {
@@ -124,7 +125,9 @@ export default async function AboutAppPage() {
         />
       </ContentCard>
 
-      <ContentCard
+      {/* The three reference sections start collapsed: they are long, and the
+          release card above is what most visits are for. */}
+      <CollapsibleCard
         title="Verzije po cjelinama"
         description="Nova datoteka u cjelini povećava srednji broj, izmjena posljednji. Prvi broj se mijenja samo ručno, za velike promjene."
         disablePadding
@@ -160,9 +163,9 @@ export default async function AboutAppPage() {
             </TableBody>
           </Table>
         </TableContainer>
-      </ContentCard>
+      </CollapsibleCard>
 
-      <ContentCard title="Nedavne promjene" disablePadding>
+      <CollapsibleCard title="Nedavne promjene" disablePadding>
         <TableContainer>
           <Table size="small">
             <TableHead>
@@ -196,9 +199,9 @@ export default async function AboutAppPage() {
             </TableBody>
           </Table>
         </TableContainer>
-      </ContentCard>
+      </CollapsibleCard>
 
-      <ContentCard title="Dostupnost" disablePadding>
+      <CollapsibleCard title="Dostupnost" disablePadding>
         <TableContainer>
           <Table size="small">
             <TableHead>
@@ -235,7 +238,7 @@ export default async function AboutAppPage() {
             </TableBody>
           </Table>
         </TableContainer>
-      </ContentCard>
+      </CollapsibleCard>
     </PageContainer>
   );
 }
