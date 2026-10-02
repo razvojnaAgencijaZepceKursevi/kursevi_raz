@@ -1,3 +1,5 @@
+import { FEATURES } from '@/lib/features';
+
 /**
  * Which pages honour the user's colour scheme, and which are always light.
  *
@@ -41,8 +43,16 @@ export const THEMED_PREFIXES = [
  */
 export const THEMED_PATTERN = '^/courses/[^/]+/modules(?:/|$)';
 
-/** True when the page at `pathname` follows the user's saved colour scheme. */
+/**
+ * True when the page at `pathname` follows the user's saved colour scheme.
+ *
+ * With `themeSwitch` off, no page does: the app is light everywhere, as if dark
+ * mode had never been built. That also covers a user who chose dark before the
+ * flag went off, and anyone whose OS prefers dark — MUI would otherwise follow
+ * the system setting with no toggle anywhere to explain why.
+ */
 export function isThemedPath(pathname: string): boolean {
+  if (!FEATURES.themeSwitch) return false;
   const underPrefix = THEMED_PREFIXES.some(
     (prefix) => pathname === prefix || pathname.startsWith(`${prefix}/`),
   );
@@ -84,7 +94,9 @@ export const DARK_CLASS = 'dark';
  * nothing to enumerate and nothing left to leak.
  */
 export const colorSchemeScopeScript = `(function(){try{var p=location.pathname;var themed=${JSON.stringify(
+  FEATURES.themeSwitch,
+)}&&(${JSON.stringify(
   THEMED_PREFIXES,
 )}.some(function(x){return p===x||p.indexOf(x+'/')===0})||new RegExp(${JSON.stringify(
   THEMED_PATTERN,
-)}).test(p);if(!themed){var e=document.documentElement;e.classList.remove('${DARK_CLASS}');e.classList.add('${LIGHT_CLASS}');}}catch(e){}})();`;
+)}).test(p));if(!themed){var e=document.documentElement;e.classList.remove('${DARK_CLASS}');e.classList.add('${LIGHT_CLASS}');}}catch(e){}})();`;

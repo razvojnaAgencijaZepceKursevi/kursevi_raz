@@ -21,6 +21,7 @@ import { useCertificate } from '@/hooks/useCertificates';
 import { useAuthStore } from '@/store/useAuthStore';
 import { formatDate } from '@/lib/format';
 import { isStatus } from '@/lib/api/errorMessage';
+import { FEATURES } from '@/lib/features';
 
 /**
  * One certificate — the page a student is sent to when they finish a course,
@@ -66,9 +67,11 @@ export default function CertificatePage(props: PageProps<'/certificates/[certifi
             description="Ovaj certifikat ne postoji ili nemate pristup njemu."
             icon={<WorkspacePremiumOutlinedIcon />}
             action={
-              <Button href="/courses" variant="contained">
-                Pogledaj kurseve
-              </Button>
+              FEATURES.catalog ? (
+                <Button href="/courses" variant="contained">
+                  Pogledaj kurseve
+                </Button>
+              ) : undefined
             }
           />
         </ContentCard>

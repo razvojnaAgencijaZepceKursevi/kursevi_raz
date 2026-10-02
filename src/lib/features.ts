@@ -44,8 +44,10 @@ function enabled(value: string | undefined): boolean {
 
 export const FEATURES = {
   /**
-   * The public catalogue: `/courses`, a course's public page, and the purchase
-   * panel on it. With this off the app is the signed-in product only.
+   * The public catalogue: `/courses`, the featured-courses band on the landing
+   * page, and every "browse courses" link. With this off a course page is
+   * reachable only when signed in — it is also the enrolled student's way into
+   * their modules, so it cannot simply disappear (see `isDisabledRoute`).
    */
   catalog: enabled(process.env.NEXT_PUBLIC_FEATURE_CATALOG),
 
@@ -58,19 +60,26 @@ export const FEATURES = {
   /**
    * Quizzes on a module — authoring them and taking them. Independent of
    * `tasks`: a course can be built with one, the other, or neither.
+   *
+   * A hidden quiz still counts towards finishing its module (the database
+   * derives completion from what exists, not from what is shown), so a module
+   * that has one cannot be completed while this is off. Demo with courses
+   * built without quizzes, or the course stalls at that module.
    */
   quizzes: enabled(process.env.NEXT_PUBLIC_FEATURE_QUIZZES),
 
   /**
-   * Task submissions and the review thread: the student's task screen, the
-   * admin submission queue, and messaging on both sides.
+   * Tasks: authoring them, the student's task screen, the admin submission
+   * queue, and the review thread on both sides. The same completion caveat as
+   * `quizzes` applies.
    */
   tasks: enabled(process.env.NEXT_PUBLIC_FEATURE_TASKS),
 
   /**
-   * Certificates: issuing, the certificate page, the PDF, and the printed-copy
-   * request. Progress still records completion with this off — it simply
-   * produces nothing at the end.
+   * Certificates: the certificate page, the PDF, the printed-copy request, and
+   * every mention of one when a course is finished. Issuing still happens
+   * silently in the database, so students who finish while this is off find
+   * their certificate waiting once it is turned on.
    */
   certificates: enabled(process.env.NEXT_PUBLIC_FEATURE_CERTIFICATES),
 
@@ -99,7 +108,10 @@ export const FEATURES = {
    */
   teachers: enabled(process.env.NEXT_PUBLIC_FEATURE_TEACHERS),
 
-  /** The light/dark toggle and its settings tab. */
+  /**
+   * The light/dark toggle and its settings tab. Off means light everywhere,
+   * regardless of a stored preference or the OS setting.
+   */
   themeSwitch: enabled(process.env.NEXT_PUBLIC_FEATURE_THEME_SWITCH),
 
   /**
@@ -125,11 +137,11 @@ export function isEnabled(feature: FeatureName): boolean {
  * resolving, so a bookmark or a typed address during a demo does not walk into
  * a section that is supposed to be weeks away.
  *
- * `googleAuth` and `themeSwitch` are absent on purpose — neither owns a route,
- * they are controls inside pages that stay reachable.
+ * `googleAuth` is absent on purpose — it owns no route, it is a button inside
+ * pages that stay reachable. `catalog` is absent too, because it cannot be
+ * expressed as a prefix; see `isDisabledRoute`.
  */
 export const FEATURE_ROUTES: Partial<Record<FeatureName, readonly string[]>> = {
-  catalog: ['/courses'],
   purchases: ['/dashboard/purchases', '/admin/purchases', '/admin/settings/payment'],
   tasks: ['/admin/submissions'],
   certificates: ['/certificates', '/dashboard/certificates', '/admin/certificates'],
@@ -137,11 +149,45 @@ export const FEATURE_ROUTES: Partial<Record<FeatureName, readonly string[]>> = {
   support: ['/issues', '/admin/issues'],
   blog: ['/blog'],
   newsletter: ['/settings/newsletter', '/admin/settings/newsletter'],
+  themeSwitch: ['/settings/appearance'],
 };
 
-/** Every prefix that is currently switched off. */
-export function disabledRoutePrefixes(): string[] {
-  return (Object.keys(FEATURE_ROUTES) as FeatureName[])
-    .filter((feature) => !FEATURES[feature])
-    .flatMap((feature) => FEATURE_ROUTES[feature] ?? []);
+/**
+ * Pages that sit *inside* a URL another feature owns, so no prefix can name
+ * them: the quiz and task screens hang off a module, on both the student side
+ * (`/courses/{slug}/modules/{id}/quiz`) and the authoring side
+ * (`/admin/courses/{id}/modules/{id}/quiz`).
+ */
+export const FEATURE_ROUTE_PATTERNS: Partial<Record<FeatureName, readonly RegExp[]>> = {
+  quizzes: [/^(?:\/admin)?\/courses\/[^/]+\/modules\/[^/]+\/quiz(?:\/|$)/],
+  tasks: [/^(?:\/admin)?\/courses\/[^/]+\/modules\/[^/]+\/task(?:\/|$)/],
+};
+
+const underPrefix = (pathname: string, prefix: string) =>
+  pathname === prefix || pathname.startsWith(`${prefix}/`);
+
+/**
+ * Whether `pathname` belongs to a feature that is switched off, for `proxy.ts`.
+ *
+ * ## The catalogue is the one rule that depends on who is asking
+ *
+ * `/courses/{slug}` is two pages at one address: the public sales page, and
+ * the enrolled student's course page with its module list — the only way into
+ * the module viewer. Turning the catalogue off must remove the first without
+ * stranding the second, so the index 404s for everyone and a course page only
+ * for a signed-out visitor. A signed-in user reaches a course from their own
+ * dashboard, never by browsing.
+ */
+export function isDisabledRoute(pathname: string, { signedIn }: { signedIn: boolean }): boolean {
+  if (!FEATURES.catalog) {
+    if (pathname === '/courses') return true;
+    if (!signedIn && pathname.startsWith('/courses/')) return true;
+  }
+
+  return (Object.keys(FEATURES) as FeatureName[]).some(
+    (feature) =>
+      !FEATURES[feature] &&
+      ((FEATURE_ROUTES[feature] ?? []).some((prefix) => underPrefix(pathname, prefix)) ||
+        (FEATURE_ROUTE_PATTERNS[feature] ?? []).some((pattern) => pattern.test(pathname))),
+  );
 }

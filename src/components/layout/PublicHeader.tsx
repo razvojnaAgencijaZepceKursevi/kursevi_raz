@@ -48,15 +48,19 @@ export default function PublicHeader() {
           <Link href="/" variant="body2" underline="hover" color="text.secondary">
             Početna
           </Link>
-          <Link href="/courses" variant="body2" underline="hover" color="text.secondary">
-            Kursevi
-          </Link>
+          {FEATURES.catalog ? (
+            <Link href="/courses" variant="body2" underline="hover" color="text.secondary">
+              Kursevi
+            </Link>
+          ) : null}
           <Link href="/#kako-funkcionise" variant="body2" underline="hover" color="text.secondary">
             Kako funkcioniše
           </Link>
-          <Link href="/blog" variant="body2" underline="hover" color="text.secondary">
-            Blog
-          </Link>
+          {FEATURES.blog ? (
+            <Link href="/blog" variant="body2" underline="hover" color="text.secondary">
+              Blog
+            </Link>
+          ) : null}
           <Link href="/kontakt" variant="body2" underline="hover" color="text.secondary">
             Kontakt
           </Link>

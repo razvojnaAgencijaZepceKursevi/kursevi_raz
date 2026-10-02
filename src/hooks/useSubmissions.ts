@@ -59,8 +59,12 @@ export const adminSubmissionKeys = {
  * so a list row can be rendered without a lookup per submission. RLS scopes it:
  * an admin sees every submission, a teacher only those on courses they own.
  */
-export function useAdminSubmissions(params: SubmissionListParams = {}) {
+export function useAdminSubmissions(
+  params: SubmissionListParams = {},
+  { enabled = true }: { enabled?: boolean } = {},
+) {
   return useQuery({
+    enabled,
     queryKey: adminSubmissionKeys.list(params),
     queryFn: () =>
       apiGet<Paginated<AdminSubmission>>(`/api/admin/submissions${toSearchParams(params)}`),

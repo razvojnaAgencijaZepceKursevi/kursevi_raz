@@ -12,6 +12,7 @@ import PaginationBar from '@/components/data/PaginationBar';
 import StudentCourseCard from '@/components/student/StudentCourseCard';
 import { usePurchases } from '@/hooks/usePurchases';
 import { useListParams } from '@/hooks/useListParams';
+import { FEATURES } from '@/lib/features';
 
 /**
  * The courses this student can actually open.
@@ -52,11 +53,17 @@ export default function StudentCoursesPage() {
           <ContentCard>
             <EmptyState
               title="Još niste upisani ni na jedan kurs"
-              description="Pronađite kurs u katalogu i pošaljite zahtjev za pristup."
+              description={
+                FEATURES.catalog
+                  ? 'Pronađite kurs u katalogu i pošaljite zahtjev za pristup.'
+                  : 'Kursevi kojima imate pristup pojavit će se ovdje.'
+              }
               action={
-                <Button href="/courses" variant="contained" startIcon={<ExploreOutlinedIcon />}>
-                  Pregledaj kurseve
-                </Button>
+                FEATURES.catalog ? (
+                  <Button href="/courses" variant="contained" startIcon={<ExploreOutlinedIcon />}>
+                    Pregledaj kurseve
+                  </Button>
+                ) : undefined
               }
             />
           </ContentCard>

@@ -68,8 +68,12 @@ export function useCertificate(identifier: string | undefined) {
  *
  * Rows are `AdminCertificate`, which embeds the course and the student.
  */
-export function useAdminCertificates(params: CertificateListParams = {}) {
+export function useAdminCertificates(
+  params: CertificateListParams = {},
+  { enabled = true }: { enabled?: boolean } = {},
+) {
   return useQuery({
+    enabled,
     queryKey: adminCertificateKeys.list(params),
     queryFn: () =>
       apiGet<Paginated<AdminCertificate>>(`/api/admin/certificates${toSearchParams(params)}`),

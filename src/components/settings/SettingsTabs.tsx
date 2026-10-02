@@ -4,6 +4,7 @@ import NextLink from 'next/link';
 import { usePathname } from 'next/navigation';
 import Tab from '@mui/material/Tab';
 import Tabs from '@mui/material/Tabs';
+import { SETTINGS_SECTIONS } from '@/lib/settingsSections';
 
 /**
  * The section switcher for `/settings`.
@@ -24,12 +25,11 @@ import Tabs from '@mui/material/Tabs';
  * global `LinkComponent` would cover it. It is written out anyway because this
  * is a Client Component and being explicit here costs nothing; see `theme.ts`
  * for why the distinction matters.
+ *
+ * The list comes from `SETTINGS_SECTIONS`, which drops any tab whose feature is
+ * switched off.
  */
-const SECTIONS = [
-  { href: '/settings/notifications', label: 'Obavještenja' },
-  { href: '/settings/newsletter', label: 'Newsletter' },
-  { href: '/settings/appearance', label: 'Izgled' },
-];
+const SECTIONS = SETTINGS_SECTIONS;
 
 export default function SettingsTabs() {
   const pathname = usePathname();
@@ -40,7 +40,8 @@ export default function SettingsTabs() {
    * first tab so MUI never gets a `value` that matches no child — which logs a
    * warning and renders every tab unselected.
    */
-  const current = SECTIONS.find((s) => pathname.startsWith(s.href))?.href ?? SECTIONS[0].href;
+  const current = SECTIONS.find((s) => pathname.startsWith(s.href))?.href ?? SECTIONS[0]?.href;
+  if (!current) return null;
 
   return (
     <Tabs

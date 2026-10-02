@@ -1944,9 +1944,41 @@ course-scoped page, add it there or it is URL-only.
   400s is worse than no button, and nobody can fix that from the app.
 
 - Twelve segments: catalog, purchases, quizzes, tasks, certificates, notifications,
-  support, blog, newsletter, teachers, themeSwitch, googleAuth. `FEATURE_ROUTES` maps the
-  ones that own URLs; `themeSwitch` and `googleAuth` are absent from it because they are
-  controls inside pages that stay reachable.
+  support, blog, newsletter, teachers, themeSwitch, googleAuth. `isDisabledRoute()` is what
+  the proxy asks: `FEATURE_ROUTES` holds prefixes, `FEATURE_ROUTE_PATTERNS` the quiz and
+  task screens (they hang off a module URL no prefix can name).
+
+- **The goal is "looks unbuilt", so a flag must reach every surface, not just the nav.**
+  An audit found three flags (`quizzes`, `teachers`, `themeSwitch`) read nowhere and the
+  rest leaking through dashboard tiles, empty-state buttons, breadcrumbs, the bell and
+  completion messages. When adding UI for a flagged feature, gate it with `FEATURES.x`
+  at the point of rendering; when adding a page, make sure the proxy rule covers it.
+
+- **The catalogue cannot be a plain prefix.** `/courses/{slug}` is both the sales page and
+  the enrolled student's only way into their modules, so with `catalog` off the index
+  404s for everyone and a course page only for a signed-out visitor.
+
+- **A hidden quiz or task still blocks its module.** Completion is derived from what
+  exists, and `POST /modules/:id/complete` refuses a module with either, so a module that
+  has one cannot be finished while its flag is off. Demo with courses built without them.
+
+- **Certificates are still issued with the flag off** — silently. Every on-screen mention
+  is gated and `certificate_issued` is not sent, so students who finish meanwhile find the
+  certificate waiting once the flag is on.
+
+- **Notification groups follow their feature** (`NOTIFICATION_GROUPS[g].feature`,
+  `isNotificationTypeEnabled`): a disabled group is neither listed in settings nor sent,
+  and `notifications` off sends nothing by either channel. Checked in `notifyUsers`, not
+  only in the UI, because some events fire with no UI action behind them.
+
+- **`themeSwitch` off means light everywhere** — `isThemedPath()` returns false and the
+  stored preference is not applied, or an OS-dark user would get a dark app with no toggle
+  to explain it. Every settings tab is flagged, so with all three off the account menu
+  drops "Podešavanja" and `/settings` 404s (`SETTINGS_SECTIONS`).
+
+- **Marketing copy is not gated.** The landing page, FAQ and page descriptions still
+  promise certificates and reviewed tasks; that is prose, and changing it per flag is a
+  copy decision rather than a code one.
 
 ### Env vars versus `siteConfig.ts`
 
@@ -1961,7 +1993,7 @@ course-scoped page, add it there or it is URL-only.
 - **Payment details and legal texts are neither:** they live in the database because an
   admin must be able to correct them without a deploy.
 
-- **`SITE` holds the facts copy *quotes*, not the copy itself.** Besides identity and
+- **`SITE` holds the facts copy _quotes_, not the copy itself.** Besides identity and
   contact details it carries `service` (reply time, review hours) and `stats`, because
   each of those appeared in several sentences that had already drifted apart (three
   wordings of "how fast we reply"). Section prose stays in its component. The test for
@@ -1981,7 +2013,7 @@ course-scoped page, add it there or it is URL-only.
   PDF, the admin shell and the API docs had drifted to the old name "Kursevi" while the
   logo said "Katedra". The root layout's `title.template` appends the brand, so a page
   declares only its own name (`title: 'Kontakt'`); the landing page uses
-  `title.absolute`. Note "Kursevi" is still correct as the *nav label* for the courses
+  `title.absolute`. Note "Kursevi" is still correct as the _nav label_ for the courses
   list — only the brand moved.
 
 - **`CONTACT_EMAIL_TO` is env even though `SITE.contact.email` exists**, because it is
@@ -1997,7 +2029,7 @@ course-scoped page, add it there or it is URL-only.
 
 - **`src/lib/seo.ts` builds the whole set** — title, description, canonical, Open Graph,
   Twitter — from `{ title, description, path, image? }`. Next merges metadata
-  *shallowly*: a page without its own `openGraph` inherits the layout's, `og:title`
+  _shallowly_: a page without its own `openGraph` inherits the layout's, `og:title`
   included, so every share preview read "Katedra". A new public page uses the helper;
   hand-writing `metadata` brings that bug back. Descriptions are 120–160 characters,
   ijekavian, and use the informal "ti" like the rest of the marketing copy.
@@ -2068,7 +2100,7 @@ course-scoped page, add it there or it is URL-only.
 
 - **`<DetailList>` is a Client Component, and that is load-bearing.** MUI's `<Stack>`
   clones its `divider` element; when the element was created in a Server Component the
-  clone fails during SSR with *"Element type is invalid … got: undefined"* and React
+  clone fails during SSR with _"Element type is invalid … got: undefined"_ and React
   silently falls back to client rendering. `/admin/about` was the first Server Component
   to use `DetailList`, which is how it surfaced. The same applies to any MUI component
   that clones an element prop — pass such props only from client code.

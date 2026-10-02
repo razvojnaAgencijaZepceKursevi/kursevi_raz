@@ -19,6 +19,7 @@ import {
 import {
   NOTIFICATION_CATALOG,
   NOTIFICATION_GROUPS,
+  isNotificationTypeEnabled,
   type NotificationGroup,
   type NotificationType,
 } from '@/lib/notifications/catalog';
@@ -84,6 +85,9 @@ export default function NotificationSettingsPage() {
         // group, so the screen matches the order things are declared in.
         const byGroup = new Map<NotificationGroup, NotificationPreference[]>();
         for (const preference of response.data) {
+          // Rows for a switched-off feature are dropped here rather than by the
+          // API, which stays unaware of the flags.
+          if (!isNotificationTypeEnabled(preference.type as NotificationType)) continue;
           const group = NOTIFICATION_CATALOG[preference.type as NotificationType].group;
           byGroup.set(group, [...(byGroup.get(group) ?? []), preference]);
         }

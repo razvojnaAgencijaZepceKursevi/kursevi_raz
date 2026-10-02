@@ -2,7 +2,7 @@ import { createServerClient } from '@supabase/ssr';
 import { NextResponse, type NextRequest } from 'next/server';
 import type { Database } from '@/types/database.types';
 import { landingPathForRole } from '@/lib/auth/routes';
-import { disabledRoutePrefixes } from '@/lib/features';
+import { isDisabledRoute } from '@/lib/features';
 
 /**
  * Route protection.
@@ -90,8 +90,7 @@ export async function proxy(request: NextRequest) {
    * This is deliberately *not* access control: the API routes and RLS are
    * untouched, and a flag protects nothing. See `src/lib/features.ts`.
    */
-  const offPrefixes = disabledRoutePrefixes();
-  if (offPrefixes.length > 0 && startsWithAny(pathname, offPrefixes)) {
+  if (isDisabledRoute(pathname, { signedIn: Boolean(user) })) {
     return NextResponse.rewrite(new URL('/404', request.url));
   }
 

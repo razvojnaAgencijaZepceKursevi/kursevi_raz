@@ -8,6 +8,7 @@ import Stack from '@mui/material/Stack';
 import Typography from '@mui/material/Typography';
 import ContentCard from '@/components/layout/ContentCard';
 import { progressPercent } from '@/lib/courseAccess';
+import { FEATURES } from '@/lib/features';
 
 /**
  * How far through the course this student is. Replaces the price panel once
@@ -65,7 +66,7 @@ export default function CourseProgressSummary({
             // The link only appears once the certificate is actually there, so
             // the alert never offers a button that would 404.
             action={
-              certificateReadableId ? (
+              FEATURES.certificates && certificateReadableId ? (
                 <Button
                   href={`/certificates/${certificateReadableId}`}
                   size="small"
@@ -76,7 +77,8 @@ export default function CourseProgressSummary({
               ) : undefined
             }
           >
-            Završili ste sve module. Certifikat je izdat na vaše ime.
+            Završili ste sve module.
+            {FEATURES.certificates ? ' Certifikat je izdat na vaše ime.' : null}
           </Alert>
         ) : null}
       </Stack>

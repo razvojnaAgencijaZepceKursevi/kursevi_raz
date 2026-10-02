@@ -16,7 +16,9 @@ import SettingsTabs from '@/components/settings/SettingsTabs';
 export default function SettingsLayout({ children }: { children: React.ReactNode }) {
   return (
     <PageContainer maxWidth="form">
-      <PageHeader title="Podešavanja" description="Obavještenja, newsletter i izgled aplikacije." />
+      {/* No description listing the sections: which ones exist depends on the
+          feature flags, and the tabs right below already name them. */}
+      <PageHeader title="Podešavanja" />
 
       <Stack spacing={3}>
         <SettingsTabs />

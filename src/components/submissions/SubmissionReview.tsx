@@ -13,6 +13,7 @@ import { useCreateMessage, useUploadSubmissionAttachment } from '@/hooks/useSubm
 import { errorMessage } from '@/lib/api/errorMessage';
 import { toast } from '@/store/useToastStore';
 import type { TaskSubmissionStatus } from '@/lib/schemas/task-submissions.schema';
+import { FEATURES } from '@/lib/features';
 
 /**
  * What a reviewer does about a submission: reply, ask for a revision, or accept
@@ -112,7 +113,7 @@ export default function SubmissionReview({
 
     // The response says what the approval set off, so the reviewer learns it
     // here instead of having to go and check the student's progress.
-    if (result.certificate_issued) {
+    if (result.certificate_issued && FEATURES.certificates) {
       toast.success('Rješenje je prihvaćeno. Student je završio kurs i dobio certifikat.');
     } else if (result.module_completed) {
       toast.success('Rješenje je prihvaćeno. Modul je završen.');

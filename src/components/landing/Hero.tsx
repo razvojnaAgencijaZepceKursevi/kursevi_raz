@@ -9,6 +9,7 @@ import Stack from '@mui/material/Stack';
 import Typography from '@mui/material/Typography';
 import Reveal from '@/components/landing/Reveal';
 import { MARKETING_BLEED } from '@/components/layout/marketingGutter';
+import { FEATURES } from '@/lib/features';
 
 /**
  * Hero section for the landing page — the first thing a visitor sees.
@@ -138,14 +139,16 @@ export default function Hero() {
                 >
                   Registruj se
                 </Button>
-                <Button
-                  href="/courses"
-                  variant="outlined"
-                  size="large"
-                  sx={{ borderColor: 'divider', color: 'text.primary' }}
-                >
-                  Pregledaj kurseve
-                </Button>
+                {FEATURES.catalog ? (
+                  <Button
+                    href="/courses"
+                    variant="outlined"
+                    size="large"
+                    sx={{ borderColor: 'divider', color: 'text.primary' }}
+                  >
+                    Pregledaj kurseve
+                  </Button>
+                ) : null}
               </Stack>
 
               <Stack

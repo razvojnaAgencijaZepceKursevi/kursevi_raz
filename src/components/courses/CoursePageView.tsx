@@ -27,6 +27,7 @@ import { useCategoryOptions } from '@/hooks/useCategories';
 import { unlockedModuleIds } from '@/lib/courseAccess';
 import { isStatus } from '@/lib/api/errorMessage';
 import { courseThumbnailUrl } from '@/lib/storage';
+import { FEATURES } from '@/lib/features';
 
 /**
  * Course page body — public, but shows four different things depending on
@@ -100,6 +101,7 @@ export default function CoursePageView({ slug }: { slug: string }) {
     { courseId: courseId ?? '', pageSize: 1 },
     {
       enabled:
+        FEATURES.certificates &&
         Boolean(courseId) &&
         access.isResolved &&
         !access.isStaff &&

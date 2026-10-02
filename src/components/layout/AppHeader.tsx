@@ -19,6 +19,7 @@ import Toolbar from '@mui/material/Toolbar';
 import Typography from '@mui/material/Typography';
 import { NavPending } from '@/components/feedback/NavProgress';
 import { FEATURES } from '@/lib/features';
+import { SETTINGS_SECTIONS } from '@/lib/settingsSections';
 import NotificationBell from '@/components/notifications/NotificationBell';
 import { useLogout } from '@/hooks/useLogout';
 import { useAuthStore } from '@/store/useAuthStore';
@@ -165,7 +166,7 @@ export default function AppHeader({
 
         <Box sx={{ flex: 1 }} />
 
-        <NotificationBell />
+        {FEATURES.notifications ? <NotificationBell /> : null}
 
         <Button
           onClick={(event) => setAnchorEl(event.currentTarget)}
@@ -231,14 +232,18 @@ export default function AppHeader({
             notifications — which made a single settings page look like two
             unrelated destinations. `/settings` lands on the first tab.
           */}
-          <MenuItem component={NextLink} href="/settings" onClick={close}>
-            <ListItemIcon>
-              <SettingsOutlinedIcon fontSize="small" />
-            </ListItemIcon>
-            <Typography variant="body2">Podešavanja</Typography>
-          </MenuItem>
+          {/* Every settings tab belongs to a feature flag; with all of them off
+              there is no settings screen to open. */}
+          {SETTINGS_SECTIONS.length > 0 ? (
+            <MenuItem component={NextLink} href="/settings" onClick={close}>
+              <ListItemIcon>
+                <SettingsOutlinedIcon fontSize="small" />
+              </ListItemIcon>
+              <Typography variant="body2">Podešavanja</Typography>
+            </MenuItem>
+          ) : null}
 
-          <Divider />
+          {SETTINGS_SECTIONS.length > 0 ? <Divider /> : null}
 
           {/*
             The only way out, at every width. It used to be a button in the bar

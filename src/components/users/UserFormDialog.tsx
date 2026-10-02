@@ -20,6 +20,7 @@ import {
   type UserFormValues,
 } from '@/lib/schemas/user-form.schema';
 import type { Profile } from '@/lib/schemas/users.schema';
+import { FEATURES } from '@/lib/features';
 
 /**
  * Edit one user's name and role.
@@ -48,6 +49,15 @@ export default function UserFormDialog({
   const isSelf = currentUserId === profile.id;
 
   const form = useZodForm(userFormSchema, { defaultValues: userToFormValues(profile) });
+
+  /*
+   * With teachers switched off the role is not offered. An account that is
+   * already a teacher keeps the option, or the select would hold a value it has
+   * no label for and the save would quietly look like a change.
+   */
+  const roleOptions = USER_ROLE_OPTIONS.filter(
+    (option) => option.value !== 'teacher' || FEATURES.teachers || profile.role === 'teacher',
+  );
   const updateUser = useUpdateUser();
 
   // No try/catch: <Form> catches whatever this throws and surfaces it inline.
@@ -77,13 +87,15 @@ export default function UserFormDialog({
           <FormSelect
             name="role"
             label="Uloga"
-            options={USER_ROLE_OPTIONS}
+            options={roleOptions}
             required
             disabled={isSelf}
             helperText={
               isSelf
                 ? undefined
-                : 'Predavač može da uređuje samo kurseve koje sam kreira ili koje posjeduje.'
+                : FEATURES.teachers
+                  ? 'Predavač može da uređuje samo kurseve koje sam kreira ili koje posjeduje.'
+                  : undefined
             }
           />
 

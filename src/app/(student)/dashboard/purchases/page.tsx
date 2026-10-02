@@ -20,6 +20,7 @@ import { usePurchases } from '@/hooks/usePurchases';
 import { useListParams } from '@/hooks/useListParams';
 import { formatDate, formatPrice } from '@/lib/format';
 import { PURCHASE_STATUS } from '@/lib/status';
+import { FEATURES } from '@/lib/features';
 
 /**
  * Every request this student has made, and where each one stands.
@@ -77,11 +78,17 @@ export default function StudentPurchasesPage() {
           empty={
             <EmptyState
               title="Još niste zatražili nijedan kurs"
-              description="Pronađite kurs u katalogu i pošaljite zahtjev za pristup."
+              description={
+                FEATURES.catalog
+                  ? 'Pronađite kurs u katalogu i pošaljite zahtjev za pristup.'
+                  : undefined
+              }
               action={
-                <Button href="/courses" variant="contained" startIcon={<ExploreOutlinedIcon />}>
-                  Pregledaj kurseve
-                </Button>
+                FEATURES.catalog ? (
+                  <Button href="/courses" variant="contained" startIcon={<ExploreOutlinedIcon />}>
+                    Pregledaj kurseve
+                  </Button>
+                ) : undefined
               }
             />
           }

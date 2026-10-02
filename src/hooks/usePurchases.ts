@@ -79,8 +79,12 @@ export function useCreatePurchase() {
  * the student, which is what lets the admin UI show names rather than uuids.
  * Both may be null if the related row was deleted.
  */
-export function useAdminPurchases(params: PurchaseListParams = {}) {
+export function useAdminPurchases(
+  params: PurchaseListParams = {},
+  { enabled = true }: { enabled?: boolean } = {},
+) {
   return useQuery({
+    enabled,
     queryKey: adminPurchaseKeys.list(params),
     queryFn: () =>
       apiGet<Paginated<AdminPurchase>>(`/api/admin/purchases${toSearchParams(params)}`),

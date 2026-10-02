@@ -8,6 +8,7 @@ import Typography from '@mui/material/Typography';
 import ContactForm from '@/components/contact/ContactForm';
 import { SITE } from '@/lib/siteConfig';
 import { pageMetadata } from '@/lib/seo';
+import { FEATURES } from '@/lib/features';
 
 export const metadata = pageMetadata({
   title: 'Kontakt',
@@ -97,9 +98,11 @@ export default function ContactPage() {
                 <Link href="/#kako-funkcionise" underline="hover" color="text.primary">
                   Kako funkcioniše upis i učenje
                 </Link>
-                <Link href="/courses" underline="hover" color="text.primary">
-                  Pregled objavljenih kurseva
-                </Link>
+                {FEATURES.catalog ? (
+                  <Link href="/courses" underline="hover" color="text.primary">
+                    Pregled objavljenih kurseva
+                  </Link>
+                ) : null}
                 <Link href="/#cesta-pitanja" underline="hover" color="text.primary">
                   Česta pitanja o certifikatu
                 </Link>

@@ -21,6 +21,7 @@ import { useAuthStore } from '@/store/useAuthStore';
 import { courseToFormValues, toUpdateCoursePayload } from '@/lib/schemas/course-form.schema';
 import type { CourseFormValues } from '@/lib/schemas/course-form.schema';
 import type { Course } from '@/lib/schemas/courses.schema';
+import { FEATURES } from '@/lib/features';
 
 /**
  * Edit a course.
@@ -161,7 +162,7 @@ function EditCourseContent({ course }: { course: Course }) {
 
       {/* Admin only: reassigning a course is not something a teacher may do to
           their own work, and the column guard would reject it anyway. */}
-      {isAdmin ? <CourseOwnerSection course={course} /> : null}
+      {isAdmin && FEATURES.teachers ? <CourseOwnerSection course={course} /> : null}
 
       <CourseDeleteSection course={course} />
     </Stack>
