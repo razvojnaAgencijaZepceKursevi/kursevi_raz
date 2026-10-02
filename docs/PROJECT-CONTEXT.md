@@ -513,12 +513,26 @@ but must still handle a 403 on an individual resource.
   Deliberately not done: blocking right-click or shortcuts. It stops nobody and breaks
   accessibility. See the PDF-only note above for what this does and does not achieve.
 
-- **Video is Vimeo, always.** `modules.video_url` is a free-text URL, so `lib/vimeo.ts`
-  parses the id out of the shapes Vimeo hands out. The one that matters is the
-  **unlisted** form (`vimeo.com/123/abc123`), whose privacy hash must travel as `?h=`;
-  drop it and the embed loads and then refuses to play, which reads as a broken video
-  rather than a missing parameter. An unparseable link says so instead of rendering a
-  black rectangle.
+- **Video is YouTube, always (it was Vimeo).** `src/lib/youtube.ts` is the one parser,
+  used on write by the form schema and the API schema (`Not a valid YouTube link`, 400)
+  and on read by `<ModuleVideo>`. It parses with the URL API, accepts only the exact
+  hosts `youtube.com`, `www.youtube.com`, `m.youtube.com`, `youtu.be`,
+  `youtube-nocookie.com` (exact match — a suffix test lets `youtube.com.evil.org`
+  through), and requires an id matching `^[A-Za-z0-9_-]{11}$`. Note
+  `www.youtube-nocookie.com` is **not** on the list, so a pasted embed URL is refused.
+
+  The iframe `src` is rebuilt from the parsed id (plus `start`), never from the stored
+  string, on `youtube-nocookie.com` with `rel=0&modestbranding=1&playsinline=1`. Controls
+  stay on and fullscreen is allowed: neither leads out of the app, and the id is in the
+  src anyway, so anyone determined can open the video on YouTube — an embed cannot
+  prevent that. A stored link that fails to parse (pre-YouTube rows) renders a notice,
+  not the player.
+
+  `video_url` reaches a student only through `GET /api/courses/:id/modules`, after
+  `assertCourseAccess`; the outline endpoint never carries it. Sequentially locked
+  modules of a purchased course are in that payload too, but the viewer renders no iframe
+  for them. `PATCH` accepts `video_url: null` to remove a video — before this, an emptied
+  field sent `undefined`, which JSON drops, so a video could never be cleared.
 
 - **`checkModulePageAccess` is the guard for every `/courses/[slug]/modules/…` page.**
   `proxy.ts` gates whole prefixes and cannot express "under `/modules` but not the

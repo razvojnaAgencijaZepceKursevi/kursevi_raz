@@ -1,5 +1,20 @@
 import { z } from '@/lib/openapi/zod';
 import { auditFields, paginatedResponse, paginationQuerySchema, uuidSchema } from './common.schema';
+import { INVALID_YOUTUBE_MESSAGE, isValidYouTubeUrl } from '@/lib/youtube';
+
+/**
+ * A module's video link — YouTube only, checked by the same parser the player
+ * uses, so nothing can be stored that the module page would refuse to embed.
+ */
+const youtubeUrlSchema = z
+  .string()
+  .trim()
+  .refine(isValidYouTubeUrl, { error: INVALID_YOUTUBE_MESSAGE })
+  .openapi({
+    description:
+      'A YouTube link: youtube.com, www./m.youtube.com, youtu.be or youtube-nocookie.com, with an 11-character video id.',
+    example: 'https://www.youtube.com/watch?v=dQw4w9WgXcQ',
+  });
 
 export const moduleFileSchema = z
   .object({
@@ -68,14 +83,20 @@ export const createModuleSchema = z
     course_id: uuidSchema,
     title: z.string().trim().min(1).max(200),
     description: z.string().trim().max(5000).optional(),
-    video_url: z.url().optional(),
+    video_url: youtubeUrlSchema.optional(),
     order: z.number().int().min(0),
   })
   .openapi('CreateModuleRequest');
 
+/**
+ * `video_url: null` removes the video. Omitting it leaves it as it is — so
+ * without `null` there was no way to clear one, which matters now that links
+ * from before the YouTube rule are stored and can only be replaced or removed.
+ */
 export const updateModuleSchema = createModuleSchema
   .omit({ course_id: true })
   .partial()
+  .extend({ video_url: youtubeUrlSchema.nullable().optional() })
   .openapi('UpdateModuleRequest');
 
 export const createModuleFileSchema = z

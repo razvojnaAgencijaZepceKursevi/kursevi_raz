@@ -37,7 +37,7 @@ export const SECTIONS = [
     key: 'modules',
     label: 'Moduli i materijali',
     description: 'Moduli, video, PDF materijali i završavanje modula',
-    match: /module|PdfViewer|vimeo/i,
+    match: /module|PdfViewer|youtube/i,
   },
   {
     key: 'support',

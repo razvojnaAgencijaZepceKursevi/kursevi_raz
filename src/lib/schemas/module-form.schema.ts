@@ -1,6 +1,7 @@
 import { z } from 'zod';
 import type { DefaultValues } from 'react-hook-form';
 import type { CreateModuleRequest, Module, UpdateModuleRequest } from './modules.schema';
+import { isValidYouTubeUrl } from '@/lib/youtube';
 
 /**
  * The module form's schema.
@@ -26,13 +27,17 @@ export const moduleFormSchema = z.object({
   description: z.string().trim().max(5000, 'Opis može imati najviše 5000 karaktera.').default(''),
 
   /**
-   * Optional, but must be a real URL when present.
-   *
-   * `.or(z.literal(''))` is the idiom for "optional URL field": an untouched
-   * input yields `''`, and `z.url()` alone would reject that as malformed
-   * rather than treating it as empty.
+   * Optional, but a YouTube link when present — the same parser the API and
+   * the player use (`@/lib/youtube`), so the form cannot accept a link the
+   * server would reject. An untouched input yields `''`, which means "no video".
    */
-  video_url: z.union([z.url('Unesite ispravan URL (npr. https://…).'), z.literal('')]).default(''),
+  video_url: z
+    .string()
+    .trim()
+    .refine((value) => value === '' || isValidYouTubeUrl(value), {
+      error: 'Link nije ispravan YouTube link.',
+    })
+    .default(''),
 
   /**
    * Position within the course, 0-based.
@@ -90,12 +95,17 @@ export function toCreateModulePayload(
   };
 }
 
-/** Form values → `PATCH /api/admin/modules/:id` body. */
+/**
+ * Form values → `PATCH /api/admin/modules/:id` body.
+ *
+ * An emptied video field sends `null`, which removes the video. `undefined`
+ * would be dropped from the JSON and leave the old link in place.
+ */
 export function toUpdateModulePayload(values: ModuleFormValues): UpdateModuleRequest {
   return {
     title: values.title,
     description: values.description || undefined,
-    video_url: values.video_url || undefined,
+    video_url: values.video_url || null,
     order: values.order,
   };
 }

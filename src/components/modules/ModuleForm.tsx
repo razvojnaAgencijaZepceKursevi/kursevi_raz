@@ -92,10 +92,10 @@ export default function ModuleForm({
           <Grid size={{ xs: 12, sm: 8 }}>
             <FormTextField
               name="video_url"
-              label="Video URL"
+              label="YouTube video"
               type="url"
-              placeholder="https://…"
-              helperText="Opciono. Ostavite prazno ako modul nema video."
+              placeholder="https://www.youtube.com/watch?v=…"
+              helperText="Opciono. Link na YouTube video; ostavite prazno ako modul nema video."
             />
           </Grid>
           <Grid size={{ xs: 12, sm: 4 }}>

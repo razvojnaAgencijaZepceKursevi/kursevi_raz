@@ -208,7 +208,7 @@ export default function ModuleViewer({
 
               {currentModule.video_url ? (
                 <ContentCard title="Video lekcija" disablePadding>
-                  <ModuleVideo url={currentModule.video_url} />
+                  <ModuleVideo url={currentModule.video_url} title={currentModule.title} />
                 </ContentCard>
               ) : null}
 
