@@ -127,11 +127,7 @@ export default async function AboutAppPage() {
 
       {/* The three reference sections start collapsed: they are long, and the
           release card above is what most visits are for. */}
-      <CollapsibleCard
-        title="Verzije po cjelinama"
-        description="Nova datoteka u cjelini povećava srednji broj, izmjena posljednji. Prvi broj se mijenja samo ručno, za velike promjene."
-        disablePadding
-      >
+      <CollapsibleCard title="Verzije po cjelinama" disablePadding>
         <TableContainer>
           <Table size="small">
             <TableHead>
