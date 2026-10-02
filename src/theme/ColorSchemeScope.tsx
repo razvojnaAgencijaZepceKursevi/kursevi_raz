@@ -3,10 +3,12 @@
 import * as React from 'react';
 import { usePathname } from 'next/navigation';
 import { useColorScheme } from '@mui/material/styles';
-import { DARK_CLASS, LIGHT_CLASS, isThemedPath } from './colorSchemeRules';
+import { useAuthStore } from '@/store/useAuthStore';
+import { DARK_CLASS, LIGHT_CLASS, followsUserScheme, hasSessionCookie } from './colorSchemeRules';
 
 /**
- * Holds public pages in the light scheme, whatever the viewer's preference.
+ * Holds public pages in the light scheme for signed-out visitors, whatever their
+ * OS or stored preference. Signed-in users get their own scheme everywhere.
  *
  * The rule and the reasoning live in `colorSchemeRules.ts`; this is the half
  * that survives client-side navigation. The inline script in the root layout
@@ -41,7 +43,12 @@ import { DARK_CLASS, LIGHT_CLASS, isThemedPath } from './colorSchemeRules';
 export default function ColorSchemeScope() {
   const pathname = usePathname();
   const { colorScheme } = useColorScheme();
-  const themed = isThemedPath(pathname);
+  const profile = useAuthStore((s) => s.profile);
+  const authLoading = useAuthStore((s) => s.loading);
+  // Until `/api/me` answers, go by the session cookie — the same signal the
+  // first-paint script used — so the page does not flip while auth resolves.
+  const signedIn = authLoading ? hasSessionCookie() : profile !== null;
+  const themed = followsUserScheme(pathname, signedIn);
 
   // Read at cleanup, not at setup, so leaving a public page restores whatever
   // MUI believes now — including a preference that arrived during the visit.

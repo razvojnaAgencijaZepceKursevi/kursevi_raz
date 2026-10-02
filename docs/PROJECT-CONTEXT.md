@@ -1623,12 +1623,24 @@ course-scoped page, add it there or it is URL-only.
   every full page load, because the server cannot know a choice that lives in localStorage;
   the attribute goes with it, since the script mutates `<html>` before React hydrates.
 
-### Public pages are always light
+### Public pages are light for strangers, themed for signed-in users
 
-- **The saved colour scheme applies only behind auth.** A visitor deciding whether to buy a
-  course should see one presentation of the product, not one that depends on a setting they
-  have never seen — and the preference belongs to an account, which a stranger does not
-  have. `src/theme/colorSchemeRules.ts` holds the rule, `<ColorSchemeScope />` applies it.
+- **A signed-in user's scheme applies on every page; a signed-out visitor always gets light
+  on public pages.** A visitor deciding whether to buy a course should see one presentation
+  of the product — never dark just because their OS prefers it — and the preference belongs
+  to an account, so it follows the account. `src/theme/colorSchemeRules.ts` holds the rule
+  (`followsUserScheme`), `<ColorSchemeScope />` applies it.
+
+- **This was originally by URL alone**, which painted `/courses/{slug}` light for a
+  dark-mode student between two modules (see "Accepted consequence" below, now obsolete).
+  The project owner found it grating. Theming by _viewer_ fixes it without letting a
+  stranger's OS setting leak onto the catalogue — which moving `/courses` into the themed
+  list would have done.
+
+- **The first-paint script reads the Supabase session cookie** (`sb-<ref>-auth-token`,
+  JS-readable under `@supabase/ssr`), because it runs before React and the auth store exist.
+  `<ColorSchemeScope>` uses the same cookie test while `/api/me` is loading, then the auth
+  store. A stale cookie costs one paint in the wrong scheme, corrected once auth resolves.
 
 - **The list is of _themed_ prefixes, not public ones, and that direction is the point.**
   Default-light means a new marketing page is correct by doing nothing; the opposite default
@@ -1674,7 +1686,8 @@ course-scoped page, add it there or it is URL-only.
   public → themed flips correctly both ways; and forcing `dark` onto `<html>` by hand on a
   public page is reverted before the next animation frame.
 
-- **Accepted consequence:** a dark-mode student clicking from a course page into one of its
+- ~~**Accepted consequence:**~~ **Obsolete** (signed-in users are now themed everywhere):
+  a dark-mode student clicking from a course page into one of its
   modules crosses a light→dark boundary, because the course page is public and the module page
   is not. That is the rule applied honestly rather than an oversight. If it grates, the change
   is to move `/courses` into the themed list — but then a signed-out visitor and a signed-in

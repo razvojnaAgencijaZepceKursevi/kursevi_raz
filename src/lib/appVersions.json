@@ -1,5 +1,5 @@
 {
-  "updatedAt": "2026-10-02T17:35:57.219Z",
+  "updatedAt": "2026-10-02T17:36:09.820Z",
   "sections": {
     "database": {
       "label": "Baza podataka",
@@ -122,8 +122,8 @@
       "label": "Postavke",
       "description": "Pravni dokumenti, newsletter, izgled i korisničke postavke",
       "frontend": {
-        "version": "1.3.0",
-        "updatedAt": "2026-10-02T08:48:40.912Z"
+        "version": "1.3.1",
+        "updatedAt": "2026-10-02T17:36:09.820Z"
       },
       "backend": {
         "version": "1.0.1",
@@ -180,6 +180,14 @@
     }
   },
   "history": [
+    {
+      "at": "2026-10-02T17:36:09.820Z",
+      "section": "settings",
+      "layer": "frontend",
+      "from": "1.3.0",
+      "to": "1.3.1",
+      "files": 2
+    },
     {
       "at": "2026-10-02T17:35:57.219Z",
       "section": "modules",
@@ -971,14 +979,6 @@
       "from": "1.0.1",
       "to": "1.0.2",
       "files": 1
-    },
-    {
-      "at": "2026-08-28T17:30:42+02:00",
-      "section": "database",
-      "layer": "backend",
-      "from": "1.4.0",
-      "to": "1.5.0",
-      "files": 4
     }
   ]
 }

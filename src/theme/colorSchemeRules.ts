@@ -5,11 +5,16 @@ import { FEATURES } from '@/lib/features';
  *
  * ## The rule
  *
- * Public pages are light, always, for everybody. The saved theme preference
- * applies only to pages behind auth. A visitor deciding whether to buy a course
- * sees one presentation of the product, not one that depends on a setting they
- * have never seen — and the preference belongs to an account, which a stranger
- * does not have.
+ * A signed-in user gets their saved scheme on every page, public ones included.
+ * A signed-out visitor gets light on public pages, always. The preference
+ * belongs to an account, so it follows the account: a student reading a course
+ * page between two modules should not be flipped to light and back. A stranger
+ * deciding whether to buy sees one presentation of the product — never dark just
+ * because their OS prefers it, which MUI's `system` mode would otherwise do.
+ *
+ * (It used to be decided by URL alone, which lit `/courses/{slug}` light for
+ * signed-in dark-mode users too. That was the documented trade-off; the project
+ * owner found it grating, and theming by viewer removes it.)
  *
  * ## Why the list is of *themed* prefixes rather than public ones
  *
@@ -60,6 +65,30 @@ export function isThemedPath(pathname: string): boolean {
 }
 
 /**
+ * Whether the page follows the user's scheme for this viewer: always when signed
+ * in, otherwise only on the gated sections. `themeSwitch` off still wins.
+ */
+export function followsUserScheme(pathname: string, signedIn: boolean): boolean {
+  if (!FEATURES.themeSwitch) return false;
+  return signedIn || isThemedPath(pathname);
+}
+
+/**
+ * Supabase's session cookie, `sb-<project-ref>-auth-token` (or `.0`, `.1`… when
+ * chunked). The first-paint script runs before React and the auth store exist,
+ * so the cookie is the only signal it has. `@supabase/ssr` leaves it readable by
+ * JavaScript. It may be stale (an expired session) — that costs one paint in
+ * the wrong scheme, corrected as soon as the auth store resolves.
+ */
+export const SESSION_COOKIE_PATTERN = String.raw`(?:^|;\s*)sb-[^=]+-auth-token(?:\.\d+)?=`;
+
+export function hasSessionCookie(): boolean {
+  // Called during render, which also happens on the server.
+  if (typeof document === 'undefined') return false;
+  return new RegExp(SESSION_COOKIE_PATTERN).test(document.cookie);
+}
+
+/**
  * The classes MUI puts on `<html>`.
  *
  * The theme sets `cssVariables.colorSchemeSelector: 'class'`, which makes MUI
@@ -72,7 +101,8 @@ export const LIGHT_CLASS = 'light';
 export const DARK_CLASS = 'dark';
 
 /**
- * Forces the light class on `<html>` before the first paint of a public page.
+ * Forces the light class on `<html>` before the first paint of a public page
+ * seen by a signed-out visitor.
  *
  * ## Why `<html>` and not a wrapper
  *
@@ -95,7 +125,7 @@ export const DARK_CLASS = 'dark';
  */
 export const colorSchemeScopeScript = `(function(){try{var p=location.pathname;var themed=${JSON.stringify(
   FEATURES.themeSwitch,
-)}&&(${JSON.stringify(
+)}&&(new RegExp(${JSON.stringify(SESSION_COOKIE_PATTERN)}).test(document.cookie)||${JSON.stringify(
   THEMED_PREFIXES,
 )}.some(function(x){return p===x||p.indexOf(x+'/')===0})||new RegExp(${JSON.stringify(
   THEMED_PATTERN,
