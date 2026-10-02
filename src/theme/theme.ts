@@ -317,6 +317,18 @@ export const theme = createTheme({
         root: { fontSize: '1.25rem', fontWeight: 700, letterSpacing: '-0.01em' },
       },
     },
+    MuiDialogContent: {
+      styleOverrides: {
+        root: {
+          // MUI zeroes the top padding of content that follows a title, and the
+          // content scrolls (`overflow-y: auto`), so it clips whatever pokes
+          // above its first child. An outlined field's floating label sits ~9px
+          // above the input, so a form dialog lost the top half of its first
+          // label. Same selector as MUI's own rule, so this one wins by order.
+          '.MuiDialogTitle-root + &': { paddingTop: 12 },
+        },
+      },
+    },
     MuiAlert: {
       styleOverrides: {
         root: { borderRadius: 6, border: '1px solid transparent' },
