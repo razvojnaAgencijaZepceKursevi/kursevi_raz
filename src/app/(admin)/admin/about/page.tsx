@@ -1,4 +1,6 @@
 import { notFound } from 'next/navigation';
+import CheckCircleOutlinedIcon from '@mui/icons-material/CheckCircleOutlined';
+import HighlightOffIcon from '@mui/icons-material/HighlightOff';
 import Box from '@mui/material/Box';
 import Chip from '@mui/material/Chip';
 import Stack from '@mui/material/Stack';
@@ -16,6 +18,7 @@ import DetailList from '@/components/data/DetailList';
 import { getAuthContext } from '@/lib/auth/guards';
 import { formatDateTime, formatRelativeTime } from '@/lib/format';
 import { SITE } from '@/lib/siteConfig';
+import { FEATURES, type FeatureName } from '@/lib/features';
 import packageJson from '../../../../../package.json';
 import versions from '@/lib/appVersions.json';
 
@@ -45,6 +48,31 @@ type Section = { label: string; description: string; frontend: Slot; backend: Sl
 
 const sections = Object.entries(versions.sections as Record<string, Section>);
 const LAYER_LABEL = { frontend: 'Frontend', backend: 'Backend' } as const;
+
+/** How many history entries "Nedavne promjene" shows. */
+const RECENT_LIMIT = 5;
+
+/**
+ * Display names for the feature flags, in the order they are listed.
+ *
+ * A `Record` over `FeatureName`, so adding a flag without naming it here fails
+ * to compile. Worded as plain availability on purpose — the card is for
+ * keeping track of what is switched on, not for explaining the mechanism.
+ */
+const FEATURE_LABELS: Record<FeatureName, string> = {
+  catalog: 'Katalog kurseva',
+  purchases: 'Kupovine i plaćanje',
+  quizzes: 'Kvizovi',
+  tasks: 'Zadaci i pregled',
+  certificates: 'Certifikati',
+  notifications: 'Obavještenja',
+  support: 'Podrška',
+  blog: 'Blog',
+  newsletter: 'Newsletter',
+  teachers: 'Predavači',
+  themeSwitch: 'Tamni način',
+  googleAuth: 'Prijava putem Google naloga',
+};
 
 /** Declared range → plain version: `^9.2.0` → `9.2.0`. */
 function dependencyVersion(name: keyof typeof packageJson.dependencies): string {
@@ -142,11 +170,13 @@ export default async function AboutAppPage() {
                 <TableCell>Vrijeme</TableCell>
                 <TableCell>Cjelina</TableCell>
                 <TableCell>Sloj</TableCell>
-                <TableCell>Verzija</TableCell>
+                <TableCell align="center" sx={{ width: 180 }}>
+                  Verzija
+                </TableCell>
               </TableRow>
             </TableHead>
             <TableBody>
-              {versions.history.slice(0, 20).map((entry, index) => {
+              {versions.history.slice(0, RECENT_LIMIT).map((entry, index) => {
                 const section = versions.sections[
                   entry.section as keyof typeof versions.sections
                 ] as Section | undefined;
@@ -157,14 +187,51 @@ export default async function AboutAppPage() {
                     <TableCell>
                       {LAYER_LABEL[entry.layer as keyof typeof LAYER_LABEL] ?? entry.layer}
                     </TableCell>
-                    <TableCell sx={{ whiteSpace: 'nowrap' }}>
-                      <Mono>
-                        {entry.from ?? '—'} → {entry.to}
-                      </Mono>
+                    <TableCell sx={{ width: 180 }}>
+                      <VersionChange from={entry.from} to={entry.to} />
                     </TableCell>
                   </TableRow>
                 );
               })}
+            </TableBody>
+          </Table>
+        </TableContainer>
+      </ContentCard>
+
+      <ContentCard title="Dostupnost" disablePadding>
+        <TableContainer>
+          <Table size="small">
+            <TableHead>
+              <TableRow>
+                <TableCell>Cjelina</TableCell>
+                <TableCell align="center" sx={{ width: 120 }}>
+                  Aktivno
+                </TableCell>
+              </TableRow>
+            </TableHead>
+            <TableBody>
+              {(Object.keys(FEATURE_LABELS) as FeatureName[]).map((feature) => (
+                <TableRow key={feature}>
+                  <TableCell>{FEATURE_LABELS[feature]}</TableCell>
+                  <TableCell align="center">
+                    {FEATURES[feature] ? (
+                      <CheckCircleOutlinedIcon
+                        color="success"
+                        fontSize="small"
+                        titleAccess="Da"
+                        sx={{ verticalAlign: 'middle' }}
+                      />
+                    ) : (
+                      <HighlightOffIcon
+                        color="disabled"
+                        fontSize="small"
+                        titleAccess="Ne"
+                        sx={{ verticalAlign: 'middle' }}
+                      />
+                    )}
+                  </TableCell>
+                </TableRow>
+              ))}
             </TableBody>
           </Table>
         </TableContainer>
@@ -189,6 +256,35 @@ function VersionCell({ slot }: { slot: Slot }) {
         {formatRelativeTime(slot.updatedAt)}
       </Typography>
     </Stack>
+  );
+}
+
+/**
+ * `1.2.0 → 1.3.0` with the arrow in the same place on every row.
+ *
+ * Version strings differ in width (`1.9.9` vs `1.10.0`, or `—` for a new
+ * section), so plain inline text drifts the arrow left and right down the
+ * column. Two equal flexible tracks either side of it keep it centred: the old
+ * version hugs the arrow from the left, the new one from the right.
+ */
+function VersionChange({ from, to }: { from: string | null; to: string }) {
+  return (
+    <Box
+      sx={{
+        display: 'grid',
+        gridTemplateColumns: '1fr auto 1fr',
+        columnGap: 1,
+        alignItems: 'center',
+        fontFamily: MONO,
+        whiteSpace: 'nowrap',
+      }}
+    >
+      <Box sx={{ textAlign: 'right' }}>{from ?? '—'}</Box>
+      <Box aria-hidden sx={{ color: 'text.secondary' }}>
+        →
+      </Box>
+      <Box>{to}</Box>
+    </Box>
   );
 }
 
