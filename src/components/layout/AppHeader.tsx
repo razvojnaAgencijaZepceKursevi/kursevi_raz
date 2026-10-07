@@ -22,6 +22,7 @@ import { FEATURES } from '@/lib/features';
 import { SETTINGS_SECTIONS } from '@/lib/settingsSections';
 import NotificationBell from '@/components/notifications/NotificationBell';
 import { useLogout } from '@/hooks/useLogout';
+import Logo from '@/components/layout/Logo';
 import { useAuthStore } from '@/store/useAuthStore';
 import { USER_ROLE } from '@/lib/status';
 import type { UserRole } from '@/lib/auth/routes';
@@ -128,15 +129,16 @@ export default function AppHeader({
       <Toolbar sx={{ gap: { xs: 1, md: 2 }, minHeight: { xs: 64, sm: 64 } }}>
         {links.length > 0 ? (
           <>
-            <Link
-              href={links[0].href}
+            <Typography
               variant="h5"
-              underline="none"
+              component="div"
               color="text.primary"
               sx={{ flexShrink: 0 }}
             >
-              Kursevi
-            </Link>
+              {/* Leads to the role's home rather than `/`: signed in, that is
+                  where "home" is. */}
+              <Logo href={links[0].href} />
+            </Typography>
 
             {/* Collapsed on small screens; the same links live in the user menu
                 below, so nothing becomes unreachable on a phone. */}

@@ -53,7 +53,8 @@ emails, the certificate PDF, the share image and search results.
 
 | Field | Current value |
 |---|---|
-| `name` | Katedra |
+| `name` | Edubox Žepče |
+| `shortName` (logo, admin sidebar, page-title suffix) | Edubox |
 | `tagline` (home page title, share image) | online kursevi sa certifikatom |
 | `description` (footer, default search snippet, share image) | Platforma za online kurseve s pregledom zadataka i certifikatom po završetku. |
 
@@ -72,7 +73,7 @@ emails, the certificate PDF, the share image and search results.
 | Column "Kursevi": categories with at least one published course, read from the database, plus "Svi kursevi". Add or rename categories at `/admin/categories`. Hidden while the catalog flag is off. | 45–58 |
 | Column "Platforma": O nama · Blog (hidden while the blog flag is off) · Kontakt · Uvjeti korištenja · Politika privatnosti | 59–69 |
 | Column "Kontakt": email, phone, social links | from `siteConfig.ts` |
-| © {godina} Katedra. Sva prava zadržana. + company line | 123 (company line from `siteConfig.ts`) |
+| © {godina} Edubox Žepče. Sva prava zadržana. + company line | 123 (company line from `siteConfig.ts`) |
 
 ### 1.4 Home page `/`
 
@@ -111,7 +112,7 @@ emails, the certificate PDF, the share image and search results.
 
 | Text | Line |
 |---|---|
-| Zašto Katedra | 84 |
+| Zašto Edubox | 84 |
 | Znanje koje se provjerava, ne samo gleda | 88 |
 | Snimljene lekcije su početak. Ono što odvaja završen kurs od odgledanog kursa je zadatak koji je neko pročitao i ocijenio. | 92–93 |
 | Certifikat po završetku — Svaki certifikat nosi jedinstveni broj i stranicu za provjeru, tako da ga poslodavac može potvrditi. | 37–39 |
@@ -253,29 +254,29 @@ defaults.
 ### 1.11 Search-result titles and descriptions
 
 What Google shows and what appears when a link is shared. Descriptions should be 120–160
-characters. Titles get " — Katedra" appended automatically.
+characters. Titles get " — Edubox" appended automatically.
 
 | Page | Title | Description | File:line |
 |---|---|---|---|
-| `/` | Katedra — online kursevi sa certifikatom | Online kursevi s video lekcijama, materijalima i zadacima koje pregleda predavač. Uči svojim tempom i dobij certifikat po završetku. | `src/app/(marketing)/page.tsx:13–16` |
-| `/courses` | Online kursevi | Pregled svih kurseva na platformi Katedra: video lekcije, materijali, zadaci s povratnom informacijom predavača i certifikat po završetku. | `src/app/(marketing)/courses/page.tsx:10–11` |
+| `/` | Edubox Žepče — online kursevi sa certifikatom | Online kursevi s video lekcijama, materijalima i zadacima koje pregleda predavač. Uči svojim tempom i dobij certifikat po završetku. | `src/app/(marketing)/page.tsx:13–16` |
+| `/courses` | Online kursevi | Pregled svih kurseva na platformi Edubox Žepče: video lekcije, materijali, zadaci s povratnom informacijom predavača i certifikat po završetku. | `src/app/(marketing)/courses/page.tsx:10–11` |
 | `/courses/{slug}` | *course name* | first 160 characters of the course description (database) | `src/app/(marketing)/courses/[slug]/page.tsx:41–44` |
 | `/blog` | Blog — savjeti za učenje i teme iz struke | Kratki tekstovi o tome kako učiti, šta se traži na tržištu rada i kako izgleda posao u IT-u, menadžmentu, marketingu i drugim oblastima. | `src/app/(marketing)/blog/page.tsx:11–13` |
 | `/blog/{slug}` | *post title* | *post excerpt* | `src/lib/blog.ts` |
-| `/kontakt` | Kontakt | Pitanja o kursevima, upisu, plaćanju ili certifikatu? Piši timu platforme Katedra ili nazovi radnim danima — u pravilu odgovaramo istog dana. | `src/app/(marketing)/kontakt/page.tsx:13–14` |
-| `/uvjeti-koristenja` | Uvjeti korištenja | Uvjeti korištenja platforme Katedra: upis na kurs, plaćanje, pristup materijalima, certifikati i prava i obaveze korisnika. | `src/app/(marketing)/uvjeti-koristenja/page.tsx:6–7` |
-| `/politika-privatnosti` | Politika privatnosti | Koje podatke platforma Katedra prikuplja, zašto ih koristi, koliko dugo ih čuva i kako se može zatražiti uvid ili brisanje. | `src/app/(marketing)/politika-privatnosti/page.tsx:6–7` |
-| `/login` | Prijava | Prijavi se na platformu Katedra i nastavi s učenjem: lekcije, zadaci, napredak i certifikati na jednom mjestu. | `src/app/(auth)/login/layout.tsx:9–10` |
-| `/register` | Registracija | Napravi besplatan nalog na platformi Katedra i pošalji zahtjev za upis na kurs. Uči svojim tempom i dobij certifikat po završetku. | `src/app/(auth)/register/layout.tsx:9–10` |
+| `/kontakt` | Kontakt | Pitanja o kursevima, upisu, plaćanju ili certifikatu? Piši timu platforme Edubox Žepče ili nazovi radnim danima — u pravilu odgovaramo istog dana. | `src/app/(marketing)/kontakt/page.tsx:13–14` |
+| `/uvjeti-koristenja` | Uvjeti korištenja | Uvjeti korištenja platforme Edubox Žepče: upis na kurs, plaćanje, pristup materijalima, certifikati i prava i obaveze korisnika. | `src/app/(marketing)/uvjeti-koristenja/page.tsx:6–7` |
+| `/politika-privatnosti` | Politika privatnosti | Koje podatke platforma Edubox Žepče prikuplja, zašto ih koristi, koliko dugo ih čuva i kako se može zatražiti uvid ili brisanje. | `src/app/(marketing)/politika-privatnosti/page.tsx:6–7` |
+| `/login` | Prijava | Prijavi se na platformu Edubox Žepče i nastavi s učenjem: lekcije, zadaci, napredak i certifikati na jednom mjestu. | `src/app/(auth)/login/layout.tsx:9–10` |
+| `/register` | Registracija | Napravi besplatan nalog na platformi Edubox Žepče i pošalji zahtjev za upis na kurs. Uči svojim tempom i dobij certifikat po završetku. | `src/app/(auth)/register/layout.tsx:9–10` |
 
 ### 1.12 Images
 
 | Image | Location | Needed |
 |---|---|---|
-| Hero photo | `public/hero-illustration.jpg` | Real photo, or confirmed licence for the current one |
+| Hero photo | `public/hero-classroom.jpg` | Real photo, or confirmed licence for the current one |
 | Blog covers (15) | `public/images/blog/*.jpg` | Confirmed usage rights, or replacements |
-| Logo | `src/components/layout/Logo.tsx` (currently the word "Katedra" as text) | SVG/PNG logo |
-| Favicon | `src/app/favicon.ico` (Next.js default) | Favicon from the logo |
+| Logo | `public/logo.svg`, shown by `src/components/layout/Logo.tsx` beside the short name | Done |
+| Favicon | `src/app/icon.svg`, `favicon.ico`, `apple-icon.png` — generated from the logo | Done |
 | Default share image | generated by `src/app/og/route.tsx` (blue card with name + tagline) | Optional: a designed 1200×630 image |
 | Course thumbnails | uploaded per course in `/admin/courses` | One per course |
 
@@ -294,9 +295,9 @@ things the client types in.
 | `NEXT_PUBLIC_SUPABASE_URL` | Supabase project for production (account owned by the client, or access to it) | All |
 | `NEXT_PUBLIC_SUPABASE_ANON_KEY` | from that Supabase project | All |
 | `SUPABASE_SERVICE_ROLE_KEY` | from that Supabase project (secret) | All |
-| `NEXT_PUBLIC_SITE_URL` | **The production domain**, e.g. `https://katedra.ba`, and DNS access for it | Production only |
+| `NEXT_PUBLIC_SITE_URL` | **The production domain**, e.g. `https://edubox.ba`, and DNS access for it | Production only |
 | `RESEND_API_KEY` | Resend account (or approval to create one) + DNS access to verify the domain | Production |
-| `EMAIL_FROM` | Sender name and address for system mail, e.g. `Katedra <obavijesti@katedra.ba>` | Production |
+| `EMAIL_FROM` | Sender name and address for system mail, e.g. `Edubox Žepče <obavijesti@edubox.ba>` | Production |
 | `CONTACT_EMAIL_TO` | Inbox that should receive contact-form messages | Production |
 | `NEXT_PUBLIC_FEATURE_*` (11 flags) | Decision: which features are live at launch and the order the rest are switched on (see the roadmap) | Production |
 | `NEXT_PUBLIC_GOOGLE_AUTH_ENABLED` | Decision: offer Google sign-in? If yes: a Google Cloud project/OAuth consent screen under the client's Google account | Production |
@@ -316,11 +317,12 @@ numbered, because line numbers in this file move whenever a field is added.
 
 | Field | Current (placeholder) | Shown on |
 |---|---|---|
-| `name` | Katedra (confirm) | logo, every page title, emails, certificate, share image |
+| `name` | Edubox Žepče | home page title, descriptions, footer, emails, certificate, share image |
+| `shortName` | Edubox | logo, admin sidebar, the " — Edubox" suffix on page titles |
 | `tagline` | online kursevi sa certifikatom | home page title, share image |
 | `description` | Platforma za online kurseve s pregledom zadataka i certifikatom po završetku. | footer, default search snippet, share image |
-| `contact.email` | info@katedra.ba | footer, /kontakt, contact-form fallback |
-| `contact.supportEmail` | podrska@katedra.ba | /kontakt |
+| `contact.email` | info@edubox.ba (domain unconfirmed) | footer, /kontakt, contact-form fallback |
+| `contact.supportEmail` | podrska@edubox.ba (domain unconfirmed) | /kontakt |
 | `contact.phone` (display + dialable form) | +387 33 000 000 | footer, /kontakt |
 | `contact.hours` | Ponedjeljak – petak, 09:00 – 17:00 | /kontakt |
 | `service.replyTime` | u toku istog dana | /kontakt (text and search snippet), FAQ |

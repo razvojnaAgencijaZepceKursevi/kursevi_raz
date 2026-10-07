@@ -21,7 +21,7 @@ import Logo from '@/components/layout/Logo';
  * deliberately absent from the signed-in shells, which have their own
  * navigation and no use for a marketing footer.
  */
-/** "Katedra d.o.o. · Adresa · ID: …" — only the parts that are filled in. */
+/** "Edubox d.o.o. · Adresa · ID: …" — only the parts that are filled in. */
 const companyLine = [
   SITE.company.legalName,
   SITE.company.address,

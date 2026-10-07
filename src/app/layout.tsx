@@ -29,7 +29,9 @@ const geistMono = Geist_Mono({
  * `pageMetadata()` in `src/lib/seo.ts`; these cover the rest.
  *
  * - `template` appends the brand to every title, so a page declares only its
- *   own name (`title: 'Kontakt'` → "Kontakt — Katedra").
+ *   own name (`title: 'Kontakt'` → "Kontakt — Edubox"). The suffix is the short
+ *   name; the full one is already in the home page's title and in every
+ *   description.
  * - `metadataBase` turns relative canonical and image paths into absolute URLs,
  *   which both require.
  * - `robots` blocks indexing on Vercel preview deployments. A page cannot turn
@@ -38,7 +40,7 @@ const geistMono = Geist_Mono({
 export const metadata: Metadata = {
   metadataBase: new URL(publicEnv.siteUrl),
   applicationName: SITE.name,
-  title: { default: SITE.name, template: `%s — ${SITE.name}` },
+  title: { default: SITE.name, template: `%s — ${SITE.shortName}` },
   description: SITE.description,
   openGraph: {
     type: 'website',

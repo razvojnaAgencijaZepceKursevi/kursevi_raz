@@ -2098,6 +2098,28 @@ course-scoped page, add it there or it is URL-only.
   `title.absolute`. Note "Kursevi" is still correct as the _nav label_ for the courses
   list — only the brand moved.
 
+- **The brand is "Edubox Žepče" (`SITE.name`), "Edubox" for short (`SITE.shortName`).**
+  Full where the platform introduces itself — home page title, meta descriptions, footer
+  copyright, emails, the certificate, the share image. Short where space is tight or the
+  full name is already on screen — the logo, the admin sidebar, the `%s — Edubox` title
+  suffix, the API docs, "Zašto Edubox". Neither is ever typed out in a component.
+
+- **The logo mark exists in three forms, and they must change together.**
+  `public/logo.svg` is what browsers load (via `<Logo />` / `<LogoMark />`);
+  `src/app/icon.svg` is the same artwork padded square for the favicon, with
+  `favicon.ico` and `apple-icon.png` rasterised from it; `src/lib/brandMark.ts` holds the
+  raw path data for the two server-side renderers (`/og` draws it in white, the
+  certificate PDF draws it with pdf-lib). Those cannot read `public/` — on Vercel it is
+  not in the function bundle, the certificate-fonts trap again. Emails stay text-only:
+  the template uses no external assets by design, and Gmail does not render SVG.
+
+- **Replacing a `public/` image under the same name serves the old one.** The image
+  optimiser caches per URL + width + quality + format, not per file contents, so after
+  `hero-illustration.jpg` was overwritten, `/_next/image` kept answering with the old
+  picture (`X-Nextjs-Cache: STALE`) while widths that had never been requested showed
+  the new one — the hero looked broken on some screens and not others. **Give a new
+  image a new filename**; that is why the hero is now `hero-classroom.jpg`.
+
 - **`CONTACT_EMAIL_TO` is env even though `SITE.contact.email` exists**, because it is
   the one contact value that should differ per environment: a preview's test messages
   must not land in the real inbox. Unset, it falls back to the public address.

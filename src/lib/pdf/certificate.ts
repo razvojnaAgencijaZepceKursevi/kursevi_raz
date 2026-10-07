@@ -5,6 +5,7 @@ import path from 'node:path';
 import { PDFDocument, rgb, type PDFFont, type PDFPage } from 'pdf-lib';
 import fontkit from '@pdf-lib/fontkit';
 import QRCode from 'qrcode';
+import { BRAND_MARK } from '@/lib/brandMark';
 import { SITE } from '@/lib/siteConfig';
 
 /**
@@ -231,6 +232,19 @@ export async function renderCertificatePdf(input: CertificateDocument): Promise<
    * hung everything off the top and left a dead band across the lower third —
    * a certificate should fill its page.
    */
+  // The mark, centred above the wordmark. drawSvgPath places the path's own
+  // origin (its top-left corner) at x/y and flips the y axis for us.
+  const markHeight = 30;
+  const markScale = markHeight / BRAND_MARK.height;
+  for (const d of BRAND_MARK.paths) {
+    page.drawSvgPath(d, {
+      x: centre - (BRAND_MARK.width * markScale) / 2,
+      y: PAGE_HEIGHT - 44,
+      scale: markScale,
+      color: rgb(12 / 255, 91 / 255, 238 / 255),
+    });
+  }
+
   // The brand as a wordmark; follows SITE.name like the issuer line below.
   drawCentred(page, SITE.name.toUpperCase(), {
     y: PAGE_HEIGHT - 90,

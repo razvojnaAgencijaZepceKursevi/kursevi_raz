@@ -12,7 +12,7 @@ import Section from '@/components/landing/Section';
 import { SITE } from '@/lib/siteConfig';
 
 /**
- * "Zašto Katedra" — the credibility section. A brand-coloured statement panel
+ * "Zašto Edubox" — the credibility section. A brand-coloured statement panel
  * on the left, four short differentiators on the right.
  *
  * Static content: unlike `<FeaturedCourses>` there is no data source, and no
@@ -81,7 +81,7 @@ export default function WhyUs() {
                     variant="overline"
                     sx={{ letterSpacing: 1.2, color: 'inherit', opacity: 0.85 }}
                   >
-                    Zašto {SITE.name}
+                    Zašto {SITE.shortName}
                   </Typography>
                   <Typography variant="h3" sx={{ fontSize: { xs: 28, md: 38 } }}>
                     Znanje koje se provjerava, ne samo gleda

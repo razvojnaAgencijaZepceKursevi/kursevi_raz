@@ -1,5 +1,9 @@
 import { ImageResponse } from 'next/og';
+import { brandMarkSvg } from '@/lib/brandMark';
 import { SITE } from '@/lib/siteConfig';
+
+/** The mark in white — the blue original would vanish into the gradient. */
+const MARK_SRC = `data:image/svg+xml;base64,${Buffer.from(brandMarkSvg('#ffffff')).toString('base64')}`;
 
 /**
  * GET /og — the default share image (1200×630), used by every public page that
@@ -32,8 +36,12 @@ export function GET() {
         color: '#ffffff',
       }}
     >
-      <div style={{ display: 'flex', fontSize: 40, fontWeight: 600, opacity: 0.85 }}>
-        {SITE.name}
+      <div
+        style={{ display: 'flex', alignItems: 'center', gap: 20, fontSize: 40, fontWeight: 600 }}
+      >
+        {/* eslint-disable-next-line @next/next/no-img-element -- ImageResponse renders plain <img> only */}
+        <img src={MARK_SRC} width={60} height={55} alt="" />
+        <span style={{ opacity: 0.85 }}>{SITE.name}</span>
       </div>
       <div style={{ display: 'flex', flexDirection: 'column', gap: 24 }}>
         <div style={{ display: 'flex', fontSize: 84, fontWeight: 700, lineHeight: 1.05 }}>

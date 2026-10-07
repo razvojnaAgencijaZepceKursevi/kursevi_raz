@@ -11,7 +11,7 @@ import Typography from '@mui/material/Typography';
 import AdminNavList from './AdminNavList';
 import type { StaffRole } from './adminNav';
 import AppHeader from '@/components/layout/AppHeader';
-import { SITE } from '@/lib/siteConfig';
+import { LogoMark, LogoName } from '@/components/layout/Logo';
 
 const SIDEBAR_WIDTH = 264;
 
@@ -49,8 +49,13 @@ export default function AdminShell({
         borderColor: 'divider',
       }}
     >
-      <Typography variant="h5" component="span">
-        {SITE.name}
+      <Typography
+        variant="h5"
+        component="span"
+        sx={{ display: 'inline-flex', alignItems: 'center', gap: '0.4em' }}
+      >
+        <LogoMark />
+        <LogoName />
       </Typography>
       <Typography
         variant="overline"

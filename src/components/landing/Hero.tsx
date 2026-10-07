@@ -64,8 +64,8 @@ export default function Hero() {
       {/* Full-width background image, spanning the entire hero. */}
       <Box sx={{ position: 'absolute', inset: 0 }}>
         <Image
-          src="/hero-illustration.jpg"
-          alt="Učenici u učionici podižu ruke"
+          src="/hero-classroom.jpg"
+          alt="Školska klupa s ruksakom, učenici razgovaraju u pozadini"
           fill
           style={{ objectFit: 'cover' }}
           priority

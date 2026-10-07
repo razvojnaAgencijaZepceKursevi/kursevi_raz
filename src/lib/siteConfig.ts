@@ -32,6 +32,7 @@
  */
 type SiteConfig = {
   name: string;
+  shortName: string;
   tagline: string;
   description: string;
   contact: {
@@ -56,10 +57,19 @@ type SiteConfig = {
 const REVIEW_HOURS = 48;
 
 export const SITE: SiteConfig = {
-  /** The brand. Used in page titles, the logo, emails and the certificate PDF. */
-  name: 'Katedra',
+  /**
+   * The brand in full. Wherever the platform introduces itself: the home page
+   * title, meta descriptions, the footer copyright, emails and the certificate.
+   */
+  name: 'Edubox Žepče',
 
-  /** Second half of the home page title: "Katedra — {tagline}". */
+  /**
+   * The brand where space is tight or the full name has already been said: the
+   * logo, the admin sidebar, the "— Edubox" suffix on every page title.
+   */
+  shortName: 'Edubox',
+
+  /** Second half of the home page title: "Edubox Žepče — {tagline}". */
   tagline: 'online kursevi sa certifikatom',
 
   /** One sentence: the footer blurb and the default meta description. */
@@ -67,9 +77,9 @@ export const SITE: SiteConfig = {
 
   contact: {
     /** General enquiries. Also the fallback recipient of the contact form. PLACEHOLDER */
-    email: 'info@katedra.ba',
+    email: 'info@edubox.ba',
     /** Shown on /kontakt for students already enrolled. PLACEHOLDER */
-    supportEmail: 'podrska@katedra.ba',
+    supportEmail: 'podrska@edubox.ba',
     /**
      * `display` is what people read, `tel` is what a phone dials — written
      * separately because spacing that helps reading breaks a `tel:` link.
@@ -126,7 +136,7 @@ export const SITE: SiteConfig = {
    * PLACEHOLDER — all empty until the client provides them.
    */
   company: {
-    /** Registered name, e.g. "Katedra d.o.o." */
+    /** Registered name, e.g. "Edubox d.o.o." */
     legalName: '',
     /** Address of the registered seat. */
     address: '',

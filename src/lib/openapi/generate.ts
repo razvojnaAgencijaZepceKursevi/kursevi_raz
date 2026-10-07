@@ -14,7 +14,7 @@ export function generateOpenApiDocument() {
   return generator.generateDocument({
     openapi: '3.0.0',
     info: {
-      title: `${SITE.name} API`,
+      title: `${SITE.shortName} API`,
       version: '1.0.0',
       description:
         'Backend API for the online courses platform. Every schema below is the exact object ' +
