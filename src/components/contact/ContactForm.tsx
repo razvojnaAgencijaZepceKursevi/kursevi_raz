@@ -58,7 +58,7 @@ export default function ContactForm() {
 
   return (
     <Box component="form" onSubmit={handleSubmit}>
-      <Stack spacing={3}>
+      <Stack spacing={2}>
         <Typography variant="overline" color="primary" sx={{ letterSpacing: 1.2 }}>
           Pošalji upit
         </Typography>
@@ -100,7 +100,7 @@ export default function ContactForm() {
           required
           fullWidth
           multiline
-          minRows={5}
+          minRows={4}
         />
 
         <FormControlLabel

@@ -1,5 +1,5 @@
 {
-  "updatedAt": "2026-10-07T08:07:04.191Z",
+  "updatedAt": "2026-10-07T08:07:09.937Z",
   "sections": {
     "database": {
       "label": "Baza podataka",
@@ -146,8 +146,8 @@
       "label": "Javni sajt",
       "description": "Naslovna, blog, kontakt, SEO i javno zaglavlje",
       "frontend": {
-        "version": "1.21.0",
-        "updatedAt": "2026-10-07T08:07:04.191Z"
+        "version": "1.21.1",
+        "updatedAt": "2026-10-07T08:07:09.937Z"
       },
       "backend": {
         "version": "1.1.2",
@@ -180,6 +180,14 @@
     }
   },
   "history": [
+    {
+      "at": "2026-10-07T08:07:09.937Z",
+      "section": "public",
+      "layer": "frontend",
+      "from": "1.21.0",
+      "to": "1.21.1",
+      "files": 3
+    },
     {
       "at": "2026-10-07T08:07:04.191Z",
       "section": "public",
@@ -971,14 +979,6 @@
       "from": "1.5.0",
       "to": "1.6.0",
       "files": 1
-    },
-    {
-      "at": "2026-08-28T17:30:42+02:00",
-      "section": "core",
-      "layer": "backend",
-      "from": "1.3.2",
-      "to": "1.3.3",
-      "files": 3
     }
   ]
 }

@@ -66,25 +66,37 @@ export default function BlogList({
   return (
     <Stack spacing={5}>
       <Stack spacing={3}>
-        <Stack direction="row" spacing={1} sx={{ flexWrap: 'wrap', gap: 1 }}>
-          {['Sve teme', ...categories].map((c) => (
-            <Chip
-              key={c}
-              label={c}
-              variant={c === category ? 'filled' : 'outlined'}
-              color={c === category ? 'primary' : 'default'}
-              onClick={() => handleFilterChange(c)}
-            />
-          ))}
-        </Stack>
+        <Stack
+          direction={{ xs: 'column', md: 'row' }}
+          spacing={2}
+          sx={{ alignItems: { xs: 'stretch', md: 'center' }, justifyContent: 'space-between' }}
+        >
+          <Stack direction="row" useFlexGap sx={{ flexWrap: 'wrap', gap: 1 }}>
+            {['Sve teme', ...categories].map((c) => (
+              <Chip
+                key={c}
+                label={c}
+                variant={c === category ? 'filled' : 'outlined'}
+                color={c === category ? 'primary' : 'default'}
+                onClick={() => handleFilterChange(c)}
+              />
+            ))}
+          </Stack>
 
-        <TextField
-          placeholder="Pretraži članke"
-          value={search}
-          onChange={(e) => handleSearchChange(e.target.value)}
-          size="small"
-          sx={{ maxWidth: 320 }}
-        />
+          {/* Shorter than the theme's form inputs (paddingBlock 11) so it sits
+              level with the chips beside it rather than towering over them. */}
+          <TextField
+            placeholder="Pretraži članke"
+            value={search}
+            onChange={(e) => handleSearchChange(e.target.value)}
+            size="small"
+            sx={{
+              width: { xs: '100%', md: 280 },
+              flexShrink: 0,
+              '& .MuiInputBase-input': { py: 0.75 },
+            }}
+          />
+        </Stack>
 
         <Divider />
       </Stack>
@@ -125,13 +137,13 @@ export default function BlogList({
 function FeaturedPost({ post }: { post: BlogPost }) {
   return (
     <Grid container spacing={4} sx={{ alignItems: 'center' }}>
-      <Grid size={{ xs: 12, md: 6 }}>
+      <Grid size={{ xs: 12, md: 5 }}>
         {post.image ? (
           <Box
             sx={{
               position: 'relative',
               width: '100%',
-              aspectRatio: '4 / 3',
+              aspectRatio: '3 / 2',
               borderRadius: 2,
               overflow: 'hidden',
             }}
@@ -141,14 +153,14 @@ function FeaturedPost({ post }: { post: BlogPost }) {
               alt={post.image.alt}
               fill
               style={{ objectFit: 'cover' }}
-              sizes="(max-width: 900px) 100vw, 50vw"
+              sizes="(max-width: 900px) 100vw, 42vw"
               priority
             />
           </Box>
         ) : (
           <Box
             sx={{
-              aspectRatio: '4 / 3',
+              aspectRatio: '3 / 2',
               bgcolor: 'action.hover',
               borderRadius: 2,
               display: 'flex',
@@ -163,7 +175,7 @@ function FeaturedPost({ post }: { post: BlogPost }) {
         )}
       </Grid>
 
-      <Grid size={{ xs: 12, md: 6 }}>
+      <Grid size={{ xs: 12, md: 7 }}>
         <Stack spacing={2} component="a" href={`/blog/${post.slug}`} sx={{ textDecoration: 'none', color: 'inherit' }}>
           <Stack direction="row" spacing={1.5} sx={{ alignItems: 'center' }}>
             {post.category && <Chip label={post.category} size="small" color="primary" variant="outlined" />}

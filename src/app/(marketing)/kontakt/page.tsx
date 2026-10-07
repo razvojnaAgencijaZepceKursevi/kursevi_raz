@@ -28,8 +28,8 @@ export const metadata = pageMetadata({
  */
 export default function ContactPage() {
   return (
-    <Container maxWidth="lg" sx={{ py: { xs: 6, md: 8 } }}>
-      <Stack spacing={1} sx={{ mb: 5, maxWidth: 640 }}>
+    <Container maxWidth="lg" sx={{ py: { xs: 3, md: 4 } }}>
+      <Stack spacing={0.75} sx={{ mb: 3, maxWidth: 640 }}>
         <Typography variant="overline" color="primary" sx={{ letterSpacing: 1.2 }}>
           Kontakt
         </Typography>
@@ -42,16 +42,16 @@ export default function ContactPage() {
         </Typography>
       </Stack>
 
-      <Divider sx={{ mb: { xs: 5, md: 6 } }} />
+      <Divider sx={{ mb: { xs: 3, md: 4 } }} />
 
-      <Grid container spacing={{ xs: 5, md: 6 }}>
+      <Grid container spacing={{ xs: 4, md: 6 }}>
         <Grid size={{ xs: 12, md: 7 }}>
           <ContactForm />
         </Grid>
 
         <Grid size={{ xs: 12, md: 5 }}>
-          <Stack spacing={4}>
-            <Stack spacing={2.5}>
+          <Stack spacing={3}>
+            <Stack spacing={1.75}>
               <Typography variant="overline" color="primary" sx={{ letterSpacing: 1.2 }}>
                 Direktan kontakt
               </Typography>
@@ -89,12 +89,12 @@ export default function ContactPage() {
 
             <Divider />
 
-            <Stack spacing={1.5}>
+            <Stack spacing={1}>
               <Typography variant="overline" color="primary" sx={{ letterSpacing: 1.2 }}>
                 Prije nego pišeš
               </Typography>
 
-              <Stack spacing={1}>
+              <Stack spacing={0.75}>
                 <Link href="/#kako-funkcionise" underline="hover" color="text.primary">
                   Kako funkcioniše upis i učenje
                 </Link>
